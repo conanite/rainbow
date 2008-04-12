@@ -1,0 +1,95 @@
+<project name="rainbow" default="run">
+  <description>Rainbow - Arc in Java</description>
+
+  <property name="src" value="src/java"/>
+  <property name="compiler-src" value="src/cc"/>
+  <property name="test-src" value="src/test"/>
+
+  <property name="lib" value="lib"/>
+  <property name="junit" value="${lib}/junit.jar"/>
+  <property name="javacc" value="${lib}/javacc.jar"/>
+
+  <property name="build" value="build/"/>
+  <property name="dist" value="${build}/dist"/>
+  <property name="classes" value="${build}/classes"/>
+  <property name="test-classes" value="${build}/test-classes"/>
+  <property name="jarfile" value="${dist}/rainbow.jar"/>
+  <property name="src-jarfile" value="${dist}/rainbow-src.zip"/>
+
+  <target name="clean">
+    <delete dir="${build}"/>
+  </target>
+
+  <target name="compile-parser">
+    <java classname="javacc" classpath="${javacc}" fork="true">
+      <arg line="-output_directory=${src}/rainbow/parser ${compiler-src}/arc.grammar"/>
+    </java>
+  </target>
+
+  <target name="compile-sources" depends="compile-parser">
+    <mkdir dir="${classes}"/>
+    <javac srcdir="${src}" destdir="${classes}" debug="on" source="1.5" target="1.5"/>
+    <copy todir="${classes}">
+      <fileset dir="${src}">
+        <include name="**/*"/>
+        <exclude name="**/*.java"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="compile-tests">
+    <mkdir dir="${test-classes}"/>
+    <javac srcdir="${test-src}" destdir="${test-classes}" debug="on" source="1.5" target="1.5">
+      <classpath>
+        <pathelement path="${classes}"/>
+        <pathelement path="${junit}"/>
+      </classpath>
+    </javac>
+    <copy todir="${test-classes}">
+      <fileset dir="${test-src}">
+        <include name="**/*"/>
+        <exclude name="**/*.java"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="compile" depends="compile-sources, compile-tests"/>
+
+  <target name="run" depends="compile">
+    <java classname="rainbow.Console" classpath="${classes}"/>
+  </target>
+
+  <target name="test" depends="compile">
+    <java classname="junit.textui.TestRunner">
+      <arg line="rainbow.functions.AllTests"/>
+      <classpath>
+        <pathelement path="${classes}"/>
+        <pathelement path="${test-classes}"/>
+        <pathelement path="${junit}"/>
+      </classpath>
+    </java>
+  </target>
+
+  <target name="bsv" depends="compile">
+    <java classname="rainbow.Console" classpath="${classes}" args="'(bsv)'"/>
+  </target>
+
+  <target name="jar" depends="compile">
+    <mkdir dir="${dist}"/>
+    <jar file="${jarfile}" basedir="${classes}" manifest="src/MANIFEST.MF">
+      <fileset dir="${classes}"/>
+      <fileset dir=".">
+        <include name="LICENSE.txt"/>
+      </fileset>
+    </jar>
+    <zip file="${src-jarfile}">
+      <fileset dir="..">
+        <include name="rainbow/src/**"/>
+        <include name="rainbow/${lib}/**"/>
+        <include name="rainbow/LICENSE.txt"/>
+        <include name="rainbow/rainbow.*"/>
+        <include name="rainbow/build.xml"/>
+      </fileset>
+    </zip>
+  </target>
+</project>

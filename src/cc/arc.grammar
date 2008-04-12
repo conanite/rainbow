@@ -1,0 +1,195 @@
+options
+{
+    JAVA_UNICODE_ESCAPE=false;
+    UNICODE_INPUT=true;
+    LOOKAHEAD=1;
+    STATIC=false;
+}
+PARSER_BEGIN(ArcParser)
+package rainbow.parser;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.FileNotFoundException;
+import rainbow.*;
+import rainbow.types.*;
+
+public class ArcParser {
+  String source;
+
+  public ArcParser(File source) throws FileNotFoundException {
+    this(new FileInputStream(source));
+    this.source = source.getPath();
+  }
+
+  public ArcParser(String expression) {
+    this(new ByteArrayInputStream(expression.getBytes()));
+    this.source = "<inline>";
+  }
+
+  public ArcParser(String sourceName, InputStream in) {
+    this(in);
+    this.source = sourceName;
+  }
+
+  private static String stripQuotes(String s) {
+    return s.substring(1, s.length() - 1);
+  }
+}
+PARSER_END(ArcParser)
+SKIP : { " " | "\r" | "\n" | "\t" }
+
+TOKEN: /* rational */
+{
+    < FRACTION : <INTEGER> "/" <UNSIGNED_INTEGER> >
+}
+
+/*
+TOKEN:
+{
+    < COMPLEX : (<INTEGER>|<FRACTION>|<DOUBLE>) <SIGN> (<UNSIGNED_INTEGER> ( "/" <UNSIGNED_INTEGER> )? | <UNSIGNED_DOUBLE>) "i" >
+}
+*/
+
+TOKEN: /* double, integer */
+{
+    < DOUBLE            : (<SIGN>)? <UNSIGNED_DOUBLE>       >
+|   < UNSIGNED_DOUBLE   : <DOUBLE1> | <DOUBLE2>             >
+|   < #DOUBLE1          : <UNSIGNED_INTEGER> ["E","e"] <INTEGER> >
+|   < #DOUBLE2          : (<UNSIGNED_INTEGER>)? "." <UNSIGNED_INTEGER>  ( ["E","e"] <INTEGER> )? >
+|   < INTEGER           : (<SIGN>)? <UNSIGNED_INTEGER>      >
+|   < #UNSIGNED_INTEGER : (<DIGIT>)+                        >
+|   < DIGIT             : ["0"-"9"]                         >
+|   < #SIGN             : ["+","-"]                         >
+}
+
+TOKEN : /* identifier */
+{
+  < IDENTIFIER : <INITIAL> ( <SUBSEQUENT> )* >
+| < #INITIAL : <LETTER> | <SPECIAL_INITIAL> >
+| < #LETTER : ["a"-"z","A"-"Z"] >
+| < #SPECIAL_INITIAL : ["+","-","$","%","&","*","/","<","=",">","?","^","_","~", "|"] >
+| < #SPECIAL_SUBSEQUENT : [".","!",":"] >
+| < #SUBSEQUENT : <INITIAL> | <DIGIT> | <SPECIAL_SUBSEQUENT> >
+}
+
+TOKEN : /* string */
+{
+  < STRING : "\"" ( <STRING_ELEMENT> )* "\"" >
+| < #STRING_ELEMENT : ~["\"","\\"] | "\\" ["\"","\\", "n"] >
+}
+
+TOKEN : /* dot - cons separator */
+{
+  < DOT : "." >
+}
+
+TOKEN : /* characters */
+{
+  < CHARACTER            : <SINGLE_CHARACTER> | <TAB_CHARACTER> | <RETURN_CHARACTER> | <SPACE_CHARACTER> | <NEWLINE_CHARACTER> | <NULL_CHARACTER> | <ASCII_CHARACTER> | <UNICODE_CHARACTER> >
+| < #SINGLE_CHARACTER    : "#\\" (<SUBSEQUENT> | ["A"-"Z"] | [",","?","'","\"","`",";","#","(",")","[","]","{","}"])  >
+| < #NEWLINE_CHARACTER   : "#\\newline"                                                       >
+| < #TAB_CHARACTER       : "#\\tab"                                                           >
+| < #SPACE_CHARACTER     : "#\\space"                                                         >
+| < #RETURN_CHARACTER    : "#\\return"                                                        >
+| < #NULL_CHARACTER      : "#\\null"                                                          >
+| < #ASCII_CHARACTER     : "#\\" <DIGIT> (<DIGIT>)+                                           >
+| < #UNICODE_CHARACTER   : "#\\" ["u", "U"] (["0"-"9", "a"-"f", "A"-"F"])+                    >
+}
+
+SKIP : /* comment */
+{
+  < COMMENT : ";" (~["\n"])* "\n" >
+}
+
+ArcObject parseOneLine():     { ArcObject x; } {
+    x=expression()            { return x;    }
+  | <EOF>                     { return null; }
+}
+
+ArcObject expression():       { ArcObject o; } {
+  (
+    o = list()
+  | o = atom()
+  | o = quote()
+  | o = unQuote()
+  | o = unQuoteSplicing()
+  | o = quasiQuote()
+  | o = functionShortcut()
+  )                           { return o; }
+}
+
+ArcObject quote():            { Token tok; ArcObject o; } {
+  tok = "'"
+  o = expression()            { return Pair.buildFrom(Symbol.make("quote").source(source, tok), o).source(source, tok); }
+}
+
+ArcObject unQuote():          { Token tok; ArcObject o; } {
+  tok = ","
+  o = expression()            { return Pair.buildFrom(Symbol.make("unquote").source(source, tok), o).source(source, tok); }
+}
+
+ArcObject unQuoteSplicing():  { Token tok; ArcObject o; } {
+  tok = ",@"
+  o = expression()            { return Pair.buildFrom(Symbol.make("unquote-splicing").source(source, tok), o).source(source, tok); }
+}
+
+ArcObject quasiQuote():       { Token tok; ArcObject o; } {
+  tok = "`"
+  o = expression()            { return Pair.buildFrom(Symbol.make("quasiquote").source(source, tok), o).source(source, tok); }
+}
+
+ArcObject functionShortcut(): {
+                                Token tok;
+                                List list = new LinkedList();
+                                List fn = new LinkedList();
+                                fn.add(Symbol.make("fn"));
+                                fn.add(Pair.buildFrom(Symbol.make("_")));
+                                ArcObject o;
+                              } {
+  tok = "[" (
+  o = expression()            { list.add(o); }
+  )+ "]"                      {
+                                fn.add(Pair.buildFrom(list));
+                                return Pair.buildFrom(fn).source(source, tok);
+                              }
+}
+
+ArcObject list():             {
+                                Token start;
+                                ArcObject item;
+                                ArcObject last = ArcObject.NIL;
+                                List<ArcObject> list = new LinkedList();
+                              } {
+  start = "("
+    ( LOOKAHEAD(2)
+      item = expression()     { list.add(item);                                           }
+    )*
+    (
+      <DOT> last = expression()
+    )?
+  ")"                         {
+                                if (list.size() > 0) {
+                                  return Pair.buildFrom(list, last).source(source, start);
+                                } else if (last != ArcObject.NIL) {
+                                  generateParseException();
+                                } else {
+                                  return new Pair().source(source, start);
+                                }
+                              }
+}
+
+ArcObject atom():             { Token s; ArcObject o; } {
+  (
+    s=<INTEGER>               { return Rational.make(Long.parseLong(s.toString()), 1).source(source, s);  }
+  | s=<DOUBLE>                { return Real.parse(s.toString()).source(source, s);                   }
+  | s=<FRACTION>              { return Rational.parse(s.toString()).source(source, s);                    }
+  | s=<STRING>                { return ArcString.parse(stripQuotes(s.toString())).source(source, s);      }
+  | s=<IDENTIFIER>            { return Symbol.make(s.toString()).source(source, s);                       }
+  | s=<CHARACTER>             { return ArcCharacter.make(s.toString()).source(source, s);                 }
+  )
+}

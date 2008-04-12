@@ -1,0 +1,5 @@
+This software is copyright (c) Conan Dalton 2008. All  Rights Reserved. Permission to use it is granted under the Perl Foundations's Artistic License 2.0.
+
+This software includes software that is copyright (c) Paul Graham and Robert Morris, distributed under the Perl Foundations's Artistic License 2.0.
+
+This software uses junit and javacc which are copyright (c) their respective authors
