@@ -205,7 +205,6 @@ Connection: close")
     (apply pr msg args)))
 
 (def parseheader (lines)
-  (prn "parseheader " lines)
   (let (type op args) (parseurl (car lines))
     (list type
           op
