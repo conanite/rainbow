@@ -22,16 +22,12 @@ public class FunctionBodyBuilder extends ContinuationSupport {
   }
 
   public void start() {
-    new PairExpander(thread, namespace, this, body).start(); // todo caller should instantiate PairExpander and pass FunctionBodyBuilder as eater
+    Continuation macex = new MacExpander(thread, namespace, this, false);
+    new PairExpander(thread, namespace, macex, body).start(); // todo caller should instantiate PairExpander and pass FunctionBodyBuilder as eater
   }
 
   protected void digest(ArcObject returned) {
-    Pair expandedBody = (Pair) returned;
-    whatToDo.eat(buildFunctionBody(expandedBody));
-  }
-
-  private ArcObject buildFunctionBody(Pair expandedBody) {
-    return new InterpretedFunction(parameters, expandedBody, namespace);
+    new FunctionParameterListBuilder(thread, namespace, whatToDo, (Pair) returned, parameters).start();
   }
 
   public Continuation cloneFor(ArcThread thread) {

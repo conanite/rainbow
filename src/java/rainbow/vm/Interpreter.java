@@ -1,15 +1,17 @@
 package rainbow.vm;
 
-import rainbow.Bindings;
-import rainbow.InterpretationError;
 import rainbow.ArcError;
+import rainbow.Bindings;
 import rainbow.Function;
+import rainbow.InterpretationError;
 import rainbow.functions.Evaluation;
 import rainbow.functions.InterpretedFunction;
 import rainbow.functions.Threads;
-import rainbow.vm.continuations.FunctionDispatcher;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
+import rainbow.vm.continuations.Compiler;
+import rainbow.vm.continuations.EvaluatorContinuation;
+import rainbow.vm.continuations.FunctionDispatcher;
 
 public class Interpreter {
   public static boolean debug = false;
@@ -66,6 +68,11 @@ public class Interpreter {
 
   public String toString() {
     return getClass().getSimpleName() + ": " + expression + " : " + whatToDo;
+  }
+
+  public static void compileAndEval(ArcThread thread, Bindings namespace, Continuation whatToDo, ArcObject expression) {
+    EvaluatorContinuation ec = new EvaluatorContinuation(thread, namespace, whatToDo);
+    Compiler.compile(thread, namespace, ec, expression);
   }
 }
 

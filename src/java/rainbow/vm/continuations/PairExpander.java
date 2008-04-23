@@ -13,31 +13,33 @@ public class PairExpander extends ContinuationSupport {
   private ArcObject body;
   private List result = new LinkedList();
   private boolean atLast;
+  private Pair original;
 
   public PairExpander(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair expressions) {
     super(thread, namespace, whatToDo);
     this.body = expressions;
+    this.original = expressions;
   }
 
   public void start() {
-    if (body.isNil()) {
-      whatToDo.eat(Pair.buildFrom(result));
-      return;
-    }
-
-    if (body instanceof Pair) {
+    if (!body.isNil() && body instanceof Pair) {
       ArcObject next = body.car();
       body = body.cdr();
-      new ExpressionCompiler(thread, namespace, this, next).start();
+      compile(next);
     } else {
       atLast = true;
-      new ExpressionCompiler(thread, namespace, this, body).start();
+      compile(body);
     }
+  }
+
+  private void compile(ArcObject next) {
+    Compiler.compile(thread, namespace, this, next);
   }
 
   protected void digest(ArcObject returned) {
     if (atLast) {
       Pair expandedBody = Pair.buildFrom(result, returned);
+      expandedBody.sourceFrom(original);
       whatToDo.eat(expandedBody);
     } else {
       result.add(returned);

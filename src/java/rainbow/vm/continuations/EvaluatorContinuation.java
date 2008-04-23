@@ -7,18 +7,11 @@ import rainbow.Bindings;
 import rainbow.types.ArcObject;
 
 public class EvaluatorContinuation extends ContinuationSupport {
-  private ArcObject sourceInvocation;
-
-  public EvaluatorContinuation(ArcThread thread, Bindings namespace, Continuation whatToDo, ArcObject functionName) {
+  public EvaluatorContinuation(ArcThread thread, Bindings namespace, Continuation whatToDo) {
     super(thread, namespace, whatToDo);
-    sourceInvocation = functionName;
   }
 
   public void digest(ArcObject o) {
     Interpreter.interpret(thread, namespace, whatToDo, o);
-  }
-
-  protected ArcObject getCurrentTarget() {
-    return sourceInvocation;
   }
 }

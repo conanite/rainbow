@@ -55,7 +55,7 @@ public class ArgumentEvaluator extends ContinuationSupport {
     return ae;
   }
 
-  public String toString() {
-    return "ArgumentEvaluator: evaluated " + evaluatedArgs + "; evaluating " + args + " for " + whatToDo;
-  }
+//  public String toString() {
+//    return "ArgumentEvaluator: evaluated " + evaluatedArgs + "; evaluating " + args + " for " + whatToDo;
+//  }
 }

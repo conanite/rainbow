@@ -37,7 +37,13 @@ public class Tables {
     private ArcObject srefList(Pair args) {
       Pair target = (Pair) args.car();
       ArcObject newValue = args.cdr().car();
-      Rational index = (Rational) args.cdr().cdr().car();
+      Rational index = null;
+      try {
+        index = cast(args.cdr().cdr().car(), Rational.class);
+      } catch (ArcError e) {
+        System.out.println("trying to sref " + args);
+        throw e;
+      }
       if (index.toInt() >= target.size()) {
         throw new ArcError("sref: cannot set index " + index + " of list with " + target.size() + " elements");
       }

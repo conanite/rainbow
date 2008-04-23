@@ -3,9 +3,7 @@ package rainbow;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Interpreter;
 import rainbow.vm.continuations.TopLevelContinuation;
-import rainbow.vm.continuations.PairExpander;
-import rainbow.vm.continuations.EvaluatorContinuation;
-import rainbow.vm.continuations.ExpressionCompiler;
+import rainbow.vm.continuations.ContinuationSupport;
 import rainbow.types.ArcObject;
 import rainbow.parser.ParseException;
 import rainbow.parser.ArcParser;
@@ -14,6 +12,18 @@ import java.io.*;
 
 public class Console {
   public static void main(String args[]) throws ParseException, IOException {
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      public void run() {
+        int total = 0;
+        for (Object o : ContinuationSupport.instances.keySet()) {
+          Integer count = (Integer) ContinuationSupport.instances.get(o);
+          total += count;
+          System.out.println(o + "\t\t: " + count);
+        }
+        System.out.println("total : " + total);
+      }
+    });
+
     Bindings arc = new Bindings();
     loadResource(arc, "/arc/arc.arc");
     loadResource(arc, "/arc/strings.arc");
@@ -57,12 +67,13 @@ public class Console {
   }
 
   private static void interpret(Bindings arc, ArcObject expression) {
-    ArcThread thread = new ArcThread();
-    TopLevelContinuation top = new TopLevelContinuation(thread);
-    Interpreter.interpret(thread, arc, top, expression);
+//    ArcThread thread = new ArcThread();
+//    TopLevelContinuation top = new TopLevelContinuation(thread);
+//    Interpreter.interpret(thread, arc, top, expression);
     try {
-      thread.run();
-      System.out.println(thread.finalValue());
+      System.out.println(compileAndEval(arc, expression));
+//      thread.run();
+//      System.out.println(thread.finalValue());
     } catch (ArcError e) {
       System.out.println(e.getMessage());
       System.out.println(e.getStacktrace());
@@ -76,17 +87,19 @@ public class Console {
     ArcParser parser = new ArcParser(resource, Console.class.getResourceAsStream(resource));
     ArcObject expression = parser.parseOneLine();
     while (expression != null) {
-      ArcThread thread = new ArcThread();
       System.out.print(".");
-      TopLevelContinuation topLevel = new TopLevelContinuation(thread);
-//      EvaluatorContinuation ec = new EvaluatorContinuation(thread, arc, topLevel, ArcObject.NIL);
-//      ExpressionCompiler compiler = new ExpressionCompiler(thread, arc, ec, expression);
-//      compiler.start();
-      Interpreter.interpret(thread, arc, topLevel, expression);
-      thread.run();
-      thread.finalValue();
+      compileAndEval(arc, expression);
       expression = parser.parseOneLine();
     }
     System.out.println();
   }
+
+  private static ArcObject compileAndEval(Bindings arc, ArcObject expression) {
+    ArcThread thread = new ArcThread();
+    TopLevelContinuation topLevel = new TopLevelContinuation(thread);
+    Interpreter.compileAndEval(thread, arc, topLevel, expression);
+    thread.run();
+    return thread.finalValue();
+  }
+
 }

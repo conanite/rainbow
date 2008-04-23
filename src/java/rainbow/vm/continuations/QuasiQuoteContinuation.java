@@ -47,6 +47,9 @@ public class QuasiQuoteContinuation extends ContinuationSupport {
         Interpreter.interpret(thread, namespace, this, current.cdr().car());
       } else if (isUnQuoteSplicing(current)) {
         Interpreter.interpret(thread, namespace, new UnquoteSplicer(this, result), current.cdr().car());
+      } else if (isQuasiQuote(current)) {
+        append(current);
+        repeat();
       } else if (isPair(current)) {
         new QuasiQuoteContinuation(thread, namespace, this, current, source).start();
       } else {
@@ -62,16 +65,22 @@ public class QuasiQuoteContinuation extends ContinuationSupport {
     result.add(first);
   }
 
-  private static boolean isUnQuote(ArcObject expression) {
-    if (!isPair(expression)) return false;
-    ArcObject first = expression.car();
-    return (first instanceof Symbol && ((Symbol) first).name().equals("unquote"));
+  public static boolean isUnQuote(ArcObject expression) {
+    return carIs(expression, "unquote");
   }
 
-  private static boolean isUnQuoteSplicing(ArcObject expression) {
+  public static boolean isUnQuoteSplicing(ArcObject expression) {
+    return carIs(expression, "unquote-splicing");
+  }
+
+  public static boolean isQuasiQuote(ArcObject expression) {
+    return carIs(expression, "quasiquote");
+  }
+
+  private static boolean carIs(ArcObject expression, String name) {
     if (!isPair(expression)) return false;
     ArcObject first = expression.car();
-    return (first instanceof Symbol && ((Symbol) first).name().equals("unquote-splicing"));
+    return (first instanceof Symbol && ((Symbol) first).name().equals(name));
   }
 
   private static boolean isPair(ArcObject expression) {

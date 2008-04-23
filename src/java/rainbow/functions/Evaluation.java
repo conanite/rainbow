@@ -39,7 +39,7 @@ public class Evaluation {
 
   public static class Eval extends Builtin {
     public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
-      Interpreter.interpret(thread, namespace, whatToDo, args.car());
+      Interpreter.compileAndEval(thread, namespace, whatToDo, args.car());
     }
   }
 

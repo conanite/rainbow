@@ -5,6 +5,7 @@ import rainbow.ArcError;
 import rainbow.Bindings;
 import rainbow.Function;
 import rainbow.Nil;
+import rainbow.functions.Builtin;
 import rainbow.parser.Token;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
@@ -66,15 +67,19 @@ public class Pair extends ArcObject implements Function {
     if (cdr instanceof Pair) {
       Pair rest = (Pair) cdr;
       if (rest.isNil()) {
-        return car.toString();
+        return toString(car);
       } else {
-        return car + " " + rest.internalToString();
+        return toString(car) + " " + rest.internalToString();
       }
     } else if (cdr.isNil()) {
-      return car.toString();
+      return toString(car);
     } else {
-      return car + " . " + cdr;
+      return toString(car) + " . " + toString(cdr);
     }
+  }
+
+  private String toString(ArcObject object) {
+    return (car instanceof Builtin ? car.getClass().getSimpleName() : object.toString());
   }
 
   public void setCar(ArcObject item) {

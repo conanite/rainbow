@@ -5,48 +5,48 @@ import rainbow.vm.Continuation;
 import rainbow.Bindings;
 import rainbow.Function;
 import rainbow.functions.Evaluation;
-import rainbow.functions.Macex;
 import rainbow.types.Pair;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 import rainbow.types.Tagged;
 
-public class ExpressionCompiler extends ContinuationSupport {
-  private ArcObject expression;
+public class Compiler extends ContinuationSupport {
+  private Pair expression;
 
-  public ExpressionCompiler(ArcThread thread, Bindings namespace, Continuation whatToDo, ArcObject expression) {
+  public Compiler(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair expression) {
     super(thread, namespace, whatToDo);
     this.expression = expression;
   }
 
-  public void start() {
+  public static void compile(ArcThread thread, Bindings namespace, Continuation whatToDo, ArcObject expression) {
     if (expression.isNil()) {
       whatToDo.eat(expression);
     } else if (Evaluation.isSpecialSyntax(expression)) {
-      expression = Evaluation.ssExpand(expression);
-      start();
+      ArcObject ssExpanded = Evaluation.ssExpand(expression);
+      ssExpanded.sourceFrom(expression);
+      compile(thread, namespace, whatToDo, ssExpanded);
     } else if (expression instanceof Pair) {
-      expand((Pair) expression);
+      new Compiler(thread, namespace, whatToDo, (Pair) expression).start();
     } else {
       whatToDo.eat(expression);
     }
   }
 
-  private void expand(Pair pair) {
-    Function f = getMacro(pair);
+  public void start() {
+    Function f = getMacro(expression);
     if (f != null) {
-      f.invoke(thread, namespace, this, (Pair) pair.cdr());
+      f.invoke(thread, namespace, this, (Pair) expression.cdr());
     } else {
-      ArcObject fun = pair.car();
+      ArcObject fun = expression.car();
       if (Symbol.is("quote", fun)) {
-        whatToDo.eat(pair);
-      } else if (Symbol.is("quasiquote", fun)) {
-        whatToDo.eat(pair);
+        whatToDo.eat(expression);
+      } else if (Symbol.is("quasiquote", fun)) { //
+        Rebuilder rebuilder = new Rebuilder(thread, namespace, whatToDo, QuasiQuoteCompiler.QUASIQUOTE);
+        QuasiQuoteCompiler.compile(thread, namespace, rebuilder, expression.cdr().car());
       } else if (Symbol.is("fn", fun)) {
-        new FunctionBodyBuilder(thread, namespace, whatToDo, (Pair) pair.cdr()).start();
-//        new PairExpander(thread, namespace, new MacExpander(thread, namespace, whatToDo, false), pair).start();
+        new FunctionBodyBuilder(thread, namespace, whatToDo, (Pair) expression.cdr()).start();
       } else {
-        new PairExpander(thread, namespace, new MacExpander(thread, namespace, whatToDo, false), pair).start();
+        new PairExpander(thread, namespace, new MacExpander(thread, namespace, this, false), expression).start();
       }
     }
   }
@@ -70,8 +70,7 @@ public class ExpressionCompiler extends ContinuationSupport {
     if (expression.equals(returned)) {
       whatToDo.eat(expression);
     } else {
-      expression = returned;
-      start();
+      compile(thread, namespace, whatToDo, returned);
     }
   }
 }

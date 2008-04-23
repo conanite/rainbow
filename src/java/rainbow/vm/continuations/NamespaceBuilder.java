@@ -60,7 +60,7 @@ public class NamespaceBuilder extends ContinuationSupport {
     args = (Pair) args.cdr();
   }
 
-  private boolean optional(ArcObject nextParameter) {
+  public static boolean optional(ArcObject nextParameter) {
     if (!(nextParameter instanceof Pair)) {
       return false;
     }

@@ -4,6 +4,7 @@ import rainbow.vm.Continuation;
 import rainbow.vm.ArcThread;
 import rainbow.Function;
 import rainbow.Bindings;
+import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 
@@ -24,6 +25,10 @@ public class FunctionInvoker extends ContinuationSupport {
   }
 
   public String toString() {
-    return "FunctionInvoker for " + function + "; to return to " + whatToDo;
+    return "FunctionInvoker for " + functionName() + "; to return to " + whatToDo;
+  }
+
+  private String functionName() {
+    return function instanceof Builtin ? function.getClass().getSimpleName() : function.toString();
   }
 }

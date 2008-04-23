@@ -28,10 +28,6 @@ public class Macex extends Builtin {
     }
     Symbol macroName = (Symbol) macCall;
     ArcObject macro = namespace.lookup(macroName.name());
-    if (macroName.name().equals("act-of-god")) {
-      System.out.println("looking up macro for " + macroName + "; found " + macro);
-      System.out.println(namespace.fullNamespace());
-    }
     if (macro == null) {
       whatToDo.eat(expression);
       return;

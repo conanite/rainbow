@@ -1,13 +1,18 @@
 (mac act-of-god () 'earthquake)
 (mac my-mac (x y) `(+ ,x ,y))
 (mac my-plus (x y) `(+ ,x ,y))
+(mac plusall args `(+ ,@args))
 (mac the-mac args (if (is nil args) 1 `(* ,(car args) (the-mac ,@(cdr args)))))
 (mac make-pair (a b) `(cons ,a ,b))
 (mac new-repeat-mac (x n) (if (is n 0) nil `(make-pair ,x (new-repeat-mac ,x ,(- n 1)))))
 
+(mac overwrite (after) `(+ ,after 3))
+
+
+
 (set show-failed-only t)
 
-(prn (run-tests '(suite "All Tests"
+(set test-suite '(suite "All Tests"
   (suite "Special Forms"
     (suite "Quotation"
       (suite "quote"
@@ -24,31 +29,31 @@
           (1 2 3))
 
         ("quotes a list of symbols"
-          (quote (foo bar))
-          (foo bar))
+          (quote (fooble bar))
+          (fooble bar))
 
         ("quote char as shortcut"
-          'foo
-          foo )
+          'foogle
+          foogle )
       )
 
       (suite "quasiquote"
         ("quasi-quotation"
-          '`foo
-          (quasiquote foo) )
+          '`qqfoo
+          (quasiquote qqfoo) )
 
         ("unquote"
-          ',foo
-          (unquote foo)
+          ',uqfoo
+          (unquote uqfoo)
         )
 
         ("unquote-splicing"
-          ',@foo
-          (unquote-splicing foo) )
+          ',@uqsfoo
+          (unquote-splicing uqsfoo) )
 
         ("quasi-quotation is just like quotation"
-          `foo
-          foo )
+          `qqqfoo
+          qqqfoo )
 
         ("quasiquotation unquote is identity"
           ( (fn (x) `,x) "foo" )
@@ -73,6 +78,15 @@
         ("quasiquotation of list with unquote-splicing in first position"
           `(,@(cons 3 (cons 4 nil)) a b c ,(+ 0 5))
           (3 4 a b c 5) )
+
+        ("don't expand nested quasiquotes"
+          `(* 17 ,(plusall 1 2 3) `(+ 1 ,(plusall 1 2 3)))
+          (* 17 6 `(+ 1 ,(plusall 1 2 3))))
+
+        ("quasiquote uses local namespace"
+          ((fn (x) (overwrite (+ x x))) 7)
+          17
+        )
       )
     )
 
@@ -1344,4 +1358,7 @@
 ;         ( (fn (a b . c) (* (- a b) (apply + c))) 20 15 19 20 21)
 ; (also commented-out code)
   )
-)))
+))
+
+(prn (run-tests test-suite))
+

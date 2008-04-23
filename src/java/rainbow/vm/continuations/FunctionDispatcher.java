@@ -16,14 +16,16 @@ public class FunctionDispatcher extends ContinuationSupport {
     super(thread, namespace, whatToDo);
     this.args = args;
     this.functionName = functionName;
+//    System.out.println("dispatching " + functionName  + " with args " + args);
   }
 
   public void digest(ArcObject fn) {
     if (fn.isNil()) {
       throw new ArcError("Function " + functionName + " is " + fn);
-    } else if (Tagged.hasTag(fn, "mac")) {
-      Function macro = (Function) ((Tagged)fn).getRep();
-      macro.invoke(thread, namespace, new EvaluatorContinuation(thread, namespace, whatToDo, functionName), (Pair) args);
+//    } else if (Tagged.hasTag(fn, "mac")) {
+//      Function macro = (Function) ((Tagged)fn).getRep();
+//      System.out.println("invoking macro " + macro + " with args " + args);
+//      macro.invoke(thread, namespace, new EvaluatorContinuation(thread, namespace, whatToDo), (Pair) args);
     } else if (fn instanceof SpecialForm) {
       SpecialForm special = (SpecialForm) fn;
       special.invoke(thread, namespace, whatToDo, (Pair) args);
@@ -31,7 +33,7 @@ public class FunctionDispatcher extends ContinuationSupport {
       Function function = (Function) fn;
       new ArgumentEvaluator(thread, namespace, new FunctionInvoker(thread, namespace, whatToDo, function), (Pair) args).start();
     } else {
-      throw new ArcError("Expected a function or macro: got " + fn);
+      throw new ArcError("Expected a function or macro: got " + fn + " with args " + args);
     }
   }
 
