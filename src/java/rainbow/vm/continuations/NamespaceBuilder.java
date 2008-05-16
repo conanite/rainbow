@@ -1,6 +1,6 @@
 package rainbow.vm.continuations;
 
-import rainbow.Bindings;
+import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
@@ -9,45 +9,55 @@ import rainbow.vm.Continuation;
 import rainbow.vm.Interpreter;
 
 public class NamespaceBuilder extends ContinuationSupport {
-  private ArcObject originalParameters;
-  private Pair originalArgs;
+  private static final Symbol o = (Symbol) Symbol.make("o");
   private ArcObject parameters;
   private Pair args;
 
-  public NamespaceBuilder(ArcThread thread, Bindings namespace, Continuation whatToDo, ArcObject parameters, Pair arguments) {
-    super(thread, namespace, whatToDo);
+  private NamespaceBuilder(ArcThread thread, LexicalClosure lc, Continuation whatToDo, ArcObject parameters, Pair arguments) {
+    super(thread, lc, whatToDo);
     this.parameters = parameters;
     this.args = arguments;
-    this.originalParameters = parameters;
-    this.originalArgs = arguments;
+  }
+
+  public static void build(ArcThread thread, LexicalClosure lc, Continuation whatToDo, ArcObject parameters, Pair arguments) {
+    if (parameters.isNil()) {
+      whatToDo.receive(parameters);
+    } else {
+      try {
+        new NamespaceBuilder(thread, lc, whatToDo, parameters, arguments).start();
+      } catch (Error e) {
+        System.out.println("Error building namespace for params " + parameters + " and args " + arguments);
+        e.printStackTrace(System.out);
+        throw e;
+      }
+    }
   }
 
   public void start() {
     if (parameters.isNil()) {
-      whatToDo.eat(parameters);
+      caller.receive(parameters);
       return;
     } else if (parameters instanceof Symbol) {
-      namespace.addToLocalNamespace(((Symbol) parameters).name(), args);
-      whatToDo.eat(parameters);
+      lc.add(args);
+      caller.receive(parameters);
       return;
     }
     ArcObject nextParameter = parameters.car();
     ArcObject nextArg = args.car();
     if (nextParameter instanceof Symbol) {
-      namespace.addToLocalNamespace(((Symbol) nextParameter).name(), nextArg);
+      lc.add(nextArg);
     } else if (optional(nextParameter)) {
       Pair optional = optionalParam(nextParameter);
-      String optionalName = ((Symbol) optional.car()).name();
       if (!args.isNil()) {
-        namespace.addToLocalNamespace(optionalName, nextArg);
+        lc.add(nextArg);
       } else {
-        Interpreter.interpret(thread, namespace, this, optional.cdr().car());
+        Interpreter.interpret(thread, lc, this, optional.cdr().car());
         return;
       }
     } else {
       Continuation toDo = new NestedNamespaceBuilder(this);
       shift();
-      new NamespaceBuilder(thread, namespace, toDo, ArcObject.cast(nextParameter, Pair.class), ArcObject.cast(nextArg, Pair.class)).start();
+      new NamespaceBuilder(thread, lc, toDo, ArcObject.cast(nextParameter, Pair.class), ArcObject.cast(nextArg, Pair.class)).start();
       return;
     }
 
@@ -66,20 +76,16 @@ public class NamespaceBuilder extends ContinuationSupport {
     }
 
     Pair p = (Pair) nextParameter;
-    return p.car() instanceof Symbol && ((Symbol) p.car()).name().equals("o");
+    return p.car() == o;
   }
 
-  public void digest(ArcObject o) {
+  public void onReceive(ArcObject o) {
     args = new Pair(o, args);
     start();
   }
 
   private Pair optionalParam(ArcObject nextParameter) {
     return (Pair) nextParameter.cdr();
-  }
-
-  protected ArcObject getCurrentTarget() {
-    return new Pair(originalParameters, originalArgs);
   }
 
   public Continuation cloneFor(ArcThread thread) {

@@ -1,23 +1,28 @@
 package rainbow.vm.continuations;
 
-import rainbow.vm.Continuation;
+import rainbow.LexicalClosure;
+import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.Bindings;
-import rainbow.functions.Builtin;
+import rainbow.vm.ArcThread;
+import rainbow.vm.BoundSymbol;
+import rainbow.vm.Continuation;
 
 public class SetSetterContinuation extends ContinuationSupport {
   private ArcObject symbol;
 
-  public SetSetterContinuation(Bindings namespace, Continuation whatToDo, ArcObject symbol) {
-    super(null, namespace, whatToDo);
+  public SetSetterContinuation(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject symbol) {
+    super(thread, lc, caller);
     this.symbol = symbol;
   }
 
-  public void digest(ArcObject o) {
-    String name = Builtin.cast(symbol, Symbol.class).name();
-    namespace.addToNamespace(name, o);
-    whatToDo.eat(o);
+  public void onReceive(ArcObject o) {
+    if (symbol instanceof BoundSymbol) {
+      ((BoundSymbol) symbol).set(lc, o);
+    } else {
+      thread.environment().addToNamespace(Builtin.cast(symbol, Symbol.class), o);
+    }
+    caller.receive(o);
   }
 
   protected ArcObject getCurrentTarget() {

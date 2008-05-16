@@ -17,7 +17,7 @@ public class PairTest extends TestCase {
   public void testCreatesListOfLinkedConses() {
     List list = new ArrayList();
     ArcString foo = new ArcString("foo");
-    Symbol barId = new Symbol("bar");
+    Symbol barId = (Symbol) Symbol.make("bar");
     ArcNumber num = new Real(123.45);
     list.add(foo);
     list.add(barId);

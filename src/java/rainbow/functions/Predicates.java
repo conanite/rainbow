@@ -1,6 +1,8 @@
 package rainbow.functions;
 
 import rainbow.*;
+import rainbow.vm.ArcThread;
+import rainbow.vm.Continuation;
 import rainbow.types.*;
 
 public abstract class Predicates {
@@ -40,11 +42,11 @@ public abstract class Predicates {
   }
 
   public static class Bound extends Builtin {
-    public ArcObject invoke(Pair args, Bindings bindings) {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
       checkMaxArgCount(args, getClass(), 2);
       Symbol sym = cast(args.car(), Symbol.class);
-      ArcObject o = bindings.getTop().lookup(sym.name());
-      return o != null ? T: NIL;
+      ArcObject o = thread.environment().lookup(sym);
+      whatToDo.receive(Truth.valueOf(o != null));
     }
   }
 

@@ -7,16 +7,16 @@ import rainbow.types.ArcObject;
 public class ErrorPassingContinuation extends ContinuationSupport {
   private final ArcError originalError;
 
-  public ErrorPassingContinuation(Continuation whatToDo, ArcError originalError) {
-    super(null, null, whatToDo);
+  public ErrorPassingContinuation(Continuation caller, ArcError originalError) {
+    super(null, null, caller);
     this.originalError = originalError;
   }
 
-  public void digest(ArcObject o) {
-    whatToDo.error(originalError);
+  public void onReceive(ArcObject o) {
+    caller.error(originalError);
   }
 
   public void error(ArcError error) {
-    whatToDo.error(originalError);
+    caller.error(originalError);
   }
 }

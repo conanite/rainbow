@@ -6,6 +6,7 @@ import rainbow.ArcError;
 import java.io.File;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.ArrayList;
 
 public class FileSystem {
   public static class OutFile extends Builtin {
@@ -52,7 +53,7 @@ public class FileSystem {
         throw new ArcError("dir: '" + path + "' is not a directory");
       }
       String[] contents = dir.list();
-      List results = new LinkedList();
+      List results = new ArrayList(contents.length);
       for (String file : contents) {
         results.add(ArcString.make(file));
       }

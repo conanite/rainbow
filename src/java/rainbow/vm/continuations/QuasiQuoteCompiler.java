@@ -1,15 +1,15 @@
 package rainbow.vm.continuations;
 
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
-import rainbow.vm.Interpreter;
-import rainbow.Bindings;
+import rainbow.LexicalClosure;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
+import rainbow.vm.ArcThread;
+import rainbow.vm.Continuation;
 
 import java.util.LinkedList;
+import java.util.Map;
 
 public class QuasiQuoteCompiler extends ContinuationSupport {
   public static final Symbol QUASIQUOTE = (Symbol) Symbol.make("quasiquote");
@@ -17,47 +17,58 @@ public class QuasiQuoteCompiler extends ContinuationSupport {
   public static final Symbol UNQUOTE_SPLICING = (Symbol) Symbol.make("unquote-splicing");
 
   private Pair expression;
+  private Map[] lexicalBindings;
   private LinkedList result = new LinkedList();
   private Symbol rebuildSymbol;
 
-  public QuasiQuoteCompiler(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair expression) {
-    super(thread, namespace, whatToDo);
+  public QuasiQuoteCompiler(ArcThread thread, LexicalClosure lc, Continuation caller, Pair expression, Map[] lexicalBindings) {
+    super(thread, lc, caller);
     this.expression = expression;
+    this.lexicalBindings = lexicalBindings;
   }
 
-  public static void compile(ArcThread thread, Bindings namespace, Continuation whatToDo, ArcObject expression) {
+  public static void compile(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression, Map[] lexicalBindings) {
     if (expression.isNil() || !(expression instanceof Pair)) {
-      whatToDo.eat(expression);
+      caller.receive(expression);
     } else {
-      new QuasiQuoteCompiler(thread, namespace, whatToDo, (Pair) expression).start();
+      if (QuasiQuoteContinuation.isUnQuote(expression)) {
+        Rebuilder rebuilder = new Rebuilder(caller, UNQUOTE);
+        Compiler.compile(thread, lc, rebuilder, expression.cdr().car(), lexicalBindings);
+      } else if (QuasiQuoteContinuation.isUnQuoteSplicing(expression)) {
+        QuasiQuoteCompiler qqc = new QuasiQuoteCompiler(thread, lc, caller, ArcObject.NIL, lexicalBindings);
+        qqc.rebuildSymbol = UNQUOTE_SPLICING;
+        Compiler.compile(qqc.thread, qqc.lc, qqc, expression.cdr().car(), qqc.lexicalBindings);
+      } else if (QuasiQuoteContinuation.isQuasiQuote(expression)) {
+        caller.receive(expression);
+      } else {
+        new QuasiQuoteCompiler(thread, lc, caller, (Pair) expression, lexicalBindings).start();
+      }
     }
   }
 
   private void start() {
     if (expression.isNil()) {
-      whatToDo.eat(Pair.buildFrom(result));
+      caller.receive(Pair.buildFrom(result));
       return;
     }
 
     ArcObject next = expression.car();
     expression = Builtin.cast(expression.cdr(), Pair.class);
-    if (next.isNil()) {
+    if (next.isNil() || !(next instanceof Pair)) {
       continueWith(next);
-    } else if (next instanceof Pair) {
+    } else {
       if (QuasiQuoteContinuation.isUnQuote(next)) {
-        this.rebuildSymbol = UNQUOTE;
-        Compiler.compile(thread, namespace, this, next.cdr().car());
+        rebuildSymbol = UNQUOTE;
+        Compiler.compile(thread, lc, this, next.cdr().car(), lexicalBindings);
       } else if (QuasiQuoteContinuation.isUnQuoteSplicing(next)) {
-        this.rebuildSymbol = UNQUOTE_SPLICING;
-        Compiler.compile(thread, namespace, this, next.cdr().car());
+        rebuildSymbol = UNQUOTE_SPLICING;
+        Compiler.compile(thread, lc, this, next.cdr().car(), lexicalBindings);
       } else if (QuasiQuoteContinuation.isQuasiQuote(next)) {
         continueWith(next);
       } else {
-        this.rebuildSymbol = null;
-        new QuasiQuoteCompiler(thread, namespace, this, (Pair) next).start();
+        rebuildSymbol = null;
+        new QuasiQuoteCompiler(thread, lc, this, (Pair) next, lexicalBindings).start();
       }
-    } else {
-      continueWith(next);
     }
   }
 
@@ -66,7 +77,7 @@ public class QuasiQuoteCompiler extends ContinuationSupport {
     start();
   }
 
-  protected void digest(ArcObject returned) {
+  protected void onReceive(ArcObject returned) {
     if (rebuildSymbol != null) {
       continueWith(Pair.buildFrom(rebuildSymbol, returned));
     } else {
@@ -77,7 +88,7 @@ public class QuasiQuoteCompiler extends ContinuationSupport {
   public Continuation cloneFor(ArcThread thread) {
     QuasiQuoteCompiler qqc = (QuasiQuoteCompiler) super.cloneFor(thread);
     qqc.expression = expression.copy();
-    result = new LinkedList(result);
+    qqc.result = new LinkedList(result);
     return qqc;
   }
 }

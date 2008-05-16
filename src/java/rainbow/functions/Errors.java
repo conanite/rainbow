@@ -1,23 +1,23 @@
 package rainbow.functions;
 
+import rainbow.ArcError;
+import rainbow.Function;
+import rainbow.LexicalClosure;
+import rainbow.types.ArcException;
+import rainbow.types.ArcObject;
+import rainbow.types.ArcString;
+import rainbow.types.Pair;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.ErrorHandler;
 import rainbow.vm.continuations.Protector;
-import rainbow.Bindings;
-import rainbow.Function;
-import rainbow.ArcError;
-import rainbow.types.Pair;
-import rainbow.types.ArcException;
-import rainbow.types.ArcString;
-import rainbow.types.ArcObject;
 
 public class Errors {
   public static class OnErr extends Builtin {
-    public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
       final Function errorHandler = cast(args.car(), Function.class);
       final Function tryMe = cast(args.cdr().car(), Function.class);
-      tryMe.invoke(thread, namespace, new ErrorHandler(thread, namespace, whatToDo, errorHandler), NIL);
+      tryMe.invoke(thread, lc, new ErrorHandler(thread, lc, caller, errorHandler), NIL);
     }
   }
 
@@ -28,10 +28,10 @@ public class Errors {
   }
 
   public static class Protect extends Builtin {
-    public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
       Function during = cast(args.car(), Function.class);
       Function after = cast(args.cdr().car(), Function.class);
-      during.invoke(thread, namespace, new Protector(thread, namespace, whatToDo, after), NIL);
+      during.invoke(thread, lc, new Protector(thread, lc, caller, after), NIL);
     }
   }
 

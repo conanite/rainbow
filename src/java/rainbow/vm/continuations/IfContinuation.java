@@ -3,8 +3,8 @@ package rainbow.vm.continuations;
 import rainbow.vm.Continuation;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Interpreter;
-import rainbow.Bindings;
 import rainbow.Truth;
+import rainbow.LexicalClosure;
 import rainbow.types.Pair;
 import rainbow.types.ArcObject;
 
@@ -12,16 +12,16 @@ public class IfContinuation extends ContinuationSupport {
   private Pair args;
   private ArcObject current;
 
-  public IfContinuation(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
-    super(thread, namespace, whatToDo);
+  public IfContinuation(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    super(thread, lc, caller);
     this.args = args;
   }
 
-  public void digest(ArcObject condition) {
+  public void onReceive(ArcObject condition) {
     if (args.cdr().isNil()) {
-      whatToDo.eat(condition);
+      caller.receive(condition);
     } else if (Truth.isIn(condition)) {
-      Interpreter.interpret(thread, namespace, whatToDo, args.cdr().car());
+      Interpreter.interpret(thread, lc, caller, args.cdr().car());
     } else {
       args = (Pair) args.cdr().cdr();
       start();
@@ -30,10 +30,10 @@ public class IfContinuation extends ContinuationSupport {
 
   public void start() {
     if (args.isNil()) {
-      whatToDo.eat(args);
+      caller.receive(args);
     } else {
       current = args.car();
-      Interpreter.interpret(thread, namespace, this, current);
+      Interpreter.interpret(thread, lc, this, current);
     }
   }
 

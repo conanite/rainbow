@@ -1,11 +1,11 @@
 package rainbow.functions;
 
+import rainbow.ArcError;
+import rainbow.Function;
+import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.Function;
-import rainbow.ArcError;
-import rainbow.Bindings;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
@@ -21,16 +21,12 @@ public abstract class Builtin extends ArcObject implements Function {
     this.name = name;
   }
 
-  protected ArcObject invoke(Pair args, Bindings arc) {
-    return invoke(args);
-  }
-
   protected ArcObject invoke(Pair args) {
     throw new ArcError("Builtin:invoke(args):provide implementation!");
   }
 
-  public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
-    whatToDo.eat(invoke(args, namespace));
+  public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+    whatToDo.receive(invoke(args));
   }
 
   public int compareTo(ArcObject right) {
@@ -64,8 +60,7 @@ public abstract class Builtin extends ArcObject implements Function {
   }
 
   public String toString() {
-    throw new Error("someone is calling toString on a builtin!!! " + getClass().getSimpleName());
-//    return "<Builtin:" + getClass().getSimpleName() + ">";
+    return "<Builtin:" + getClass().getSimpleName() + ">";
   }
 
   public String code() {

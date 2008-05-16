@@ -9,9 +9,10 @@ import rainbow.vm.continuations.TopLevelContinuation;
 
 public abstract class ArcTestSupport extends TestCase {
   protected ArcObject vmEval(ArcObject expressionUnderTest) {
-    final ArcThread thread = new ArcThread();
+    Environment environment = new Environment();
+    final ArcThread thread = new ArcThread(environment);
     TopLevelContinuation toDo = new TopLevelContinuation(thread);
-    Interpreter.interpret(thread, new TopBindings(), toDo, expressionUnderTest);
+    Interpreter.interpret(thread, null, toDo, expressionUnderTest);
     thread.run();
     return thread.finalValue();
   }

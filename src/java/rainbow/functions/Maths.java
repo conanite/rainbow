@@ -1,7 +1,7 @@
 package rainbow.functions;
 
 import rainbow.ArcError;
-import rainbow.TopBindings;
+import rainbow.Environment;
 import rainbow.types.*;
 
 import java.util.LinkedList;
@@ -11,7 +11,7 @@ import java.util.Random;
 public class Maths {
   private static final Random random = new Random();
 
-  public static void collect(TopBindings bindings) {
+  public static void collect(Environment bindings) {
     bindings.add(new Builtin[]{
             new Builtin("trunc") {
               public ArcObject invoke(Pair args) {

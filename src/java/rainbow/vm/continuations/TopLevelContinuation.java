@@ -9,7 +9,7 @@ public class TopLevelContinuation extends ContinuationSupport {
     super(thread, null, null);
   }
 
-  public void digest(ArcObject o) {
+  public void onReceive(ArcObject o) {
     thread.finalValue(o);
   }
 

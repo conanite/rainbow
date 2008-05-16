@@ -1,12 +1,15 @@
 package rainbow.types;
 
-import rainbow.Bindings;
 import rainbow.Function;
+import rainbow.LexicalClosure;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.TableMapper;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Hash extends ArcObject implements Function {
   public static final Symbol TYPE = (Symbol) Symbol.make("table");
@@ -30,8 +33,8 @@ public class Hash extends ArcObject implements Function {
     map.put(key, value);
   }
 
-  public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
-    whatToDo.eat(value(args.car()));
+  public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+    whatToDo.receive(value(args.car()));
   }
 
   public String code() {
@@ -55,7 +58,7 @@ public class Hash extends ArcObject implements Function {
     return map.size();
   }
 
-  public void map(Function f, ArcThread thread, Bindings namespace, Continuation whatToDo) {
-    new TableMapper(thread, namespace, whatToDo, f, this).eat(null);
+  public void map(Function f, ArcThread thread, LexicalClosure lc, Continuation whatToDo) {
+    new TableMapper(thread, lc, whatToDo, f, this).receive(null);
   }
 }

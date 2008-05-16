@@ -31,6 +31,10 @@ public final class Nil extends Pair {
     return this;
   }
 
+  public boolean isCar(Symbol s) {
+    return false;
+  }
+
   public void setCar(ArcObject item) {
     throw new Error("can't set the car of " + this);
   }
@@ -47,10 +51,6 @@ public final class Nil extends Pair {
     return c;
   }
 
-  public Pair evalAll(Bindings arc) {
-    return this;
-  }
-
   public ArcObject type() {
     return Symbol.TYPE;
   }
@@ -63,7 +63,7 @@ public final class Nil extends Pair {
     return this == other || (other instanceof ArcObject && ((ArcObject)other).isNil());
   }
 
-  public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
+  public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
     throw new ArcError("Can't invoke " + this);
   }
 }

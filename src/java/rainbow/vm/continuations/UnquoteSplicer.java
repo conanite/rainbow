@@ -11,14 +11,14 @@ import java.util.LinkedList;
 public class UnquoteSplicer extends ContinuationSupport {
   private List<ArcObject> result;
 
-  public UnquoteSplicer(Continuation whatToDo, List<ArcObject> result) {
-    super(null, null, whatToDo);
+  public UnquoteSplicer(Continuation caller, List<ArcObject> result) {
+    super(null, null, caller);
     this.result = result;
   }
 
-  public void digest(ArcObject o) {
+  public void onReceive(ArcObject o) {
     ((Pair)o).copyTo(result);
-    whatToDo.eat(null);
+    caller.receive(null);
   }
 
   public Continuation cloneFor(ArcThread thread) {

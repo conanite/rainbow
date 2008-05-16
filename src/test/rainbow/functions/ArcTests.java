@@ -63,7 +63,7 @@ public class ArcTests {
     }
 
     protected void runTest() throws Throwable {
-      String source = testExpression.toString() + " at " + testExpression.source();
+      String source = testExpression.toString();
       System.out.println(source);
       String result = vmEval(testExpression).toString();
       System.out.println(result);

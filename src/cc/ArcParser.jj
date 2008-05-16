@@ -19,21 +19,17 @@ import rainbow.*;
 import rainbow.types.*;
 
 public class ArcParser {
-  String source;
 
   public ArcParser(File source) throws FileNotFoundException {
     this(new FileInputStream(source));
-    this.source = source.getPath();
   }
 
   public ArcParser(String expression) {
     this(new ByteArrayInputStream(expression.getBytes()));
-    this.source = "<inline>";
   }
 
   public ArcParser(String sourceName, InputStream in) {
     this(in);
-    this.source = sourceName;
   }
 
   private static String stripQuotes(String s) {
@@ -125,22 +121,22 @@ ArcObject expression():       { ArcObject o; } {
 
 ArcObject quote():            { Token tok; ArcObject o; } {
   tok = "'"
-  o = expression()            { return Pair.buildFrom(Symbol.make("quote").source(source, tok), o).source(source, tok); }
+  o = expression()            { return Pair.buildFrom(Symbol.make("quote"), o); }
 }
 
 ArcObject unQuote():          { Token tok; ArcObject o; } {
   tok = ","
-  o = expression()            { return Pair.buildFrom(Symbol.make("unquote").source(source, tok), o).source(source, tok); }
+  o = expression()            { return Pair.buildFrom(Symbol.make("unquote"), o); }
 }
 
 ArcObject unQuoteSplicing():  { Token tok; ArcObject o; } {
   tok = ",@"
-  o = expression()            { return Pair.buildFrom(Symbol.make("unquote-splicing").source(source, tok), o).source(source, tok); }
+  o = expression()            { return Pair.buildFrom(Symbol.make("unquote-splicing"), o); }
 }
 
 ArcObject quasiQuote():       { Token tok; ArcObject o; } {
   tok = "`"
-  o = expression()            { return Pair.buildFrom(Symbol.make("quasiquote").source(source, tok), o).source(source, tok); }
+  o = expression()            { return Pair.buildFrom(Symbol.make("quasiquote"), o); }
 }
 
 ArcObject functionShortcut(): {
@@ -155,7 +151,7 @@ ArcObject functionShortcut(): {
   o = expression()            { list.add(o); }
   )+ "]"                      {
                                 fn.add(Pair.buildFrom(list));
-                                return Pair.buildFrom(fn).source(source, tok);
+                                return Pair.buildFrom(fn);
                               }
 }
 
@@ -174,22 +170,22 @@ ArcObject list():             {
     )?
   ")"                         {
                                 if (list.size() > 0) {
-                                  return Pair.buildFrom(list, last).source(source, start);
+                                  return Pair.buildFrom(list, last);
                                 } else if (last != ArcObject.NIL) {
                                   generateParseException();
                                 } else {
-                                  return new Pair().source(source, start);
+                                  return new Pair();
                                 }
                               }
 }
 
 ArcObject atom():             { Token s; ArcObject o; } {
   (
-    s=<INTEGER>               { return Rational.make(Long.parseLong(s.toString()), 1).source(source, s);  }
-  | s=<DOUBLE>                { return Real.parse(s.toString()).source(source, s);                   }
-  | s=<FRACTION>              { return Rational.parse(s.toString()).source(source, s);                    }
-  | s=<STRING>                { return ArcString.parse(stripQuotes(s.toString())).source(source, s);      }
-  | s=<IDENTIFIER>            { return Symbol.make(s.toString()).source(source, s);                       }
-  | s=<CHARACTER>             { return ArcCharacter.make(s.toString()).source(source, s);                 }
+    s=<INTEGER>               { return Rational.make(Long.parseLong(s.toString()), 1);  }
+  | s=<DOUBLE>                { return Real.parse(s.toString());                   }
+  | s=<FRACTION>              { return Rational.parse(s.toString());                    }
+  | s=<STRING>                { return ArcString.parse(stripQuotes(s.toString()));      }
+  | s=<IDENTIFIER>            { return Symbol.make(s.toString());                       }
+  | s=<CHARACTER>             { return ArcCharacter.make(s.toString());                 }
   )
 }

@@ -1,23 +1,23 @@
 package rainbow.vm.continuations;
 
-import rainbow.Bindings;
 import rainbow.ArcError;
+import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Input;
-import rainbow.vm.Continuation;
 import rainbow.vm.ArcThread;
+import rainbow.vm.Continuation;
 
 public class CallWStdinContinuation extends ContinuationSupport {
   private final Input previousInput;
 
-  public CallWStdinContinuation(ArcThread thread, Bindings namespace, Continuation whatToDo, Input previousInput) {
-    super(thread, namespace, whatToDo);
+  public CallWStdinContinuation(ArcThread thread, LexicalClosure lc, Continuation caller, Input previousInput) {
+    super(thread, lc, caller);
     this.previousInput = previousInput;
   }
 
-  public void digest(ArcObject o) {
+  public void onReceive(ArcObject o) {
     thread.swapStdIn(previousInput);
-    whatToDo.eat(o);
+    caller.receive(o);
   }
 
   public void error(ArcError error) {

@@ -22,7 +22,7 @@ public class ArcString extends ArcObject implements Function {
     return "\"" + value + "\"";
   }
 
-  public ArcObject eval(Bindings arc) {
+  public ArcObject eval(Environment env) {
     return this;
   }
 
@@ -64,7 +64,7 @@ public class ArcString extends ArcObject implements Function {
     this.value = b.toString();
   }
 
-  public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
+  public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
     Builtin.checkMaxArgCount(args, getClass(), 1);
     Rational index = cast(args.car(), Rational.class);
     if (!index.isInteger()) {
@@ -74,7 +74,7 @@ public class ArcString extends ArcObject implements Function {
     if (i < 0 || i >= value.length()) {
       throw new ArcError("string-ref: index " + i + " out of range [0, " + (value.length() - 1) + "] for string " + toString());
     }
-    whatToDo.eat(new ArcCharacter(value.charAt(i)));
+    whatToDo.receive(new ArcCharacter(value.charAt(i)));
   }
 
   public String code() {

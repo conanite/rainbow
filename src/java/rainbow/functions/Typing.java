@@ -3,10 +3,7 @@ package rainbow.functions;
 import rainbow.ArcError;
 import rainbow.types.*;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Typing {
   public static class Type extends Builtin {
@@ -59,8 +56,8 @@ public class Typing {
   static {
     coercion.put("string-cons", new Coercer() {
       public ArcObject coerce(ArcObject original, ArcNumber base) {
-        List<ArcCharacter> chars = new LinkedList();
         String source = ((ArcString) original).value();
+        List<ArcCharacter> chars = new ArrayList(source.length());
         for (int i = 0; i < source.length(); i++) {
           chars.add(new ArcCharacter(source.charAt(i)));
         }

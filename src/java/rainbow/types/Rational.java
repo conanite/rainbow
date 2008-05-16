@@ -1,9 +1,8 @@
 package rainbow.types;
 
-import rainbow.types.ArcObject;
-import rainbow.Bindings;
-import rainbow.Truth;
 import rainbow.ArcError;
+import rainbow.Environment;
+import rainbow.Truth;
 
 public class Rational extends ArcNumber {
   private long numerator;
@@ -38,7 +37,7 @@ public class Rational extends ArcNumber {
     return numerator + (denominator == 1 ? "" : "/" + denominator);
   }
 
-  public ArcObject eval(Bindings arc) {
+  public ArcObject eval(Environment env) {
     return this;
   }
 

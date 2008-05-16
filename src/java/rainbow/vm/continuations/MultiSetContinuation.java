@@ -1,40 +1,34 @@
 package rainbow.vm.continuations;
 
-import rainbow.vm.Continuation;
-import rainbow.vm.ArcThread;
+import rainbow.LexicalClosure;
+import rainbow.functions.Macex;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
-import rainbow.functions.Macex;
-import rainbow.Bindings;
+import rainbow.vm.ArcThread;
+import rainbow.vm.Continuation;
 
 public class MultiSetContinuation extends ContinuationSupport {
   private static final Macex MACEX = new Macex();
-  private Pair originalArgs;
   private Pair args;
 
-  public MultiSetContinuation(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
-    super(thread, namespace, whatToDo);
+  public MultiSetContinuation(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    super(thread, lc, caller);
     this.args = args;
-    this.originalArgs = args;
   }
 
   public void start() {
     ArcObject name = args.car();
     ArcObject value = args.cdr().car();
     args = (Pair) args.cdr().cdr();
-    MACEX.invoke(thread, namespace, new SetContinuation(thread, namespace, this, value), Pair.buildFrom(name));
+    MACEX.invoke(thread, lc, new SetContinuation(thread, lc, this, value), Pair.buildFrom(name));
   }
 
-  public void digest(ArcObject o) {
+  public void onReceive(ArcObject o) {
     if (args.isNil()) {
-      whatToDo.eat(o);
+      caller.receive(o);
     } else {
       start();
     }
-  }
-
-  protected ArcObject getCurrentTarget() {
-    return originalArgs;
   }
 
   public Continuation cloneFor(ArcThread thread) {

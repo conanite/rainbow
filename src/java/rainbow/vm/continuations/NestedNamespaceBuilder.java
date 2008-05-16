@@ -8,7 +8,7 @@ public class NestedNamespaceBuilder extends ContinuationSupport {
     super(null, null, namespaceBuilder);
   }
 
-  public void digest(ArcObject o) {
-    ((NamespaceBuilder) whatToDo).start();
+  public void onReceive(ArcObject o) {
+    ((NamespaceBuilder) caller).start();
   }
 }

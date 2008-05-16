@@ -1,3 +1,7 @@
+#!/bin/bash
 ant jar
-cd src/java/arc
-java -jar ../../../build/dist/rainbow.jar $*
+if [ "$?" = "0" ]; then
+        cd src/java/arc
+        java -jar ../../../build/dist/rainbow.jar $*
+fi
+

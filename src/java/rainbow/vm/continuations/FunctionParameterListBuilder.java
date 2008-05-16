@@ -1,35 +1,38 @@
 package rainbow.vm.continuations;
 
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
-import rainbow.Bindings;
-import rainbow.functions.InterpretedFunction;
-import rainbow.types.Pair;
+import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
+import rainbow.types.Pair;
 import rainbow.types.Symbol;
+import rainbow.vm.ArcThread;
 
-import java.util.List;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class FunctionParameterListBuilder extends ContinuationSupport {
   private static final Symbol O = (Symbol) Symbol.make("o");
-  private Pair expandedBody;
   private ArcObject parameters;
+  private Map[] lexicalBindings;
   List result = new LinkedList();
+  Map indexed = new HashMap();
   private ArcObject optionalParamName;
 
-  public FunctionParameterListBuilder(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair expandedBody, ArcObject parameters) {
-    super(thread, namespace, whatToDo);
-    this.expandedBody = expandedBody;
+  public FunctionParameterListBuilder(ArcThread thread, LexicalClosure lc, FunctionBodyBuilder caller, ArcObject parameters, Map[] lexicalBindings) {
+    super(thread, lc, caller);
     this.parameters = parameters;
+    this.lexicalBindings = lexicalBindings;
+    index(parameters, lexicalBindings[0], new int[]{0}, true);
   }
 
   public void start() {
     if (parameters.isNil() || !(parameters instanceof Pair)) {
       if (result.size() == 0) {
-        whatToDo.eat(buildFunctionBody(parameters, expandedBody));
+        caller.receive(parameters);
       } else {
-        whatToDo.eat(buildFunctionBody(Pair.buildFrom(result, parameters), expandedBody));
+        Pair compiledParams = Pair.buildFrom(result, parameters);
+        caller.receive(compiledParams);
       }
       return;
     }
@@ -42,7 +45,7 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
       Pair maybeOptional = (Pair) first;
       if (NamespaceBuilder.optional(maybeOptional)) {
         optionalParamName = maybeOptional.cdr().car();
-        Compiler.compile(thread, namespace, this, maybeOptional.cdr().cdr().car());
+        Compiler.compile(thread, lc, this, maybeOptional.cdr().cdr().car(), lexicalBindings);
       } else {
         continueWith(first);
       }
@@ -54,12 +57,26 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
     start();
   }
 
-  protected void digest(ArcObject compiledOptionalExpression) {
-    continueWith(Pair.buildFrom(O, optionalParamName, compiledOptionalExpression));
+  protected void onReceive(ArcObject compiledOptionalExpression) {
+    Pair expr = Pair.buildFrom(O, optionalParamName, compiledOptionalExpression);
+    continueWith(expr);
   }
 
-  private ArcObject buildFunctionBody(ArcObject compiledParameters, Pair expandedBody) {
-    return new InterpretedFunction(compiledParameters, expandedBody, namespace);
+  private static void index(ArcObject parameterList, Map map, int[] i, boolean optionable) {
+    if (parameterList.isNil()) {
+      return;
+    }
+    
+    if (parameterList instanceof Pair) {
+      if (optionable && NamespaceBuilder.optional(parameterList)) {
+        index(parameterList.cdr().car(), map, i, true);
+      } else {
+        index(parameterList.car(), map, i, true);
+        index(parameterList.cdr(), map, i, false);
+      }
+    } else {
+      map.put(parameterList, i[0]);
+      i[0]++;
+    }
   }
-
 }

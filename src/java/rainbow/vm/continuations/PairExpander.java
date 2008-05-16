@@ -1,24 +1,25 @@
 package rainbow.vm.continuations;
 
+import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.Bindings;
 
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class PairExpander extends ContinuationSupport {
   private ArcObject body;
+  private Map[] lexicalBindings;
   private List result = new LinkedList();
   private boolean atLast;
-  private Pair original;
 
-  public PairExpander(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair expressions) {
-    super(thread, namespace, whatToDo);
+  public PairExpander(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair expressions, Map[] lexicalBindings) {
+    super(thread, lc, whatToDo);
     this.body = expressions;
-    this.original = expressions;
+    this.lexicalBindings = lexicalBindings;
   }
 
   public void start() {
@@ -33,17 +34,23 @@ public class PairExpander extends ContinuationSupport {
   }
 
   private void compile(ArcObject next) {
-    Compiler.compile(thread, namespace, this, next);
+    Compiler.compile(thread, lc, this, next, lexicalBindings);
   }
 
-  protected void digest(ArcObject returned) {
+  protected void onReceive(ArcObject returned) {
     if (atLast) {
       Pair expandedBody = Pair.buildFrom(result, returned);
-      expandedBody.sourceFrom(original);
-      whatToDo.eat(expandedBody);
+      caller.receive(expandedBody);
     } else {
       result.add(returned);
       start();
     }
+  }
+
+  public Continuation cloneFor(ArcThread thread) {
+    PairExpander clone = (PairExpander) super.cloneFor(thread);
+    clone.body = body.copy();
+    clone.result = new LinkedList(result);
+    return clone;
   }
 }

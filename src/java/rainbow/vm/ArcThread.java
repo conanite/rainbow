@@ -5,20 +5,27 @@ import rainbow.types.Symbol;
 import rainbow.types.Output;
 import rainbow.types.Input;
 import rainbow.ArcError;
+import rainbow.Environment;
+import rainbow.vm.continuations.FunctionDispatcher;
 import rainbow.functions.IO;
 
 public class ArcThread extends ArcObject implements Runnable {
   private Symbol TYPE = (Symbol) Symbol.make("thread");
-  private Interpreter task;
+  private FunctionDispatcher task;
   private ArcObject result;
   private ArcError error;
   private boolean stopped;
   protected Output stdOut = IO.STD_OUT;
   protected Input stdIn = IO.STD_IN;
+  private Environment environment;
+
+  public ArcThread(Environment environment) {
+    this.environment = environment;
+  }
 
   public void run() {
     while (task != null && !stopped) {
-      task.process(this);
+      task.process();
     }
     stopped = true;
   }
@@ -40,7 +47,7 @@ public class ArcThread extends ArcObject implements Runnable {
     return TYPE;
   }
 
-  public void continueWith(Interpreter nextTask) {
+  public void continueWith(FunctionDispatcher nextTask) {
     if (stopped) {
       return;
     }
@@ -82,5 +89,9 @@ public class ArcThread extends ArcObject implements Runnable {
     Output swap = stdOut;
     stdOut = output;
     return swap;
+  }
+
+  public Environment environment() {
+    return environment;
   }
 }

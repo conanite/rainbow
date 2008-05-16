@@ -22,10 +22,10 @@ public class Evaluation {
   }
 
   public static class Apply extends Builtin {
-    public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
       Function f = (Function) args.car();
       Pair applyArgs = constructApplyArgs((Pair) args.cdr());
-      f.invoke(thread, namespace, whatToDo, applyArgs);
+      f.invoke(thread, lc, whatToDo, applyArgs);
     }
 
     private Pair constructApplyArgs(Pair args) {
@@ -38,8 +38,8 @@ public class Evaluation {
   }
 
   public static class Eval extends Builtin {
-    public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
-      Interpreter.compileAndEval(thread, namespace, whatToDo, args.car());
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+      Interpreter.compileAndEval(thread, lc, whatToDo, args.car());
     }
   }
 
@@ -68,7 +68,7 @@ public class Evaluation {
   }
 
   public static class SSExpand extends Builtin {
-    public ArcObject invoke(Pair args, Bindings arc) {
+    public ArcObject invoke(Pair args) {
       return expand(cast(args.car(), Symbol.class));
     }
 

@@ -1,32 +1,32 @@
 package rainbow.vm.continuations;
 
-import rainbow.vm.Continuation;
-import rainbow.vm.ArcThread;
 import rainbow.Function;
-import rainbow.Bindings;
+import rainbow.LexicalClosure;
+import rainbow.types.ArcObject;
 import rainbow.types.Hash;
 import rainbow.types.Pair;
-import rainbow.types.ArcObject;
+import rainbow.vm.ArcThread;
+import rainbow.vm.Continuation;
 
 public class TableMapper extends ContinuationSupport {
   private Function f;
   private Hash hash;
   private Pair pairs;
 
-  public TableMapper(ArcThread thread, Bindings namespace, Continuation whatToDo, Function f, Hash hash) {
-    super(thread, namespace, whatToDo);
+  public TableMapper(ArcThread thread, LexicalClosure lc, Continuation caller, Function f, Hash hash) {
+    super(thread, lc, caller);
     this.f = f;
     this.hash = hash;
     this.pairs = hash.toList();
   }
 
-  public void digest(ArcObject o) {
+  public void onReceive(ArcObject o) {
     if (pairs.isNil()) {
-      whatToDo.eat(hash);
+      caller.receive(hash);
     } else {
       Pair args = Pair.buildFrom(pairs.car().car(), pairs.car().cdr());
       pairs = (Pair) pairs.cdr();
-      f.invoke(thread, namespace, this, args);
+      f.invoke(thread, lc, this, args);
     }
   }
 

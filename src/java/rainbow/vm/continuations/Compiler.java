@@ -2,51 +2,62 @@ package rainbow.vm.continuations;
 
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.Bindings;
+import rainbow.vm.BoundSymbol;
 import rainbow.Function;
+import rainbow.LexicalClosure;
 import rainbow.functions.Evaluation;
 import rainbow.types.Pair;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 import rainbow.types.Tagged;
 
+import java.util.Map;
+
 public class Compiler extends ContinuationSupport {
   private Pair expression;
+  private Map[] lexicalBindings;
 
-  public Compiler(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair expression) {
-    super(thread, namespace, whatToDo);
+  public Compiler(ArcThread thread, LexicalClosure lc, Continuation caller, Pair expression, Map[] lexicalBindings) {
+    super(thread, lc, caller);
     this.expression = expression;
+    this.lexicalBindings = lexicalBindings;
   }
 
-  public static void compile(ArcThread thread, Bindings namespace, Continuation whatToDo, ArcObject expression) {
+  public static void compile(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression, Map[] lexicalBindings) {
     if (expression.isNil()) {
-      whatToDo.eat(expression);
+      caller.receive(expression);
     } else if (Evaluation.isSpecialSyntax(expression)) {
-      ArcObject ssExpanded = Evaluation.ssExpand(expression);
-      ssExpanded.sourceFrom(expression);
-      compile(thread, namespace, whatToDo, ssExpanded);
+      compile(thread, lc, caller, Evaluation.ssExpand(expression), lexicalBindings);
     } else if (expression instanceof Pair) {
-      new Compiler(thread, namespace, whatToDo, (Pair) expression).start();
+      new Compiler(thread, lc, caller, (Pair) expression, lexicalBindings).start();
+    } else if (expression instanceof Symbol) {
+      for (int i = 0; i < lexicalBindings.length; i++) {
+        if (lexicalBindings[i].containsKey(expression)) {
+          caller.receive(new BoundSymbol((Symbol)expression, i, (Integer)lexicalBindings[i].get(expression)));
+          return;
+        }
+      }
+      caller.receive(expression);
     } else {
-      whatToDo.eat(expression);
+      caller.receive(expression);
     }
   }
 
   public void start() {
     Function f = getMacro(expression);
     if (f != null) {
-      f.invoke(thread, namespace, this, (Pair) expression.cdr());
+      f.invoke(thread, lc, this, (Pair) expression.cdr());
     } else {
       ArcObject fun = expression.car();
       if (Symbol.is("quote", fun)) {
-        whatToDo.eat(expression);
-      } else if (Symbol.is("quasiquote", fun)) { //
-        Rebuilder rebuilder = new Rebuilder(thread, namespace, whatToDo, QuasiQuoteCompiler.QUASIQUOTE);
-        QuasiQuoteCompiler.compile(thread, namespace, rebuilder, expression.cdr().car());
+        caller.receive(expression);
+      } else if (fun == QuasiQuoteCompiler.QUASIQUOTE) {
+        Rebuilder rebuilder = new Rebuilder(caller, QuasiQuoteCompiler.QUASIQUOTE);
+        QuasiQuoteCompiler.compile(thread, lc, rebuilder, expression.cdr().car(), lexicalBindings);
       } else if (Symbol.is("fn", fun)) {
-        new FunctionBodyBuilder(thread, namespace, whatToDo, (Pair) expression.cdr()).start();
+        new FunctionBodyBuilder(thread, lc, caller, (Pair) expression.cdr(), lexicalBindings).start();
       } else {
-        new PairExpander(thread, namespace, new MacExpander(thread, namespace, this, false), expression).start();
+        new PairExpander(thread, lc, new MacExpander(thread, lc, this, false), expression, lexicalBindings).start();
       }
     }
   }
@@ -58,7 +69,7 @@ public class Compiler extends ContinuationSupport {
     }
 
     Symbol sym = (Symbol) first;
-    ArcObject maybeTagged = namespace.lookup(sym.name());
+    ArcObject maybeTagged = thread.environment().lookup(sym);
     if (maybeTagged == null) {
       return null;
     }
@@ -66,11 +77,11 @@ public class Compiler extends ContinuationSupport {
     return (Function) Tagged.ifTagged(maybeTagged, "mac");
   }
 
-  protected void digest(ArcObject returned) {
+  protected void onReceive(ArcObject returned) {
     if (expression.equals(returned)) {
-      whatToDo.eat(expression);
+      caller.receive(expression);
     } else {
-      compile(thread, namespace, whatToDo, returned);
+      compile(thread, lc, caller, returned, lexicalBindings);
     }
   }
 }

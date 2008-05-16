@@ -1,10 +1,9 @@
 package rainbow.vm.continuations;
 
-import rainbow.Bindings;
 import rainbow.ArcError;
+import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
-import rainbow.types.Symbol;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.Interpreter;
@@ -14,24 +13,22 @@ import java.util.LinkedList;
 
 public class QuasiQuoteContinuation extends ContinuationSupport {
   private ArcObject expression;
-  private ArcObject source;
   private List<ArcObject> result = new LinkedList<ArcObject>();
   private ArcObject current;
 
-  public QuasiQuoteContinuation(ArcThread thread, Bindings namespace, Continuation whatToDo, ArcObject expression, ArcObject source) {
-    super(thread, namespace, whatToDo);
+  public QuasiQuoteContinuation(ArcThread thread, LexicalClosure lc, Continuation whatToDo, ArcObject expression) {
+    super(thread, lc, whatToDo);
     this.expression = expression;
-    this.source = expression;
   }
 
   public void start() {
     if (expression.isNil()) {
-      whatToDo.eat(expression);
+      caller.receive(expression);
     } else if (isUnQuote(expression)) {
       current = expression;
-      Interpreter.interpret(thread, namespace, whatToDo, expression.cdr().car());
+      Interpreter.interpret(thread, lc, caller, expression.cdr().car());
     } else if (!isPair(expression)) {
-      whatToDo.eat(expression);
+      caller.receive(expression);
     } else {
       repeat();
     }
@@ -39,19 +36,19 @@ public class QuasiQuoteContinuation extends ContinuationSupport {
 
   private void repeat() {
     if (expression.isNil()) {
-      whatToDo.eat(Pair.buildFrom(result, ArcObject.NIL));
+      caller.receive(Pair.buildFrom(result, ArcObject.NIL));
     } else if (expression instanceof Pair) {
       current = expression.car();
       expression = expression.cdr();
       if (isUnQuote(current)) {
-        Interpreter.interpret(thread, namespace, this, current.cdr().car());
+        Interpreter.interpret(thread, lc, this, current.cdr().car());
       } else if (isUnQuoteSplicing(current)) {
-        Interpreter.interpret(thread, namespace, new UnquoteSplicer(this, result), current.cdr().car());
+        Interpreter.interpret(thread, lc, new UnquoteSplicer(this, result), current.cdr().car());
       } else if (isQuasiQuote(current)) {
         append(current);
         repeat();
       } else if (isPair(current)) {
-        new QuasiQuoteContinuation(thread, namespace, this, current, source).start();
+        new QuasiQuoteContinuation(thread, lc, this, current).start();
       } else {
         append(current);
         repeat();
@@ -66,28 +63,22 @@ public class QuasiQuoteContinuation extends ContinuationSupport {
   }
 
   public static boolean isUnQuote(ArcObject expression) {
-    return carIs(expression, "unquote");
+    return expression.isCar(QuasiQuoteCompiler.UNQUOTE);
   }
 
   public static boolean isUnQuoteSplicing(ArcObject expression) {
-    return carIs(expression, "unquote-splicing");
+    return expression.isCar(QuasiQuoteCompiler.UNQUOTE_SPLICING);
   }
 
   public static boolean isQuasiQuote(ArcObject expression) {
-    return carIs(expression, "quasiquote");
-  }
-
-  private static boolean carIs(ArcObject expression, String name) {
-    if (!isPair(expression)) return false;
-    ArcObject first = expression.car();
-    return (first instanceof Symbol && ((Symbol) first).name().equals(name));
+    return expression.isCar(QuasiQuoteCompiler.QUASIQUOTE);
   }
 
   private static boolean isPair(ArcObject expression) {
     return expression instanceof Pair;
   }
 
-  public void digest(ArcObject o) {
+  public void onReceive(ArcObject o) {
     if (o != null) {
       append(o);
     }

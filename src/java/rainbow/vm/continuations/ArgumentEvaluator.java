@@ -1,61 +1,56 @@
 package rainbow.vm.continuations;
 
-import rainbow.Bindings;
 import rainbow.Function;
+import rainbow.LexicalClosure;
 import rainbow.functions.InterpretedFunction;
 import rainbow.functions.Threads;
-import rainbow.vm.Continuation;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Interpreter;
-import rainbow.types.Pair;
 import rainbow.types.ArcObject;
+import rainbow.types.Pair;
+import rainbow.vm.ArcThread;
+import rainbow.vm.Continuation;
+import rainbow.vm.Interpreter;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 public class ArgumentEvaluator extends ContinuationSupport {
+  private Function f;
   private Pair args;
-  private List evaluatedArgs = new LinkedList();
-  private Pair originalArgs;
+  private List evaluatedArgs;
 
-  public ArgumentEvaluator(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
-    super(thread, namespace, whatToDo);
+  public ArgumentEvaluator(ArcThread thread, LexicalClosure lc, Continuation caller, Function f, Pair args) {
+    super(thread, lc, caller);
+    this.f = f;
     this.args = args;
-    this.originalArgs = args;
+    evaluatedArgs = new ArrayList(args.size());
   }
 
   public void start() {
     if (args.isNil()) {
-      whatToDo.eat(Pair.buildFrom(evaluatedArgs, ArcObject.NIL));
+      f.invoke(thread, lc, caller, Pair.buildFrom(evaluatedArgs, ArcObject.NIL));
     } else {
       ArcObject expression = args.car();
       args = (Pair) args.cdr();
-      Interpreter.interpret(thread, namespace, this, expression);
+      Interpreter.interpret(thread, lc, this, expression);
     }
   }
 
-  public void digest(ArcObject o) {
+  public void onReceive(ArcObject o) {
     if (o instanceof InterpretedFunction) {
-      evaluatedArgs.add(new Threads.Closure((Function) o, namespace));
+      evaluatedArgs.add(new Threads.Closure((Function) o, lc));
     } else {
       evaluatedArgs.add(o);
     }
     start();
   }
 
-  protected ArcObject getCurrentTarget() {
-    return originalArgs;
-  }
-
   public Continuation cloneFor(ArcThread thread) {
     ArgumentEvaluator ae = (ArgumentEvaluator) super.cloneFor(thread);
     ae.args = this.args.copy();
-    ae.evaluatedArgs = new LinkedList(this.evaluatedArgs);
-    ae.originalArgs = this.originalArgs;
+    if (evaluatedArgs != null) {
+      ae.evaluatedArgs = new LinkedList(this.evaluatedArgs);
+    }
     return ae;
   }
-
-//  public String toString() {
-//    return "ArgumentEvaluator: evaluated " + evaluatedArgs + "; evaluating " + args + " for " + whatToDo;
-//  }
 }

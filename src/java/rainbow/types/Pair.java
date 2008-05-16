@@ -1,12 +1,8 @@
 package rainbow.types;
 
 import rainbow.types.ArcObject;
-import rainbow.ArcError;
-import rainbow.Bindings;
-import rainbow.Function;
-import rainbow.Nil;
+import rainbow.*;
 import rainbow.functions.Builtin;
-import rainbow.parser.Token;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
@@ -17,10 +13,10 @@ public class Pair extends ArcObject implements Function {
   private static final Map specials = new HashMap();
 
   static {
-    specials.put("quasiquote", "`");
-    specials.put("quote", "'");
-    specials.put("unquote", ",");
-    specials.put("unquote-splicing", ",@");
+//    specials.put("quasiquote", "`");
+//    specials.put("quote", "'");
+//    specials.put("unquote", ",");
+//    specials.put("unquote-splicing", ",@");
   }
 
   private ArcObject car;
@@ -46,6 +42,10 @@ public class Pair extends ArcObject implements Function {
 
   public ArcObject cdr() {
     return cdr == null ? NIL : cdr;
+  }
+
+  public boolean isCar(Symbol s) {
+    return s == car;
   }
 
   public String toString() {
@@ -96,6 +96,9 @@ public class Pair extends ArcObject implements Function {
 
   public static Pair buildFrom(List items, ArcObject last) {
     Pair pair = new Pair();
+    if (items == null) {
+      return pair;
+    }
     if (items.size() != 0) {
       pair.car = (ArcObject) items.get(0);
       if (items.size() == 1) {
@@ -178,9 +181,9 @@ public class Pair extends ArcObject implements Function {
     return car.hashCode() + (37 * cdr().hashCode());
   }
 
-  public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
+  public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
     ArcNumber index = cast(args.car(), ArcNumber.class);
-    whatToDo.eat(nth(index.toInt()).car());
+    whatToDo.receive(nth(index.toInt()).car());
   }
 
   public String code() {
@@ -199,22 +202,24 @@ public class Pair extends ArcObject implements Function {
     return car() instanceof Symbol && specials.containsKey(((Symbol) car()).name()) && cdr() instanceof Pair;
   }
 
-  public ArcObject source(String sourceName, Token source) {
-    ArcObject object = super.source(sourceName, source);
-    if (!isNil() && !cdr().isNil() && cdr() instanceof Pair) {
-      cdr().source(sourceName, source);
-    }
-    return object;
-  }
-
-  public String source() {
-    return (isNil() || sourceName != null) ? super.source() : car().source();
-  }
-
   public Pair copy() {
     if (isNil()) {
       return this;
     }
     return new Pair(car(), cdr().copy());
+  }
+
+  public ArcObject[] toArray() {
+    ArcObject[] result = new ArcObject[size()];
+    int i = 0;
+    toArray(result, i);
+    return result;
+  }
+
+  private void toArray(ArcObject[] result, int i) {
+    if (i < result.length) {
+      result[i] = car;
+      ((Pair)cdr).toArray(result, i + 1);
+    }
   }
 }

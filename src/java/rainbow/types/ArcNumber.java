@@ -1,13 +1,12 @@
 package rainbow.types;
 
-import rainbow.types.ArcObject;
-import rainbow.Bindings;
+import rainbow.Environment;
 
 public abstract class ArcNumber extends ArcObject {
   public static final Symbol INT_TYPE = (Symbol) Symbol.make("int");
   public static final Symbol NUM_TYPE = (Symbol) Symbol.make("num");
 
-  public ArcObject eval(Bindings arc) {
+  public ArcObject eval(Environment env) {
     return this;
   }
 

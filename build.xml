@@ -21,14 +21,12 @@
   </target>
 
   <target name="compile-parser">
-    <java classname="javacc" classpath="${javacc}" fork="true">
-      <arg line="-output_directory=${src}/rainbow/parser ${compiler-src}/arc.grammar"/>
-    </java>
+    <javacc target="${compiler-src}/ArcParser.jj" javacchome="${lib}" outputdirectory="${src}/rainbow/parser"/>
   </target>
 
   <target name="compile-sources" depends="compile-parser">
     <mkdir dir="${classes}"/>
-    <javac srcdir="${src}" destdir="${classes}" debug="on" source="1.5" target="1.5"/>
+    <javac srcdir="${src}" destdir="${classes}" debug="on" source="1.5" target="1.5" failonerror="true"/>
     <copy todir="${classes}">
       <fileset dir="${src}">
         <include name="**/*"/>

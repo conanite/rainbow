@@ -5,7 +5,7 @@ import rainbow.types.*;
 
 public class Lists {
   public static class Car extends Builtin {
-    public ArcObject invoke(Pair args, Bindings arc) {
+    public ArcObject invoke(Pair args) {
       checkMaxArgCount(args, getClass(), 1);
       Pair arg = (Pair) args.car();
       if (arg.isNil()) {
@@ -16,14 +16,14 @@ public class Lists {
   }
 
   public static class Cdr extends Builtin {
-    public ArcObject invoke(Pair args, Bindings arc) {
+    public ArcObject invoke(Pair args) {
       checkMaxArgCount(args, getClass(), 1);
       return args.car().cdr();
     }
   }
 
   public static class Cons extends Builtin {
-    public ArcObject invoke(Pair args, Bindings arc) {
+    public ArcObject invoke(Pair args) {
       checkExactArgsCount(args, 2, getClass());
       Pair pair = new Pair();
       pair.setCar(args.car());
@@ -33,7 +33,7 @@ public class Lists {
   }
 
   public static class NewString extends Builtin {
-    public ArcObject invoke(Pair args, Bindings arc) {
+    public ArcObject invoke(Pair args) {
       ArcNumber n = (ArcNumber) args.car();
       ArcCharacter c = ArcCharacter.NULL;
       if (!args.cdr().isNil()) {
@@ -48,7 +48,7 @@ public class Lists {
   }
 
   public static class Scar extends Builtin {
-    public ArcObject invoke(Pair args, Bindings arc) {
+    public ArcObject invoke(Pair args) {
       ArcObject object = args.car();
       ArcObject newValue = args.cdr().car();
       if (object instanceof ArcString) {
@@ -67,7 +67,7 @@ public class Lists {
   }
 
   public static class Scdr extends Builtin {
-    public ArcObject invoke(Pair args, Bindings arc) {
+    public ArcObject invoke(Pair args) {
       Pair target = (Pair) args.car();
       ArcObject newValue = args.cdr().car();
       target.setCdr(newValue);
@@ -76,7 +76,7 @@ public class Lists {
   }
 
   public static class Len extends Builtin {
-    public ArcObject invoke(Pair args, Bindings arc) {
+    public ArcObject invoke(Pair args) {
       checkMaxArgCount(args, getClass(), 1);
       ArcObject arg = args.car();
       if (arg instanceof ArcString) {

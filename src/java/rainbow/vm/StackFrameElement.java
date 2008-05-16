@@ -14,7 +14,7 @@ public class StackFrameElement {
   public String toString() {
     String inv = "";
     if (invocation != null) {
-      inv += invocation + " at " + invocation.source();
+      inv += invocation;
     }
     return continuation.getClass().getSimpleName() + " : " + inv;
   }

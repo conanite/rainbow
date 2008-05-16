@@ -1,7 +1,7 @@
 package rainbow.types;
 
-import rainbow.Bindings;
 import rainbow.ArcError;
+import rainbow.Environment;
 import rainbow.Truth;
 
 public class ArcCharacter extends ArcObject {
@@ -91,7 +91,7 @@ public class ArcCharacter extends ArcObject {
     return value;
   }
 
-  public ArcObject eval(Bindings arc) {
+  public ArcObject eval(Environment env) {
     return this;
   }
 

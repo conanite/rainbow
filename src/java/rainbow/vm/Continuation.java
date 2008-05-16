@@ -4,7 +4,7 @@ import rainbow.types.ArcObject;
 import rainbow.ArcError;
 
 public interface Continuation {
-  void eat(ArcObject o);
+  void receive(ArcObject o);
 
   void error(ArcError error);
 

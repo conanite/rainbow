@@ -7,22 +7,29 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class Symbol extends ArcObject {
+  private static final Map<String, Symbol> map = new HashMap();
   public static final Symbol TYPE = (Symbol) Symbol.make("sym");
   public static final Symbol EMPTY_STRING = (Symbol) Symbol.make("||");
-  private static final Map<String, Symbol> map = new HashMap();
+  private static int count = 0;
   private String name;
+  private int hash;
+//  private final int id;
 
-  public Symbol(String name) {
+  protected Symbol(String name) {
     this.name = name;
+    this.hash = name.hashCode();
+//    synchronized (Symbol.class) {
+//      this.id = count++;
+//    }
   }
 
   public static ArcObject make(String name) {
     if ("t".equals(name)) {
-      return ArcObject.T;
+      return T;
     } else if ("nil".equals(name)) {
-      return ArcObject.NIL;
+      return NIL;
     }
-    return new Symbol(name);
+    return nu(name);
   }
 
   public String toString() {
@@ -57,15 +64,15 @@ public class Symbol extends ArcObject {
   }
 
   public int hashCode() {
-    return name.hashCode();
+    return hash;
   }
 
   public boolean equals(Object object) {
-    return object instanceof Symbol && ((Symbol) object).name.equals(this.name);
+    return this == object;
   }
 
-  public ArcObject eval(Bindings arc) {
-    ArcObject result = arc.lookup(name);
+  public ArcObject eval(Environment env) {
+    ArcObject result = env.lookup(this);
     if (result == null) {
       throw new Unbound(this);
     }

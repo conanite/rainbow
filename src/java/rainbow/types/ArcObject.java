@@ -6,10 +6,8 @@ import rainbow.parser.Token;
 public abstract class ArcObject {
   public static final Nil NIL = Nil.NIL;
   public static final Truth T = Truth.T;
-  String sourceName;
-  private Token source;
 
-  public ArcObject eval(Bindings arc) {
+  public ArcObject eval(Environment env) {
     return this;
   }
 
@@ -29,34 +27,24 @@ public abstract class ArcObject {
     throw new ArcError("Can't take cdr of " + this);
   }
 
+  public boolean isCar(Symbol s) {
+    return false;
+  }
+
   public ArcObject eqv(ArcObject other) {
     return Truth.valueOf(this == other);
   }
 
-  public ArcObject source(String sourceName, Token source) {
-    this.sourceName = sourceName;
-    this.source = source;
-    return this;
-  }
-  
-  public String source() {
-    return (sourceName == null ? "<unknown>" : sourceName) + ":" + (source == null ? "<unknown>" : ("" + source.beginLine + " column " + source.beginColumn));
-  }
-
   public abstract ArcObject type();
-
-  public ArcObject sourceFrom(ArcObject sourceInvocation) {
-    return source(sourceInvocation.sourceName, sourceInvocation.source);
-  }
 
   public ArcObject copy() {
     return this;
   }
 
   public static <T> T cast(ArcObject arcObject, Class<T> aClass) {
-    if (aClass.isAssignableFrom(arcObject.getClass())) {
+    try {
       return (T) arcObject;
-    } else {
+    } catch (ClassCastException cce) {
       throw new ArcError("expected " + aClass.getSimpleName() + "; got " + arcObject + " which is a " + arcObject.getClass().getSimpleName());
     }
   }

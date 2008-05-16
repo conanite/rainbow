@@ -1,24 +1,24 @@
 package rainbow.functions;
 
-import rainbow.types.*;
-import rainbow.Bindings;
-import rainbow.Function;
 import rainbow.ArcError;
+import rainbow.Function;
+import rainbow.LexicalClosure;
+import rainbow.types.*;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
 public class Tables {
   public static class Table extends Builtin {
-    public ArcObject invoke(Pair args, Bindings arc) {
+    public ArcObject invoke(Pair args) {
       return new Hash();
     }
   }
 
   public static class MapTable extends Builtin {
-    public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
       Function f = (Function) args.car();
       Hash h = (Hash) args.cdr().car();
-      h.map(f, thread, namespace, whatToDo);
+      h.map(f, thread, lc, whatToDo);
     }
   }
 
@@ -55,7 +55,7 @@ public class Tables {
     private ArcObject srefString(Pair args) {
       ArcString string = (ArcString) args.car();
       ArcCharacter value = cast(args.cdr().car(), ArcCharacter.class);
-      Rational index = cast(args.cdr().cdr().car(), Rational.class) ;
+      Rational index = cast(args.cdr().cdr().car(), Rational.class);
       string.sref(index, value);
       return value;
     }

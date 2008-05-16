@@ -20,14 +20,14 @@ public class InterpretationError extends ArcError {
   }
 
   private static String constructMessage(ArcObject o, Throwable cause) {
-    return "\ninterpreting " + o + "(" + o.source() + ")" + " --> " + cause;
+    return "\ninterpreting " + o + " --> " + cause;
   }
 
   private static String constructMessage(ArcObject o, ArcError cause) {
-    return "\ninterpreting " + o + "(" + o.source() + ")" + " --> " + cause.getMessage();
+    return "\ninterpreting " + o + " --> " + cause.getMessage();
   }
 
   private static String constructMessage(ArcObject o, InterpretationError cause) {
-    return "\ninterpreting " + o + "(" + o.source() + ")" + cause.getMessage();
+    return "\ninterpreting " + o + " " + cause.getMessage();
   }
 }

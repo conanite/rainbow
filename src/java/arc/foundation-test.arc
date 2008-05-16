@@ -55,6 +55,10 @@
           `qqqfoo
           qqqfoo )
 
+        ("quais-quote quasi-quote"
+          ``double-qq
+          `double-qq )
+
         ("quasiquotation unquote is identity"
           ( (fn (x) `,x) "foo" )
           "foo" )
@@ -180,6 +184,13 @@
           ( (fn (z) (fopt 2)) 101)
         ))
         (2 . 50))
+        
+      ("o is not always an optional arg"
+        ((fn ()
+          (set fioip (fn ((i o ip)) o))
+          (fioip '(ifoo obar "iptoto"))
+        ))
+        obar)
 
       ("destructuring-bind params"
         ((fn (a b (c d e (f g)) h) `(,a ,b ,c ,d ,e ,f ,g ,h)) 1 2 '(3 4 5 (6 7)) 8)

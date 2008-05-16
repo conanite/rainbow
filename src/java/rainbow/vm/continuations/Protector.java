@@ -1,8 +1,8 @@
 package rainbow.vm.continuations;
 
-import rainbow.Function;
-import rainbow.Bindings;
 import rainbow.ArcError;
+import rainbow.Function;
+import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
@@ -10,16 +10,16 @@ import rainbow.vm.Continuation;
 public class Protector extends ContinuationSupport {
   private final Function after;
 
-  public Protector(ArcThread thread, Bindings namespace, Continuation whatToDo, Function after) {
-    super(thread, namespace, whatToDo);
+  public Protector(ArcThread thread, LexicalClosure lc, Continuation caller, Function after) {
+    super(thread, lc, caller);
     this.after = after;
   }
 
-  public void digest(final ArcObject result) {
-    after.invoke(thread, namespace, new ResultPassingContinuation(whatToDo, result), ArcObject.NIL);
+  public void onReceive(final ArcObject result) {
+    after.invoke(thread, lc, new ResultPassingContinuation(caller, result), ArcObject.NIL);
   }
 
   public void error(final ArcError originalError) {
-    after.invoke(thread, namespace, new ErrorPassingContinuation(whatToDo, originalError), ArcObject.NIL);
+    after.invoke(thread, lc, new ErrorPassingContinuation(caller, originalError), ArcObject.NIL);
   }
 }

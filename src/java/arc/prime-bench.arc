@@ -8,8 +8,9 @@
 
 (def primes-under (max)
 	(loop (= pc 2) (< pc max) (++ pc)
-		(if (prime? pc) (prn pc))))
+		(if (prime? pc) (pr "."))))
 
-(time (primes-under 20000))
+(def prime-bench (n) (time (primes-under n)))
+
 
 

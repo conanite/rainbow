@@ -11,16 +11,18 @@ import rainbow.types.Symbol;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Arrays;
+import java.util.Map;
 
 public class InterpretedFunction extends ArcObject implements Function {
   private ArcObject parameterList;
-  Pair body;
-  protected Bindings arc;
+  private Map lexicalBindings;
+  ArcObject[] body;
 
-  public InterpretedFunction(ArcObject parameterList, Pair body, Bindings arc) {
+  public InterpretedFunction(ArcObject parameterList, Map lexicalBindings, Pair body) {
     this.parameterList = parameterList;
-    this.body = body;
-    this.arc = arc;
+    this.lexicalBindings = lexicalBindings;
+    this.body = body.toArray();
   }
 
   public int compareTo(ArcObject right) {
@@ -28,10 +30,10 @@ public class InterpretedFunction extends ArcObject implements Function {
   }
 
   public String toString() {
-    List fn = new LinkedList();
+    List<ArcObject> fn = new LinkedList<ArcObject>();
     fn.add(Symbol.make("fn"));
     fn.add(parameterList);
-    body.copyTo(fn);
+    fn.addAll(Arrays.asList(body));
     Pair def = Pair.buildFrom(fn, NIL);
     return def.toString();
   }
@@ -40,17 +42,25 @@ public class InterpretedFunction extends ArcObject implements Function {
     return Builtin.TYPE;
   }
 
-  public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
-    if (body.isNil()) {
-      whatToDo.eat(NIL);
+  public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+    if (body.length == 0) {
+      whatToDo.receive(NIL);
     } else {
-      Bindings child = new Bindings(namespace);
-      FunctionEvaluator evaluator = new FunctionEvaluator(thread, child, whatToDo, this, body);
-      new NamespaceBuilder(thread, child, evaluator, parameterList, args).start();
+      LexicalClosure childClosure = parameterList.isNil() ? lc : new LexicalClosure(lexicalBindings, lc);
+      FunctionEvaluator evaluator = new FunctionEvaluator(thread, childClosure, whatToDo, this);
+      NamespaceBuilder.build(thread, childClosure, evaluator, parameterList, args);
     }
   }
 
   public String code() {
     return toString();
+  }
+
+  public ArcObject nth(int index) {
+    return body[index];
+  }
+
+  public boolean last(int index) {
+    return index >= body.length;
   }
 }

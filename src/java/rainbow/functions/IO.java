@@ -1,9 +1,6 @@
 package rainbow.functions;
 
-import rainbow.ArcError;
-import rainbow.Bindings;
-import rainbow.Function;
-import rainbow.TopBindings;
+import rainbow.*;
 import rainbow.types.*;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
@@ -24,34 +21,34 @@ public class IO {
     }
   };
 
-  public static void collect(TopBindings top) {
+  public static void collect(Environment top) {
     top.add(new Builtin[]{
       new Builtin("call-w/stdin") {
-        public void invoke(ArcThread thread, final Bindings namespace, final Continuation whatToDo, Pair args) {
+        public void invoke(ArcThread thread, LexicalClosure lc, final Continuation whatToDo, Pair args) {
           final Input previous = thread.swapStdIn(cast(args.car(), Input.class));
           final Function thunk = cast(args.cdr().car(), Function.class);
-          thunk.invoke(thread, namespace, new CallWStdinContinuation(thread, namespace, whatToDo, previous), NIL);
+          thunk.invoke(thread, lc, new CallWStdinContinuation(thread, lc, whatToDo, previous), NIL);
         }
       }, new Builtin("call-w/stdout") {
-        public void invoke(ArcThread thread, final Bindings namespace, final Continuation whatToDo, Pair args) {
+        public void invoke(ArcThread thread, LexicalClosure lc, final Continuation whatToDo, Pair args) {
           final Output previous = thread.swapStdOut(cast(args.car(), Output.class));
           final Function thunk = cast(args.cdr().car(), Function.class);
-          thunk.invoke(thread, namespace, new CallWStdoutContinuation(thread, namespace, whatToDo, previous), NIL);
+          thunk.invoke(thread, lc, new CallWStdoutContinuation(thread, lc, whatToDo, previous), NIL);
         }
       }, new Builtin("stdin") {
-        public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
-          whatToDo.eat(thread.stdIn());
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+          whatToDo.receive(thread.stdIn());
         }
       }, new Builtin("stdout") {
-        public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
-          whatToDo.eat(thread.stdOut());
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+          whatToDo.receive(thread.stdOut());
         }
       }, new Builtin("stderr") {
         public ArcObject invoke(Pair args) {
           return STD_ERR;
         }
       }, new Builtin("disp") {
-        public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
           Output out = chooseOutputPort(args.cdr().car(), thread);
           ArcObject o = args.car();
           if (o instanceof ArcString) {
@@ -61,37 +58,37 @@ public class IO {
           } else {
             out.write(o);
           }
-          whatToDo.eat(NIL);
+          whatToDo.receive(NIL);
         }
       }, new Builtin("write") {
-        public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
           chooseOutputPort(args.cdr().car(), thread).write(args.car());
-          whatToDo.eat(NIL);
+          whatToDo.receive(NIL);
         }
       }, new Builtin("sread") {
-        public ArcObject invoke(Pair args, Bindings arc) {
+        public ArcObject invoke(Pair args) {
           return cast(args.car(), Input.class).readObject(NIL);
         }
       }, new Builtin("writeb") {
-        public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
           chooseOutputPort(args.cdr().car(), thread).writeByte(cast(args.car(), Rational.class));
-          whatToDo.eat(NIL);
+          whatToDo.receive(NIL);
         }
       }, new Builtin("writec") {
-        public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
           chooseOutputPort(args.cdr().car(), thread).writeChar(cast(args.car(), ArcCharacter.class));
-          whatToDo.eat(NIL);
+          whatToDo.receive(NIL);
         }
       }, new Builtin("readb") {
-        public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
-          whatToDo.eat(chooseInputPort(args.car(), thread).readByte());
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+          whatToDo.receive(chooseInputPort(args.car(), thread).readByte());
         }
       }, new Builtin("readc") {
-        public void invoke(ArcThread thread, Bindings namespace, Continuation whatToDo, Pair args) {
-          whatToDo.eat(chooseInputPort(args.car(), thread).readCharacter());
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+          whatToDo.receive(chooseInputPort(args.car(), thread).readCharacter());
         }
       }, new Builtin("close") {
-        public ArcObject invoke(Pair args, Bindings arc) {
+        public ArcObject invoke(Pair args) {
           while (!args.isNil()) {
             close(args.car());
             args = (Pair) args.cdr();

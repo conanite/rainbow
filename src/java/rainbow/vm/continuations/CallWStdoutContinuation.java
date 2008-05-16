@@ -1,23 +1,23 @@
 package rainbow.vm.continuations;
 
-import rainbow.vm.Continuation;
-import rainbow.vm.ArcThread;
+import rainbow.ArcError;
+import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Output;
-import rainbow.ArcError;
-import rainbow.Bindings;
+import rainbow.vm.ArcThread;
+import rainbow.vm.Continuation;
 
 public class CallWStdoutContinuation extends ContinuationSupport {
   private Output previousOutput;
 
-  public CallWStdoutContinuation(ArcThread thread, Bindings namespace, Continuation whatToDo, Output previousOutput) {
-    super(thread, namespace, whatToDo);
+  public CallWStdoutContinuation(ArcThread thread, LexicalClosure lc, Continuation caller, Output previousOutput) {
+    super(thread, lc, caller);
     this.previousOutput = previousOutput;
   }
 
-  public void digest(ArcObject o) {
+  public void onReceive(ArcObject o) {
     thread.swapStdOut(previousOutput);
-    whatToDo.eat(o);
+    caller.receive(o);
   }
 
   public void error(ArcError error) {

@@ -6,13 +6,13 @@ import rainbow.types.ArcObject;
 public class ResultPassingContinuation extends ContinuationSupport {
   private final ArcObject result;
 
-  public ResultPassingContinuation(Continuation whatToDo, ArcObject result) {
-    super(null, null, whatToDo);
+  public ResultPassingContinuation(Continuation caller, ArcObject result) {
+    super(null, null, caller);
     this.result = result;
   }
 
-  public void digest(ArcObject ignore) {
-    whatToDo.eat(result);
+  public void onReceive(ArcObject ignore) {
+    caller.receive(result);
   }
 
   protected ArcObject getCurrentTarget() {
