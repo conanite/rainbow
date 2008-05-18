@@ -3,7 +3,7 @@ package rainbow.functions;
 import rainbow.*;
 import rainbow.types.*;
 
-public class Lists {
+public abstract class Lists {
   public static class Car extends Builtin {
     public ArcObject invoke(Pair args) {
       checkMaxArgCount(args, getClass(), 1);

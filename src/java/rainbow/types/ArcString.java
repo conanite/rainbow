@@ -6,8 +6,29 @@ import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.functions.Builtin;
 
-public class ArcString extends ArcObject implements Function {
+public class ArcString extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("string");
+
+  public static final Function REF = new Function() {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+      Builtin.checkMaxArgCount(args, getClass(), 2);
+      ArcString string = ArcString.cast(args.car(), this);
+      Rational index = Rational.cast(args.cdr().car(), this);
+      if (!index.isInteger()) {
+        throw new ArcError("string-ref: expects exact integer: got " + index);
+      }
+      int i = (int) index.toInt();
+      if (i < 0 || i >= string.value.length()) {
+        throw new ArcError("string-ref: index " + i + " out of range [0, " + (string.value.length() - 1) + "] for string " + toString());
+      }
+      whatToDo.receive(new ArcCharacter(string.value.charAt(i)));
+    }
+
+    public String code() {
+      return "string-ref";
+    }
+  };
+
   private String value;
 
   public ArcString(String value) {
@@ -64,20 +85,15 @@ public class ArcString extends ArcObject implements Function {
     this.value = b.toString();
   }
 
-  public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-    Builtin.checkMaxArgCount(args, getClass(), 1);
-    Rational index = cast(args.car(), Rational.class);
-    if (!index.isInteger()) {
-      throw new ArcError("string-ref: expects exact integer: got " + index);
-    }
-    int i = (int) index.toInt();
-    if (i < 0 || i >= value.length()) {
-      throw new ArcError("string-ref: index " + i + " out of range [0, " + (value.length() - 1) + "] for string " + toString());
-    }
-    whatToDo.receive(new ArcCharacter(value.charAt(i)));
-  }
-
   public String code() {
     return "<string>";
+  }
+  
+  public static ArcString cast(ArcObject argument, Object caller) {
+    try {
+      return (ArcString) argument;
+    } catch (ClassCastException e) {
+      throw new ArcError("Wrong argument type: " + caller + " expected a string, got " + argument);
+    }
   }
 }

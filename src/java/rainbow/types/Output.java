@@ -1,6 +1,7 @@
 package rainbow.types;
 
 import rainbow.ArcError;
+import rainbow.functions.Builtin;
 
 import java.io.PrintStream;
 
@@ -41,5 +42,13 @@ public class Output extends ArcObject {
 
   public void writeByte(byte b) {
     out.write(b);
+  }
+
+  public static Output cast(ArcObject argument, Object caller) {
+    try {
+      return (Output) argument;
+    } catch (ClassCastException e) {
+      throw new ArcError("Wrong argument type: " + caller + " expected output-port, got " + argument);
+    }
   }
 }

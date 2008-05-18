@@ -1,10 +1,12 @@
 package rainbow.types;
 
 import rainbow.ArcError;
+import rainbow.functions.Network;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.FilenameFilter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -41,5 +43,13 @@ public class ArcSocket extends ArcObject {
 
   public String toString() {
     return TYPE + " " + ss;
+  }
+
+  public static ArcSocket cast(ArcObject argument, ArcObject caller) {
+    try {
+      return (ArcSocket) argument;
+    } catch (ClassCastException e) {
+      throw new ArcError("Wrong argument type: " + caller + " expected a socket, got " + argument);
+    }
   }
 }

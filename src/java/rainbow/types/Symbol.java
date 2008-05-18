@@ -13,14 +13,10 @@ public class Symbol extends ArcObject {
   private static int count = 0;
   private String name;
   private int hash;
-//  private final int id;
 
   protected Symbol(String name) {
     this.name = name;
     this.hash = name.hashCode();
-//    synchronized (Symbol.class) {
-//      this.id = count++;
-//    }
   }
 
   public static ArcObject make(String name) {
@@ -86,6 +82,14 @@ public class Symbol extends ArcObject {
   private class Unbound extends ArcError {
     public Unbound(Symbol name) {
       super("Symbol " + name + " is not bound");
+    }
+  }
+
+  public static Symbol cast(ArcObject argument, Object caller) {
+    try {
+      return (Symbol) argument;
+    } catch (ClassCastException e) {
+      throw new ArcError("Wrong argument type: " + caller + " expected a Symbol, got " + argument);
     }
   }
 }

@@ -9,10 +9,12 @@ public class Environment {
   private java.util.Set defaults;
   protected Map namespace = new HashMap();
 
-  public Environment() { // todo: macex1, pipe-from, complex numbers, file-exists, rmfile, threading
+  public Environment() { // todo: macex1, pipe-from, complex numbers, threading
     IO.collect(this);
     SystemFunctions.collect(this);
     Maths.collect(this);
+    Typing.collect(this);
+    ThreadLocals.collect(this);
 
     addBuiltin("t", ArcObject.T);
     addBuiltin("nil", ArcObject.NIL);
@@ -32,13 +34,7 @@ public class Environment {
     addBuiltin("err", new Errors.Err());
     addBuiltin("on-err", new Errors.OnErr());
     addBuiltin("details", new Errors.Details());
-
-    /* typing */
-    addBuiltin("type", new Typing.Type());
-    addBuiltin("coerce", new Typing.Coerce());
-    addBuiltin("annotate", new Typing.Annotate());
-    addBuiltin("rep", new Typing.Rep());
-
+    
     /* lists */
     addBuiltin("car", new Lists.Car());
     addBuiltin("cdr", new Lists.Cdr());
@@ -84,6 +80,10 @@ public class Environment {
     addBuiltin("rmfile", new FileSystem.RmFile());
     addBuiltin("open-socket", new Network.OpenSocket());
     addBuiltin("socket-accept", new Network.SocketAccept());
+
+    if (Console.ANARKI_COMPATIBILITY) {
+      addBuiltin("seval", new Evaluation.Seval());
+    }
 
     defaults = new HashSet(namespace.keySet());
   }

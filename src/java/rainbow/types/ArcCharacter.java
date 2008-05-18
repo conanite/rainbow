@@ -110,4 +110,12 @@ public class ArcCharacter extends ArcObject {
   public ArcObject eqv(ArcObject other) {
     return Truth.valueOf(equals(other));
   }
+
+  public static ArcCharacter cast(ArcObject argument, Object caller) {
+    try {
+      return (ArcCharacter) argument;
+    } catch (ClassCastException e) {
+      throw new ArcError("Wrong argument type: " + caller + " expected a character, got " + argument);
+    }
+  }
 }

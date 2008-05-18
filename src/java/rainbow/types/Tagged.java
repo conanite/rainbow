@@ -1,5 +1,7 @@
 package rainbow.types;
 
+import rainbow.ArcError;
+
 public class Tagged extends ArcObject {
   private ArcObject type;
   private ArcObject rep;
@@ -35,8 +37,20 @@ public class Tagged extends ArcObject {
     }
     return null;
   }
+  
+  public static ArcObject rep(ArcObject o) {
+    return (o instanceof Tagged) ? ((Tagged)o).rep : o;
+  }
 
   public String toString() {
     return "#<tagged " + type + " " + rep + ">";
+  }
+
+  public static Tagged cast(ArcObject argument, ArcObject caller) {
+    try {
+      return (Tagged) argument;
+    } catch (ClassCastException e) {
+      throw new ArcError("Wrong argument type: " + caller + " expected a Tagged, got " + argument);
+    }
   }
 }

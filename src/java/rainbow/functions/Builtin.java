@@ -6,6 +6,7 @@ import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
+import rainbow.types.SocketInputPort;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
@@ -25,8 +26,8 @@ public abstract class Builtin extends ArcObject implements Function {
     throw new ArcError("Builtin:invoke(args):provide implementation!");
   }
 
-  public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-    whatToDo.receive(invoke(args));
+  public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    caller.receive(invoke(args));
   }
 
   public int compareTo(ArcObject right) {
@@ -49,7 +50,7 @@ public abstract class Builtin extends ArcObject implements Function {
     }
   }
 
-  public static void checkExactArgsCount(Pair args, int argCount, Class<? extends Lists.Cons> functionClass) {
+  public static void checkExactArgsCount(Pair args, int argCount, Class functionClass) {
     if (args.size() != argCount) {
       throw new ArcError(functionClass.getSimpleName().toLowerCase() + " expects " + argCount + " arguments: given " + args);
     }
@@ -69,5 +70,13 @@ public abstract class Builtin extends ArcObject implements Function {
 
   public String name() {
     return name;
+  }
+
+  public static Function cast(ArcObject argument, Object caller) {
+    try {
+      return (Function) argument;
+    } catch (ClassCastException e) {
+      throw new ArcError("Wrong argument type: " + caller + " expected a function, got " + argument);
+    }
   }
 }

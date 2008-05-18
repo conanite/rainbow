@@ -44,7 +44,7 @@ public abstract class Predicates {
   public static class Bound extends Builtin {
     public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
       checkMaxArgCount(args, getClass(), 2);
-      Symbol sym = cast(args.car(), Symbol.class);
+      Symbol sym = Symbol.cast(args.car(), this);
       ArcObject o = thread.environment().lookup(sym);
       whatToDo.receive(Truth.valueOf(o != null));
     }
@@ -52,7 +52,7 @@ public abstract class Predicates {
 
   public static class Exact extends Builtin {
     public ArcObject invoke(Pair args) {
-      ArcNumber arg = cast(args.car(), ArcNumber.class);
+      ArcNumber arg = ArcNumber.cast(args.car(), this);
       return Truth.valueOf(arg instanceof Rational && arg.isInteger());
     }
   }

@@ -1,5 +1,8 @@
 package rainbow.types;
 
+import rainbow.functions.Errors;
+import rainbow.ArcError;
+
 public class ArcException extends ArcObject {
   public static Symbol TYPE = (Symbol) Symbol.make("exn");
   private static final ArcString NO_MESSAGE = ArcString.make("no message");
@@ -26,5 +29,13 @@ public class ArcException extends ArcObject {
 
   public String toString() {
     return message().toString();
+  }
+
+  public static ArcException cast(ArcObject argument, ArcObject caller) {
+    try {
+      return (ArcException) argument;
+    } catch (ClassCastException e) {
+      throw new ArcError("Wrong argument type: " + caller + " expected an exception, got " + argument);
+    }
   }
 }

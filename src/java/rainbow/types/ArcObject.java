@@ -40,12 +40,4 @@ public abstract class ArcObject {
   public ArcObject copy() {
     return this;
   }
-
-  public static <T> T cast(ArcObject arcObject, Class<T> aClass) {
-    try {
-      return (T) arcObject;
-    } catch (ClassCastException cce) {
-      throw new ArcError("expected " + aClass.getSimpleName() + "; got " + arcObject + " which is a " + arcObject.getClass().getSimpleName());
-    }
-  }
 }

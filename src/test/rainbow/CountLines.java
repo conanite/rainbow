@@ -22,8 +22,7 @@ public class CountLines {
     counts[1] -= minus[1];
     counts[2] -= minus[2];
 
-    String name = "Java";
-    printSummary(counts, name);
+    printSummary(counts, "Java");
 
     File arc = new File("src/java/arc/ac.scm");
     int[] arcCounts = {0,0,0};

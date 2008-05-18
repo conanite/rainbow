@@ -1,5 +1,8 @@
 package rainbow.types;
 
+import rainbow.functions.StringIO;
+import rainbow.ArcError;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
@@ -21,5 +24,13 @@ public class StringOutputPort extends Output {
 
   public String toString() {
     return "#<output-port:string>";
+  }
+
+  public static StringOutputPort cast(ArcObject argument, ArcObject caller) {
+    try {
+      return (StringOutputPort) argument;
+    } catch (ClassCastException e) {
+      throw new ArcError("Wrong argument type: " + caller + " expected a StringOutputPort, got " + argument);
+    }
   }
 }

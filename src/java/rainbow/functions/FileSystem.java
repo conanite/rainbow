@@ -11,19 +11,22 @@ import java.util.ArrayList;
 public class FileSystem {
   public static class OutFile extends Builtin {
     public ArcObject invoke(Pair args) {
-      return new FileOutputPort(args.car(), args.cdr().car());
+      String name = ArcString.cast(args.car(), this).value();
+      ArcObject appendSymbol = args.cdr().car();
+      boolean append = !appendSymbol.isNil() && Symbol.cast(appendSymbol, this).name().equals("append");
+      return new FileOutputPort(name, append);
     }
   }
 
   public static class InFile extends Builtin {
     public ArcObject invoke(Pair args) {
-      return new FileInputPort(args.car());
+      return new FileInputPort(ArcString.cast(args.car(), this).value());
     }
   }
 
   public static class DirExists extends Builtin {
     public ArcObject invoke(Pair args) {
-      String path = cast(args.car(), ArcString.class).value();
+      String path = ArcString.cast(args.car(), this).value();
       File dir = new File(path);
       if (!(dir.exists() && dir.isDirectory())) {
         return NIL;
@@ -35,7 +38,7 @@ public class FileSystem {
 
   public static class FileExists extends Builtin {
     public ArcObject invoke(Pair args) {
-      String path = cast(args.car(), ArcString.class).value();
+      String path = ArcString.cast(args.car(), this).value();
       File file = new File(path);
       if (file.exists() && !file.isDirectory()) {
         return args.car();
@@ -47,7 +50,7 @@ public class FileSystem {
 
   public static class Dir extends Builtin {
     public ArcObject invoke(Pair args) {
-      String path = cast(args.car(), ArcString.class).value();
+      String path = ArcString.cast(args.car(), this).value();
       File dir = new File(path);
       if (!dir.isDirectory()) {
         throw new ArcError("dir: '" + path + "' is not a directory");
@@ -63,7 +66,7 @@ public class FileSystem {
 
   public static class RmFile extends Builtin {
     public ArcObject invoke(Pair args) {
-      String path = cast(args.car(), ArcString.class).value();
+      String path = ArcString.cast(args.car(), this).value();
       File f = new File(path);
       boolean deleted = f.delete();
       if (!deleted) {

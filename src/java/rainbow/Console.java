@@ -16,10 +16,18 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class Console {
+  public static boolean ARC2_COMPATIBILITY = false;
+  public static boolean ANARKI_COMPATIBILITY = true;
+
   public static void main(String args[]) throws ParseException, IOException {
     Object o = ArcObject.NIL;
     Argv argv = new Argv(args);
     List programArgs = parseAll(argv.terminal("-args"));
+
+    if (argv.present("--strict-arc")) {
+      ANARKI_COMPATIBILITY = false;
+      ARC2_COMPATIBILITY = true;
+    }
 
     if (argv.present("--help")) {
       showHelp();
@@ -28,8 +36,8 @@ public class Console {
 
     Environment environment = new Environment();
     if (!argv.present("--no-arc")) {
-      loadResource(environment, "/arc/arc.arc");
-      loadResource(environment, "/arc/libs.arc");
+      loadFile(environment, "arc.arc");
+      loadFile(environment, "libs.arc");
     }
 
     environment.addToNamespace((Symbol) Symbol.make("*argv*"), Pair.buildFrom(programArgs));

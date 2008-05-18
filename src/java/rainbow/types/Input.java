@@ -1,6 +1,7 @@
 package rainbow.types;
 
 import rainbow.ArcError;
+import rainbow.functions.Builtin;
 import rainbow.parser.ArcParser;
 
 import java.io.*;
@@ -118,5 +119,13 @@ public class Input extends ArcObject {
 
   public String getName() {
     return "<input>";
+  }
+
+  public static Input cast(ArcObject argument, Object caller) {
+    try {
+      return (Input) argument;
+    } catch (ClassCastException e) {
+      throw new ArcError("Wrong argument type: " + caller + " expected input-port, got " + argument);
+    }
   }
 }

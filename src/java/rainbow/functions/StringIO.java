@@ -11,14 +11,14 @@ public class StringIO {
 
   public static class Inside extends Builtin {
     public ArcObject invoke(Pair args) {
-      StringOutputPort sop = cast(args.car(), StringOutputPort.class);
+      StringOutputPort sop = StringOutputPort.cast(args.car(), this);
       return sop.value();
     }
   }
 
   public static class InString extends Builtin {
     public ArcObject invoke(Pair args) {
-      return new StringInputPort(cast(args.car(), ArcString.class).value());
+      return new StringInputPort(ArcString.cast(args.car(), this).value());
     }
   }
 }

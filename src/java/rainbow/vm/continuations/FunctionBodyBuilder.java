@@ -30,7 +30,7 @@ public class FunctionBodyBuilder extends ContinuationSupport {
     }
     this.lexicalBindings = lexicalBindings;
     this.parameters = args.car();
-    this.body = ArcObject.cast(args.cdr(), Pair.class);
+    this.body = Pair.cast(args.cdr(), this);
   }
 
   public void start() {

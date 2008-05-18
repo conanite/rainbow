@@ -31,12 +31,12 @@ public class SystemFunctions {
       }
     }, new Builtin("pipe-from") {
       public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-        pipeFrom(cast(args.car(), ArcString.class), whatToDo);
+        pipeFrom(ArcString.cast(args.car(), this), whatToDo);
       }
     }, new Builtin("system") {
       public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
         try {
-          copyStream(createProcess(cast(args.car(), ArcString.class)), thread.stdOut());
+          copyStream(createProcess(ArcString.cast(args.car(), this)), thread.stdOut());
           whatToDo.receive(NIL);
         } catch (IOException e) {
           throw new ArcError("system: failed to run " + args.car());

@@ -57,7 +57,7 @@ public class NamespaceBuilder extends ContinuationSupport {
     } else {
       Continuation toDo = new NestedNamespaceBuilder(this);
       shift();
-      new NamespaceBuilder(thread, lc, toDo, ArcObject.cast(nextParameter, Pair.class), ArcObject.cast(nextArg, Pair.class)).start();
+      new NamespaceBuilder(thread, lc, toDo, Pair.cast(nextParameter, this), Pair.cast(nextArg, this)).start();
       return;
     }
 

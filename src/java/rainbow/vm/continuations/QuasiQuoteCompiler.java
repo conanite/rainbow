@@ -53,7 +53,7 @@ public class QuasiQuoteCompiler extends ContinuationSupport {
     }
 
     ArcObject next = expression.car();
-    expression = Builtin.cast(expression.cdr(), Pair.class);
+    expression = Pair.cast(expression.cdr(), this);
     if (next.isNil() || !(next instanceof Pair)) {
       continueWith(next);
     } else {

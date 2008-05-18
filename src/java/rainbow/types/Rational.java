@@ -105,4 +105,12 @@ public class Rational extends ArcNumber {
   public long denominator() {
     return denominator;
   }
+  
+  public static Rational cast(ArcObject argument, Object caller) {
+    try {
+      return (Rational) argument;
+    } catch (ClassCastException e) {
+      throw new ArcError("Wrong argument type: " + caller + " expected a Rational, got " + argument);
+    }
+  }
 }

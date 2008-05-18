@@ -15,29 +15,29 @@ import rainbow.vm.continuations.Protector;
 public class Errors {
   public static class OnErr extends Builtin {
     public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-      final Function errorHandler = cast(args.car(), Function.class);
-      final Function tryMe = cast(args.cdr().car(), Function.class);
+      final Function errorHandler = Builtin.cast(args.car(), this);
+      final Function tryMe = Builtin.cast(args.cdr().car(), this);
       tryMe.invoke(thread, lc, new ErrorHandler(thread, lc, caller, errorHandler), NIL);
     }
   }
 
   public static class Details extends Builtin {
     public ArcObject invoke(Pair args) {
-      return cast(args.car(), ArcException.class).message();
+      return ArcException.cast(args.car(), this).message();
     }
   }
 
   public static class Protect extends Builtin {
     public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-      Function during = cast(args.car(), Function.class);
-      Function after = cast(args.cdr().car(), Function.class);
+      Function during = Builtin.cast(args.car(), this);
+      Function after = Builtin.cast(args.cdr().car(), this);
       during.invoke(thread, lc, new Protector(thread, lc, caller, after), NIL);
     }
   }
 
   public static class Err extends Builtin {
     public ArcObject invoke(Pair args) {
-      throw new ArcError(cast(args.car(), ArcString.class).value());
+      throw new ArcError(ArcString.cast(args.car(), this).value());
     }
   }
 }

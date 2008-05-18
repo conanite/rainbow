@@ -5,18 +5,32 @@ import rainbow.*;
 import rainbow.functions.Builtin;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
+import rainbow.vm.continuations.FunctionBodyBuilder;
 
 import java.util.*;
 
-public class Pair extends ArcObject implements Function {
+public class Pair extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("cons");
+
+  public static final Function REF = new Function() {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+      Pair pair = Pair.cast(args.car(), this);
+      ArcNumber index = ArcNumber.cast(args.cdr().car(), this);
+      whatToDo.receive(pair.nth(index.toInt()).car());
+    }
+
+    public String code() {
+      return "pair-ref";
+    }
+  };
+
   private static final Map specials = new HashMap();
 
   static {
-//    specials.put("quasiquote", "`");
-//    specials.put("quote", "'");
-//    specials.put("unquote", ",");
-//    specials.put("unquote-splicing", ",@");
+    specials.put("quasiquote", "`");
+    specials.put("quote", "'");
+    specials.put("unquote", ",");
+    specials.put("unquote-splicing", ",@");
   }
 
   private ArcObject car;
@@ -181,11 +195,6 @@ public class Pair extends ArcObject implements Function {
     return car.hashCode() + (37 * cdr().hashCode());
   }
 
-  public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-    ArcNumber index = cast(args.car(), ArcNumber.class);
-    whatToDo.receive(nth(index.toInt()).car());
-  }
-
   public String code() {
     return "<pair>";
   }
@@ -220,6 +229,14 @@ public class Pair extends ArcObject implements Function {
     if (i < result.length) {
       result[i] = car;
       ((Pair)cdr).toArray(result, i + 1);
+    }
+  }
+
+  public static Pair cast(ArcObject argument, Object caller) {
+    try {
+      return (Pair) argument;
+    } catch (ClassCastException e) {
+      throw new ArcError("Wrong argument type: " + caller + " expected a cons, got " + argument);
     }
   }
 }

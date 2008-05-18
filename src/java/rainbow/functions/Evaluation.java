@@ -7,6 +7,7 @@ import rainbow.vm.Interpreter;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
+import rainbow.types.Hash;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -18,7 +19,7 @@ public class Evaluation {
   }
 
   public static ArcObject ssExpand(ArcObject expression) {
-    return SSExpand.expand(ArcObject.cast(expression, Symbol.class));
+    return SSExpand.expand(Symbol.cast(expression, "ssexpand"));
   }
 
   public static class Apply extends Builtin {
@@ -30,16 +31,22 @@ public class Evaluation {
 
     private Pair constructApplyArgs(Pair args) {
       if (args.cdr().isNil()) {
-        return cast(args.car(), Pair.class);
+        return Pair.cast(args.car(), this);
       } else {
-        return new Pair(args.car(), constructApplyArgs(cast(args.cdr(), Pair.class)));
+        return new Pair(args.car(), constructApplyArgs(Pair.cast(args.cdr(), this)));
       }
     }
   }
 
   public static class Eval extends Builtin {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-      Interpreter.compileAndEval(thread, lc, whatToDo, args.car());
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+      Interpreter.compileAndEval(thread, lc, caller, args.car());
+    }
+  }
+  
+  public static class Seval extends Builtin {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+      caller.receive(new Hash());
     }
   }
 
@@ -69,7 +76,7 @@ public class Evaluation {
 
   public static class SSExpand extends Builtin {
     public ArcObject invoke(Pair args) {
-      return expand(cast(args.car(), Symbol.class));
+      return expand(Symbol.cast(args.car(), this));
     }
 
     public static ArcObject expand(Symbol s) {

@@ -94,4 +94,12 @@ public class ArcThread extends ArcObject implements Runnable {
   public Environment environment() {
     return environment;
   }
+
+  public static ArcThread cast(ArcObject argument, ArcObject caller) {
+    try {
+      return (ArcThread) argument;
+    } catch (ClassCastException e) {
+      throw new ArcError("Wrong argument type: " + caller + " expected a ArcThread, got " + argument);
+    }
+  }
 }

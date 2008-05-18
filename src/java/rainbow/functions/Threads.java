@@ -10,22 +10,22 @@ import rainbow.types.ArcObject;
 
 public class Threads {
   public static class NewThread extends Builtin {
-    public void invoke(ArcThread thread, final LexicalClosure lc, Continuation whatToDo, final Pair args) {
+    public void invoke(ArcThread thread, final LexicalClosure lc, Continuation caller, final Pair args) {
       final ArcThread newThread = new ArcThread(thread.environment());
       new Thread(new Runnable() {
         public void run() {
-          Function fn = cast(args.car(), Function.class);
+          Function fn = Builtin.cast(args.car(), this);
           fn.invoke(newThread, lc, new TopLevelContinuation(newThread), NIL);
           newThread.run();
         }
       }).start();
-      whatToDo.receive(newThread);
+      caller.receive(newThread);
     }
   }
 
   public static class Sleep extends Builtin {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-      ArcNumber seconds = cast(args.car(), ArcNumber.class);
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+      ArcNumber seconds = ArcNumber.cast(args.car(), this);
       try {
         Thread.sleep((long) (seconds.toDouble() * 1000));
       } catch (InterruptedException e) {
@@ -35,18 +35,18 @@ public class Threads {
   }
 
   public static class Dead extends Builtin {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-      ArcThread target = cast(args.car(), ArcThread.class);
-      whatToDo.receive(Truth.valueOf(target.isDead()));
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+      ArcThread target = ArcThread.cast(args.car(), this);
+      caller.receive(Truth.valueOf(target.isDead()));
     }
   }
 
   public static class AtomicInvoke extends Builtin {
     private static final Object lock = new Object();
 
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
       synchronized (lock) {
-        cast(args.car(), Function.class).invoke(thread, lc, whatToDo, NIL);
+        Builtin.cast(args.car(), this).invoke(thread, lc, caller, NIL);
       }
     }
   }
@@ -73,8 +73,8 @@ public class Threads {
       this.lc = lc;
     }
 
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-      expression.invoke(thread, this.lc, whatToDo, args);
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+      expression.invoke(thread, this.lc, caller, args);
     }
 
     public String code() {
@@ -91,11 +91,11 @@ public class Threads {
   }
 
   public static class CCC extends Builtin {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
       checkMaxArgCount(args, getClass(), 1);
-      ContinuationWrapper e = new ContinuationWrapper(whatToDo);
+      ContinuationWrapper e = new ContinuationWrapper(caller);
       Function toCall = (Function) args.car();
-      toCall.invoke(thread, lc, whatToDo, Pair.buildFrom(e));
+      toCall.invoke(thread, lc, caller, Pair.buildFrom(e));
     }
   }
 }

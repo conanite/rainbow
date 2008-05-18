@@ -25,14 +25,14 @@ public class IO {
     top.add(new Builtin[]{
       new Builtin("call-w/stdin") {
         public void invoke(ArcThread thread, LexicalClosure lc, final Continuation whatToDo, Pair args) {
-          final Input previous = thread.swapStdIn(cast(args.car(), Input.class));
-          final Function thunk = cast(args.cdr().car(), Function.class);
+          final Input previous = thread.swapStdIn(Input.cast(args.car(), this));
+          final Function thunk = Builtin.cast(args.cdr().car(), this);
           thunk.invoke(thread, lc, new CallWStdinContinuation(thread, lc, whatToDo, previous), NIL);
         }
       }, new Builtin("call-w/stdout") {
         public void invoke(ArcThread thread, LexicalClosure lc, final Continuation whatToDo, Pair args) {
-          final Output previous = thread.swapStdOut(cast(args.car(), Output.class));
-          final Function thunk = cast(args.cdr().car(), Function.class);
+          final Output previous = thread.swapStdOut(Output.cast(args.car(), this));
+          final Function thunk = Builtin.cast(args.cdr().car(), this);
           thunk.invoke(thread, lc, new CallWStdoutContinuation(thread, lc, whatToDo, previous), NIL);
         }
       }, new Builtin("stdin") {
@@ -49,7 +49,7 @@ public class IO {
         }
       }, new Builtin("disp") {
         public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-          Output out = chooseOutputPort(args.cdr().car(), thread);
+          Output out = chooseOutputPort(args.cdr().car(), thread, this);
           ArcObject o = args.car();
           if (o instanceof ArcString) {
             out.write(((ArcString) o).value());
@@ -62,30 +62,30 @@ public class IO {
         }
       }, new Builtin("write") {
         public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-          chooseOutputPort(args.cdr().car(), thread).write(args.car());
+          chooseOutputPort(args.cdr().car(), thread, this).write(args.car());
           whatToDo.receive(NIL);
         }
       }, new Builtin("sread") {
         public ArcObject invoke(Pair args) {
-          return cast(args.car(), Input.class).readObject(NIL);
+          return Input.cast(args.car(), this).readObject(NIL);
         }
       }, new Builtin("writeb") {
         public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-          chooseOutputPort(args.cdr().car(), thread).writeByte(cast(args.car(), Rational.class));
+          chooseOutputPort(args.cdr().car(), thread, this).writeByte(Rational.cast(args.car(), this));
           whatToDo.receive(NIL);
         }
       }, new Builtin("writec") {
         public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-          chooseOutputPort(args.cdr().car(), thread).writeChar(cast(args.car(), ArcCharacter.class));
+          chooseOutputPort(args.cdr().car(), thread, this).writeChar(ArcCharacter.cast(args.car(), this));
           whatToDo.receive(NIL);
         }
       }, new Builtin("readb") {
         public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-          whatToDo.receive(chooseInputPort(args.car(), thread).readByte());
+          whatToDo.receive(chooseInputPort(args.car(), thread, this).readByte());
         }
       }, new Builtin("readc") {
         public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-          whatToDo.receive(chooseInputPort(args.car(), thread).readCharacter());
+          whatToDo.receive(chooseInputPort(args.car(), thread, this).readCharacter());
         }
       }, new Builtin("close") {
         public ArcObject invoke(Pair args) {
@@ -109,20 +109,20 @@ public class IO {
     }
   }
 
-  private static Output chooseOutputPort(ArcObject port, ArcThread thread) {
+  private static Output chooseOutputPort(ArcObject port, ArcThread thread, Object caller) {
     Output out;
     if (!port.isNil()) {
-      out = ArcObject.cast(port, Output.class);
+      out = Output.cast(port, caller);
     } else {
       out = thread.stdOut();
     }
     return out;
   }
 
-  private static Input chooseInputPort(ArcObject port, ArcThread thread) {
+  private static Input chooseInputPort(ArcObject port, ArcThread thread, Object caller) {
     Input in;
     if (!port.isNil()) {
-      in = ArcObject.cast(port, Input.class);
+      in = Input.cast(port, caller);
     } else {
       in = thread.stdIn();
     }

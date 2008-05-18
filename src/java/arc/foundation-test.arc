@@ -12,7 +12,7 @@
 
 (set show-failed-only t)
 
-(set test-suite '(suite "All Tests"
+(set test-suite '(suite "Foundation Tests"
   (suite "Special Forms"
     (suite "Quotation"
       (suite "quote"

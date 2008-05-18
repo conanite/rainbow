@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-public class Maths {
+public abstract class Maths {
   private static final Random random = new Random();
 
   public static void collect(Environment bindings) {
@@ -41,8 +41,18 @@ public class Maths {
     }, new Builtin("sqrt") {
       public ArcObject invoke(Pair args) {
         checkMaxArgCount(args, getClass(), 1);
-        double value = cast(args.car(), ArcNumber.class).toDouble();
+        double value = ArcNumber.cast(args.car(), this).toDouble();
         return new Real(Math.sqrt(value));
+      }
+    }, new Builtin("quotient") {
+      public ArcObject invoke(Pair args) {
+        checkExactArgsCount(args, 2, getClass());
+        Rational top = Rational.cast(args.car(), this);
+        Rational bottom = Rational.cast(args.cdr().car(), this);
+        if (!(top.isInteger() && bottom.isInteger())) {
+          throw new ArcError("Type error: " + this + " : expected integer, got " + args);
+        }
+        return Rational.make(top.toInt() / bottom.toInt());
       }
     }, new Builtin("mod") {
       public ArcObject invoke(Pair args) {

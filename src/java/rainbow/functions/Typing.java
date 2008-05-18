@@ -1,57 +1,91 @@
 package rainbow.functions;
 
-import rainbow.ArcError;
+import rainbow.*;
+import rainbow.vm.ArcThread;
+import rainbow.vm.Continuation;
 import rainbow.types.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Typing {
-  public static class Type extends Builtin {
-    public ArcObject invoke(Pair args) {
-      checkMaxArgCount(args, getClass(), 1);
-      ArcObject arg = args.car();
-      return arg.type();
+  public static void collect(Environment top) {
+    top.add(new Builtin[]{
+      new Builtin("type") {
+        public ArcObject invoke(Pair args) {
+          checkMaxArgCount(args, getClass(), 1);
+          ArcObject arg = args.car();
+          return arg.type();
+        }
+      }, new Builtin("annotate") {
+        public ArcObject invoke(Pair args) {
+          ArcObject type = args.car();
+          ArcObject rep = args.cdr().car();
+          return new Tagged(type, rep);
+        }
+      }, new Builtin("rep") {
+        public ArcObject invoke(Pair args) {
+          return Tagged.cast(args.car(), this).getRep();
+        }
+      }, new Builtin("coerce") {
+        public ArcObject invoke(Pair args) {
+          return coerce(args);
+        }
+      }
+    });
+    
+    if (Console.ANARKI_COMPATIBILITY) {
+      top.add(new Builtin[] {
+        new Builtin("ref") {
+          public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+            ref(thread, lc, caller, args);
+          }
+        }
+      });
     }
   }
-
-  public static class Annotate extends Builtin {
-    public ArcObject invoke(Pair args) {
-      ArcObject type = args.car();
-      ArcObject rep = args.cdr().car();
-      return new Tagged(type, rep);
+  
+  private static void ref(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    ArcObject target = args.car();
+    Function refFn = null;
+    if (target instanceof Pair) {
+      refFn = Pair.REF;
+    } else if (target instanceof ArcString) {
+      refFn = ArcString.REF;
+    } else if (target instanceof Hash) {
+      refFn = Hash.REF;
     }
-  }
-
-  public static class Rep extends Builtin {
-    public ArcObject invoke(Pair args) {
-      return cast(args.car(), Tagged.class).getRep();
-    }
-  }
-
-  public static class Coerce extends Builtin {
-    public ArcObject invoke(Pair args) {
-      ArcObject toType = args.cdr().car();
-      ArcObject arg = args.car();
-      String fromType = arg.type().toString();
-      if (fromType.equals(toType.toString())) {
-        return arg;
-      }
-      String key = fromType + "-" + toType.toString();
-      ArcNumber base = null;
-      if (!args.cdr().cdr().isNil()) {
-        base = (ArcNumber) args.cdr().cdr().car();
-      }
-      try {
-        return coercion.get(key).coerce(arg, base);
-      } catch (CantCoerce cc) {
-        throw new ArcError("Can't coerce " + arg + " to " + toType);
-      } catch (Exception e) {
-        throw new ArcError("Can't coerce " + arg + " ( a " + arg.type() + " ) to " + toType, e);
-      }
+    if (refFn != null) {
+      refFn.invoke(thread, lc, caller, args);
+    } else {
+      throw new ArcError("ref: expects string or hash or cons");
     }
   }
 
   private static Map<String, Coercer> coercion = new HashMap();
+
+  private static ArcObject coerce(Pair args) {
+    ArcObject toType = args.cdr().car();
+    ArcObject arg = args.car();
+    String fromType = arg.type().toString();
+    if (fromType.equals(toType.toString())) {
+      return arg;
+    }
+    String key = fromType + "-" + toType.toString();
+    ArcNumber base = null;
+    if (!args.cdr().cdr().isNil()) {
+      base = (ArcNumber) args.cdr().cdr().car();
+    }
+    try {
+      return coercion.get(key).coerce(arg, base);
+    } catch (CantCoerce cc) {
+      throw new ArcError("Can't coerce " + arg + " to " + toType);
+    } catch (Exception e) {
+      throw new ArcError("Can't coerce " + arg + " ( a " + arg.type() + " ) to " + toType, e);
+    }
+  }
 
   static {
     coercion.put("string-cons", new Coercer() {
