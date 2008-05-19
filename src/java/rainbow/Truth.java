@@ -26,6 +26,10 @@ public class Truth extends Symbol {
     return Symbol.TYPE;
   }
 
+  public Object unwrap() {
+    return true;
+  }
+
   public static ArcObject valueOf(boolean b) {
     return b ? T : NIL;
   }

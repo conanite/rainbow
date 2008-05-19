@@ -40,4 +40,8 @@ public abstract class ArcObject {
   public ArcObject copy() {
     return this;
   }
+
+  public Object unwrap() {
+    return this;
+  }
 }

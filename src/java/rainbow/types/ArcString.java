@@ -24,7 +24,7 @@ public class ArcString extends ArcObject {
       whatToDo.receive(new ArcCharacter(string.value.charAt(i)));
     }
 
-    public String code() {
+    public String toString() {
       return "string-ref";
     }
   };
@@ -57,6 +57,10 @@ public class ArcString extends ArcObject {
 
   public ArcObject type() {
     return TYPE;
+  }
+
+  public Object unwrap() {
+    return value();
   }
 
   public static ArcString make(String element) {

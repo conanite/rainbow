@@ -8,8 +8,6 @@
 
 (mac overwrite (after) `(+ ,after 3))
 
-
-
 (set show-failed-only t)
 
 (set test-suite '(suite "Foundation Tests"
@@ -150,6 +148,19 @@
               (set toto (fn () x))) 99)
           (toto)) )
         99)
+
+      ("nested variables are lexically scoped - really"
+        ( (fn ()
+          ((fn (a)
+            ((fn (b)
+              ((fn (c)
+                (set abcfun (fn (x) (+ a b c x)))
+              ) "toto")
+            ) "bar")
+          ) "foo")
+          (abcfun "-foobartoto")
+        ))
+        "foobartoto-foobartoto")
 
       ("optional arguments fill in missing arguments"
         ((fn (x y (o z 2))
@@ -297,6 +308,10 @@
     )
 
     (suite "coerce"
+      ("nil" ; news url posting requires this somewhere
+        (coerce nil 'string)
+        "")
+
       (suite "strings"
         ("list"
           (coerce "abc" 'cons)

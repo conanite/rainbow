@@ -86,6 +86,14 @@ public class Rational extends ArcNumber {
     return Truth.valueOf(this == other || (equals(other)));
   }
 
+  public Object unwrap() {
+    if (isInteger()) {
+      return toInt();
+    } else {
+      return toDouble();
+    }
+  }
+
   public int hashCode() {
     return (int) ((37 * numerator) + denominator);
   }

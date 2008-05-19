@@ -67,17 +67,21 @@ public class Typing {
   private static Map<String, Coercer> coercion = new HashMap();
 
   private static ArcObject coerce(Pair args) {
-    ArcObject toType = args.cdr().car();
     ArcObject arg = args.car();
+    ArcObject toType = args.cdr().car();
+    ArcNumber base = null;
+    if (!args.cdr().cdr().isNil()) {
+      base = (ArcNumber) args.cdr().cdr().car();
+    }
+    return coerce(arg, toType, base);
+  }
+
+  public static ArcObject coerce(ArcObject arg, ArcObject toType, ArcNumber base) {
     String fromType = arg.type().toString();
     if (fromType.equals(toType.toString())) {
       return arg;
     }
     String key = fromType + "-" + toType.toString();
-    ArcNumber base = null;
-    if (!args.cdr().cdr().isNil()) {
-      base = (ArcNumber) args.cdr().cdr().car();
-    }
     try {
       return coercion.get(key).coerce(arg, base);
     } catch (CantCoerce cc) {
@@ -141,6 +145,9 @@ public class Typing {
 
     coercion.put("sym-string", new Coercer() {
       public ArcObject coerce(ArcObject original, ArcNumber base) {
+        if (original.isNil()) {
+          return ArcString.make("");
+        }
         String source = ((Symbol) original).name();
         return ArcString.make(source);
       }

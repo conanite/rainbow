@@ -12,32 +12,32 @@ import rainbow.vm.continuations.FunctionDispatcher;
 import java.util.Map;
 
 public class Interpreter {
-  public static void compileAndEval(ArcThread thread, LexicalClosure lc, Continuation whatToDo, ArcObject expression) {
-    Compiler.compile(thread, lc, new EvaluatorContinuation(thread, lc, whatToDo), expression, new Map[0]);
+  public static void compileAndEval(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression) {
+    Compiler.compile(thread, lc, new EvaluatorContinuation(thread, lc, caller), expression, new Map[0]);
   }
 
-  public static void interpret(ArcThread thread, LexicalClosure lc, Continuation whatToDo, ArcObject expression) {
+  public static void interpret(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression) {
     try {
       if (expression.isNil()) {
-        whatToDo.receive(expression);
+        caller.receive(expression);
       } else if (expression instanceof Pair) {
-        callFunction(thread, lc, whatToDo, expression);
+        callFunction(thread, lc, caller, expression);
       } else if (expression instanceof InterpretedFunction) {
-        whatToDo.receive(new Threads.Closure((Function) expression, lc));
+        caller.receive(new Threads.Closure((Function) expression, lc));
       } else if (expression instanceof BoundSymbol) {
-        whatToDo.receive(((BoundSymbol)expression).lookup(lc));
+        caller.receive(((BoundSymbol)expression).lookup(lc));
       } else {
-        whatToDo.receive(expression.eval(thread.environment()));
+        caller.receive(expression.eval(thread.environment()));
       }
     } catch (ArcError ae) {
-      whatToDo.error(ae);
+      caller.error(ae);
     } catch (Throwable t) {
-      whatToDo.error(new InterpretationError(expression, t));
+      caller.error(new InterpretationError(expression, t));
     }
   }
 
-  private static void callFunction(ArcThread thread, LexicalClosure lc, Continuation whatToDo, ArcObject invocation) {
-    thread.continueWith(new FunctionDispatcher(thread, lc, whatToDo, invocation));
+  private static void callFunction(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject invocation) {
+    thread.continueWith(new FunctionDispatcher(thread, lc, caller, invocation));
   }
 }
 

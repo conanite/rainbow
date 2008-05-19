@@ -55,6 +55,10 @@ public class Symbol extends ArcObject {
     return TYPE;
   }
 
+  public Object unwrap() {
+    return name();
+  }
+
   public ArcObject eqv(ArcObject other) {
     return Truth.valueOf(equals(other));
   }

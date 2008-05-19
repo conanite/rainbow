@@ -19,7 +19,7 @@ public class Pair extends ArcObject {
       whatToDo.receive(pair.nth(index.toInt()).car());
     }
 
-    public String code() {
+    public String toString() {
       return "pair-ref";
     }
   };
@@ -216,6 +216,20 @@ public class Pair extends ArcObject {
       return this;
     }
     return new Pair(car(), cdr().copy());
+  }
+
+  public Object unwrap() {
+    List result = new ArrayList(size());
+    unwrapList(result, this);
+    return result;
+  }
+
+  private static void unwrapList(List result, Pair list) {
+    if (list.isNil()) {
+      return;
+    }
+    result.add(list.car().unwrap());
+    unwrapList(result, (Pair) list.cdr());
   }
 
   public ArcObject[] toArray() {

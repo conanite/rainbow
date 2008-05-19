@@ -17,9 +17,7 @@ public class BoundSymbol extends ArcObject {
   }
   
   public ArcObject lookup(LexicalClosure lc) {
-    ArcObject result = lc.nth(nesting).at(index);
-//    System.out.println("value of " + name + " is " + result);
-    return result;
+    return lc.nth(nesting).at(index);
   }
 
   public ArcObject type() {
@@ -31,6 +29,7 @@ public class BoundSymbol extends ArcObject {
   }
   
   public String toString() {
-    return "BoundSymbol:" + name + "[" + nesting + "][" + index + "]";
+    return name.name();
+//    return "BoundSymbol:" + name + "[" + nesting + "][" + index + "]";
   }
 }

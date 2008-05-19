@@ -77,10 +77,6 @@ public class Threads {
       expression.invoke(thread, this.lc, caller, args);
     }
 
-    public String code() {
-      return expression.code();
-    }
-
     public ArcObject type() {
       return Builtin.TYPE;
     }

@@ -4,10 +4,8 @@ import rainbow.*;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.Interpreter;
-import rainbow.types.ArcObject;
-import rainbow.types.Pair;
-import rainbow.types.Symbol;
-import rainbow.types.Hash;
+import rainbow.vm.continuations.FunctionDispatcher;
+import rainbow.types.*;
 
 import java.util.List;
 import java.util.LinkedList;
@@ -23,10 +21,45 @@ public class Evaluation {
   }
 
   public static class Apply extends Builtin {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-      Function f = (Function) args.car();
-      Pair applyArgs = constructApplyArgs((Pair) args.cdr());
-      f.invoke(thread, lc, whatToDo, applyArgs);
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+      ArcObject fn = args.car();
+      args = constructApplyArgs((Pair) args.cdr());
+      if (fn instanceof Function) {
+        ((Function) fn).invoke(thread, lc, caller, args);
+      } else if (Console.ARC2_COMPATIBILITY) {
+        arc2CompatibleTypeDispatch(thread, lc, caller, args, fn);
+      } else if (Console.ANARKI_COMPATIBILITY) {
+        anarkiCompatibleTypeDispatch(thread, lc, caller, args, fn);
+      } else {
+        throw new ArcError("Expected a function : got " + fn + " with args " + args);
+      }
+    }
+
+    private void anarkiCompatibleTypeDispatch(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args, ArcObject fn) {
+      Hash dispatchers = (Hash) thread.environment().lookup(FunctionDispatcher.TYPE_DISPATCHER_TABLE);
+      try {
+        ArcObject targetObject = Tagged.rep(fn);
+        Function function = Builtin.cast(dispatchers.value(fn.type()), this);
+        function.invoke(thread, lc, caller, new Pair(targetObject, args));
+      } catch (NullPointerException e) {
+        if (dispatchers == null) {
+          throw new ArcError("call* table not found in environment!");
+        } else {
+          throw e;
+        }
+      }
+    }
+
+    private void arc2CompatibleTypeDispatch(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args, ArcObject fn) {
+      if (fn instanceof Pair) {
+        Pair.REF.invoke(thread, lc, caller, new Pair(fn, args));
+      } else if (fn instanceof ArcString) {
+        ArcString.REF.invoke(thread, lc, caller, new Pair(fn, args));
+      } else if (fn instanceof Hash) {
+        Hash.REF.invoke(thread, lc, caller, new Pair(fn, args));
+      } else {
+        throw new ArcError("Expected a function, cons, hash, or string : got " + fn + " with args " + args);
+      }
     }
 
     private Pair constructApplyArgs(Pair args) {

@@ -18,6 +18,10 @@ public class ArcSocket extends ArcObject {
     return TYPE;
   }
 
+  public Object unwrap() {
+    return ss;
+  }
+
   public ArcSocket(int port) {
     try {
       this.ss = new ServerSocket(port);

@@ -10,7 +10,6 @@ import rainbow.types.ArcThreadLocal;
 public abstract class ThreadLocals {
   public static void collect(Environment environment) {
     if (!Console.ANARKI_COMPATIBILITY) {
-      System.out.println("not adding ThreadLocal functions");
       return;
     }
 

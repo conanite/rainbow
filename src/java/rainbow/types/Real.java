@@ -25,6 +25,10 @@ public class Real extends ArcNumber {
     return ((Real) other).value == value ? T : NIL;
   }
 
+  public Object unwrap() {
+    return value();
+  }
+
   public double value() {
     return value;
   }

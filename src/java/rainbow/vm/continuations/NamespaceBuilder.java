@@ -23,13 +23,7 @@ public class NamespaceBuilder extends ContinuationSupport {
     if (parameters.isNil()) {
       whatToDo.receive(parameters);
     } else {
-      try {
-        new NamespaceBuilder(thread, lc, whatToDo, parameters, arguments).start();
-      } catch (Error e) {
-        System.out.println("Error building namespace for params " + parameters + " and args " + arguments);
-        e.printStackTrace(System.out);
-        throw e;
-      }
+      new NamespaceBuilder(thread, lc, whatToDo, parameters, arguments).start();
     }
   }
 

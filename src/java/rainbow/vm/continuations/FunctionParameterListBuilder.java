@@ -23,7 +23,7 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
     super(thread, lc, caller);
     this.parameters = parameters;
     this.lexicalBindings = lexicalBindings;
-    index(parameters, lexicalBindings[0], new int[]{0}, true);
+    index(parameters, lexicalBindings[0], new int[]{0}, false);
   }
 
   public void start() {

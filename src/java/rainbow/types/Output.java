@@ -25,6 +25,10 @@ public class Output extends ArcObject {
     return TYPE;
   }
 
+  public Object unwrap() {
+    return out;
+  }
+
   public void writeByte(Rational rational) {
     if (!rational.isInteger()) {
       throw new ArcError("write byte: expected byte, got " + rational);

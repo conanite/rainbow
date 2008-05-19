@@ -15,6 +15,7 @@ import java.util.List;
 
 public class FunctionDispatcher extends ContinuationSupport {
   public static final boolean ALLOW_MACRO_EXPANSION = false;
+  public static final Symbol TYPE_DISPATCHER_TABLE = (Symbol) Symbol.make("call*");
 
   private static final Object EXPECT_FUNCTION = new Object();
   private static final Object EXPECT_ARGUMENT = new Object();
@@ -24,7 +25,6 @@ public class FunctionDispatcher extends ContinuationSupport {
   private Function f;
   private List evaluatedArgs;
   private ArcObject functionName;
-  private static final Symbol TYPE_DISPATCHER_TABLE = (Symbol) Symbol.make("call*");
 
   public FunctionDispatcher(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression) {
     super(thread, lc, caller);
@@ -112,8 +112,7 @@ public class FunctionDispatcher extends ContinuationSupport {
 
   public void digestArgument(ArcObject o) {
     if (o instanceof InterpretedFunction) {
-      System.out.println("FD.digestArgument: we should never get in here, isn't this handled by Interpreter???");
-      evaluatedArgs.add(new Threads.Closure((Function) o, lc));
+      throw new Error("FD.digestArgument: we should never get in here, isn't this handled by Interpreter???");
     } else {
       evaluatedArgs.add(o);
     }

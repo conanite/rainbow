@@ -43,6 +43,10 @@ public class ArcCharacter extends ArcObject {
   };
 
 
+  public static ArcCharacter make(Character ch) {
+    return new ArcCharacter(ch.charValue());
+  }
+
   public static ArcCharacter make(String representation) {
     if (representation.length() == 3) {
       return new ArcCharacter(representation.charAt(2));
@@ -85,6 +89,10 @@ public class ArcCharacter extends ArcObject {
 
   public ArcObject type() {
     return TYPE;
+  }
+
+  public Object unwrap() {
+    return value();
   }
 
   public char value() {

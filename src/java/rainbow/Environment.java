@@ -4,12 +4,14 @@ import rainbow.functions.*;
 import rainbow.types.*;
 
 import java.util.*;
+import java.io.File;
 
 public class Environment {
   private java.util.Set defaults;
   protected Map namespace = new HashMap();
 
   public Environment() { // todo: macex1, pipe-from, complex numbers, threading
+    Java.collect(this);
     IO.collect(this);
     SystemFunctions.collect(this);
     Maths.collect(this);

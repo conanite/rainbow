@@ -108,6 +108,10 @@ public class Input extends ArcObject {
     return TYPE;
   }
 
+  public Object unwrap() {
+    return original;
+  }
+
   public void close() {
     try {
       closed = true;

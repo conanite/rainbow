@@ -78,7 +78,6 @@ public abstract class Maths {
           try {
             return concat(args);
           } catch (Exception e) {
-            e.printStackTrace(System.out);
             throw new ArcError("Adding " + args, e);
           }
         } else if (args.car() instanceof Pair) {

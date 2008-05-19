@@ -7,10 +7,7 @@ import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.TableMapper;
 
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class Hash extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("table");
@@ -21,8 +18,8 @@ public class Hash extends ArcObject {
       whatToDo.receive(hash.value(args.cdr().car()));
     }
 
-    public String code() {
-      return "pair-ref";
+    public String toString() {
+      return "hash-ref";
     }
   };
 
@@ -62,6 +59,16 @@ public class Hash extends ArcObject {
 
   public ArcObject type() {
     return TYPE;
+  }
+
+  public Object unwrap() {
+    Map result = new HashMap();
+    for (Iterator it = map.keySet().iterator(); it.hasNext();) {
+      ArcObject key = (ArcObject) it.next();
+      ArcObject value = (ArcObject) map.get(key);
+      result.put(key.unwrap(), value.unwrap());
+    }
+    return result;
   }
 
   public long size() {
