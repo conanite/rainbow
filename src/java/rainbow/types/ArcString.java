@@ -10,7 +10,7 @@ public class ArcString extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("string");
 
   public static final Function REF = new Function() {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
       Builtin.checkMaxArgCount(args, getClass(), 2);
       ArcString string = ArcString.cast(args.car(), this);
       Rational index = Rational.cast(args.cdr().car(), this);
@@ -21,7 +21,7 @@ public class ArcString extends ArcObject {
       if (i < 0 || i >= string.value.length()) {
         throw new ArcError("string-ref: index " + i + " out of range [0, " + (string.value.length() - 1) + "] for string " + toString());
       }
-      whatToDo.receive(new ArcCharacter(string.value.charAt(i)));
+      caller.receive(new ArcCharacter(string.value.charAt(i)));
     }
 
     public String toString() {

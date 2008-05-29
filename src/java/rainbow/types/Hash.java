@@ -13,9 +13,9 @@ public class Hash extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("table");
 
   public static final Function REF = new Function() {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
       Hash hash = Hash.cast(args.car(), this);
-      whatToDo.receive(hash.value(args.cdr().car()));
+      caller.receive(hash.value(args.cdr().car()));
     }
 
     public String toString() {
@@ -75,8 +75,8 @@ public class Hash extends ArcObject {
     return map.size();
   }
 
-  public void map(Function f, ArcThread thread, LexicalClosure lc, Continuation whatToDo) {
-    new TableMapper(thread, lc, whatToDo, f, this).receive(null);
+  public void map(Function f, ArcThread thread, LexicalClosure lc, Continuation caller) {
+    new TableMapper(thread, lc, caller, f, this).receive(null);
   }
   
   public static Hash cast(ArcObject argument, Object caller) {

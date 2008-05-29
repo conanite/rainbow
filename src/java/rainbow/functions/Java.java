@@ -17,7 +17,7 @@ public abstract class Java {
         new Builtin("java-new") {
           protected ArcObject invoke(Pair args) {
             String className = ArcString.cast(args.car(), this).value();
-            return JavaObject.instantiate(className);
+            return JavaObject.instantiate(className, (Pair) args.cdr());
           }
         }, new Builtin("java-class") {
           protected ArcObject invoke(Pair args) {
@@ -28,19 +28,19 @@ public abstract class Java {
           protected ArcObject invoke(Pair args) {
             JavaObject target = JavaObject.cast(args.car(), this);
             String methodName = Symbol.cast(args.cdr().car(), this).name();
-            return wrap(target.invoke(methodName));
+            return wrap(target.invoke(methodName, (Pair) args.cdr().cdr().car()));
           }
         }, new Builtin("java-static-invoke") {
           protected ArcObject invoke(Pair args) {
-            JavaObject target = JavaObject.cast(args.car(), this);
+            String target = ArcString.cast(args.car(), this).value();
             String methodName = Symbol.cast(args.cdr().car(), this).name();
-            return wrap(target.staticInvoke(methodName, (Pair) args.cdr().cdr()));
+            return wrap(JavaObject.staticInvoke(target, methodName, (Pair) args.cdr().cdr()));
           }
         }, new Builtin("java-static-field") {
           protected ArcObject invoke(Pair args) {
-            JavaObject target = JavaObject.cast(args.car(), this);
+            String target = ArcString.cast(args.car(), this).value();
             String fieldName = Symbol.cast(args.cdr().car(), this).name();
-            return wrap(target.getStaticFieldValue(fieldName));
+            return wrap(JavaObject.getStaticFieldValue(target, fieldName));
           }
         }, new Builtin("java-implement") {
           public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
@@ -52,8 +52,10 @@ public abstract class Java {
     });
   }
 
-  private static ArcObject wrap(Object o) {
-    if (o instanceof ArcObject) {
+  public static ArcObject wrap(Object o) {
+    if (o == null) {
+      return ArcObject.NIL;
+    } else if (o instanceof ArcObject) {
       return (ArcObject) o;
     } else if (o instanceof Integer || o instanceof Long) {
       return Rational.make(((Number)o).longValue());
@@ -63,13 +65,29 @@ public abstract class Java {
       return ArcString.make(o.toString());
     } else if (o instanceof Character) {
       return ArcCharacter.make((Character)o);
+    } else if (o.getClass().isArray()) {
+      return wrapList((Object[])o);
     } else if (o instanceof List) {
       return wrapList((List)o);
     } else if (o instanceof Map) {
       return wrapMap((Map)o);
+    } else if (o instanceof Boolean) {
+      if (o == Boolean.TRUE) {
+        return ArcObject.T;
+      } else {
+        return ArcObject.NIL;
+      }
     } else {
       return new JavaObject(o);
     }
+  }
+
+  private static ArcObject wrapList(Object[] objects) {
+    List result = new ArrayList(objects.length);
+    for (int i = 0; i < objects.length; i++) {
+      result.add(wrap(objects[i]));
+    }
+    return Pair.buildFrom(result);
   }
 
   private static ArcObject wrapList(List list) {

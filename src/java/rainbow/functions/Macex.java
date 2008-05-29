@@ -11,32 +11,32 @@ import rainbow.vm.Continuation;
 import rainbow.vm.continuations.MacExpander;
 
 public class Macex extends Builtin {
-  public void invoke(final ArcThread thread, LexicalClosure lc, final Continuation whatToDo, final Pair args) {
+  public void invoke(final ArcThread thread, LexicalClosure lc, final Continuation caller, final Pair args) {
     if (args.isNil()) {
-      whatToDo.receive(args);
+      caller.receive(args);
       return;
     }
     final ArcObject expression = args.car();
     if (!(expression instanceof Pair)) {
-      whatToDo.receive(expression);
+      caller.receive(expression);
       return;
     }
     ArcObject macCall = expression.car();
     if (!(macCall instanceof Symbol)) {
-      whatToDo.receive(expression);
+      caller.receive(expression);
       return;
     }
     Symbol macroName = (Symbol) macCall;
     ArcObject macro = thread.environment().lookup(macroName);
     if (macro == null) {
-      whatToDo.receive(expression);
+      caller.receive(expression);
       return;
     }
     Function fn = (Function) Tagged.ifTagged(macro, "mac");
     if (fn == null) {
-      whatToDo.receive(expression);
+      caller.receive(expression);
     } else {
-      fn.invoke(thread, lc, new MacExpander(thread, lc, whatToDo, !args.cdr().car().isNil()), (Pair) expression.cdr());
+      fn.invoke(thread, lc, new MacExpander(thread, lc, caller, !args.cdr().car().isNil()), (Pair) expression.cdr());
     }
   }
 }

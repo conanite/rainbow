@@ -26,10 +26,6 @@ public class Truth extends Symbol {
     return Symbol.TYPE;
   }
 
-  public Object unwrap() {
-    return true;
-  }
-
   public static ArcObject valueOf(boolean b) {
     return b ? T : NIL;
   }
@@ -44,5 +40,9 @@ public class Truth extends Symbol {
 
   public static boolean isIn(ArcObject arcObject) {
     return !arcObject.isNil();
+  }
+
+  public Object unwrap() {
+    return Boolean.TRUE;
   }
 }

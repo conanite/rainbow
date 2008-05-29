@@ -21,4 +21,8 @@ public class FunctionEvaluator extends ContinuationSupport {
     ArcObject expression = f.nth(index++);
     Interpreter.interpret(thread, lc, f.last(index) ? caller : this, expression);
   }
+
+  protected ArcObject getCurrentTarget() {
+    return index == 0 ? ArcObject.NIL : f.nth(index - 1);
+  }
 }

@@ -3,6 +3,7 @@ package rainbow.types;
 import rainbow.ArcError;
 import rainbow.Environment;
 import rainbow.Function;
+import rainbow.functions.Java;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Interpreter;
 import rainbow.vm.continuations.TopLevelContinuation;
@@ -21,14 +22,16 @@ public class JavaProxy implements InvocationHandler {
   }
 
   public Object invoke(Object target, Method method, Object[] arguments) throws Throwable {
-//    Function f = (Function) functions.value(Symbol.make(method.getName()));
-//    f.invoke();
-//    ArcThread thread = new ArcThread(environment);
-//    TopLevelContinuation topLevel = new TopLevelContinuation(thread);
-//    Interpreter.compileAndEval(thread, null, topLevel, expression);
-//    thread.run();
-//    return thread.finalValue();
-    return null;
+    ArcThread thread = new ArcThread(environment);
+    TopLevelContinuation topLevel = new TopLevelContinuation(thread);
+    ArcObject methodImplementation = functions.value(Symbol.make(method.getName()));
+    if (methodImplementation.isNil()) {
+      throw new ArcError("No implementation provided for " + method + "; implementations include " + functions);
+    }
+    Function f = (Function) methodImplementation;
+    f.invoke(thread, null, topLevel, (Pair) Java.wrap(arguments));
+    thread.run();
+    return JavaObject.unwrap(thread.finalValue(), method.getReturnType());
   }
 
   public static ArcObject create(Environment environment, String className, Hash functions) {

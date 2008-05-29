@@ -7,8 +7,8 @@ import rainbow.vm.Continuation;
 public class Rebuilder extends ContinuationSupport {
   private ArcObject car;
 
-  public Rebuilder(Continuation whatToDo, ArcObject car) {
-    super(null, null, whatToDo);
+  public Rebuilder(Continuation caller, ArcObject car) {
+    super(null, null, caller);
     this.car = car;
   }
 

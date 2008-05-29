@@ -36,31 +36,31 @@ public class IO {
   public static void collect(Environment top) {
     top.add(new Builtin[]{
       new Builtin("call-w/stdin") {
-        public void invoke(ArcThread thread, LexicalClosure lc, final Continuation whatToDo, Pair args) {
+        public void invoke(ArcThread thread, LexicalClosure lc, final Continuation caller, Pair args) {
           final Input previous = thread.swapStdIn(Input.cast(args.car(), this));
           final Function thunk = Builtin.cast(args.cdr().car(), this);
-          thunk.invoke(thread, lc, new CallWStdinContinuation(thread, lc, whatToDo, previous), NIL);
+          thunk.invoke(thread, lc, new CallWStdinContinuation(thread, lc, caller, previous), NIL);
         }
       }, new Builtin("call-w/stdout") {
-        public void invoke(ArcThread thread, LexicalClosure lc, final Continuation whatToDo, Pair args) {
+        public void invoke(ArcThread thread, LexicalClosure lc, final Continuation caller, Pair args) {
           final Output previous = thread.swapStdOut(Output.cast(args.car(), this));
           final Function thunk = Builtin.cast(args.cdr().car(), this);
-          thunk.invoke(thread, lc, new CallWStdoutContinuation(thread, lc, whatToDo, previous), NIL);
+          thunk.invoke(thread, lc, new CallWStdoutContinuation(thread, lc, caller, previous), NIL);
         }
       }, new Builtin("stdin") {
-        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-          whatToDo.receive(thread.stdIn());
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+          caller.receive(thread.stdIn());
         }
       }, new Builtin("stdout") {
-        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-          whatToDo.receive(thread.stdOut());
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+          caller.receive(thread.stdOut());
         }
       }, new Builtin("stderr") {
         public ArcObject invoke(Pair args) {
           return STD_ERR;
         }
       }, new Builtin("disp") {
-        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
           Output out = chooseOutputPort(args.cdr().car(), thread, this);
           ArcObject o = args.car();
           if (o instanceof ArcString) {
@@ -70,34 +70,34 @@ public class IO {
           } else {
             out.write(o);
           }
-          whatToDo.receive(NIL);
+          caller.receive(NIL);
         }
       }, new Builtin("write") {
-        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
           chooseOutputPort(args.cdr().car(), thread, this).write(args.car());
-          whatToDo.receive(NIL);
+          caller.receive(NIL);
         }
       }, new Builtin("sread") {
         public ArcObject invoke(Pair args) {
           return Input.cast(args.car(), this).readObject(NIL);
         }
       }, new Builtin("writeb") {
-        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
           chooseOutputPort(args.cdr().car(), thread, this).writeByte(Rational.cast(args.car(), this));
-          whatToDo.receive(NIL);
+          caller.receive(NIL);
         }
       }, new Builtin("writec") {
-        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
           chooseOutputPort(args.cdr().car(), thread, this).writeChar(ArcCharacter.cast(args.car(), this));
-          whatToDo.receive(NIL);
+          caller.receive(NIL);
         }
       }, new Builtin("readb") {
-        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-          whatToDo.receive(chooseInputPort(args.car(), thread, this).readByte());
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+          caller.receive(chooseInputPort(args.car(), thread, this).readByte());
         }
       }, new Builtin("readc") {
-        public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-          whatToDo.receive(chooseInputPort(args.car(), thread, this).readCharacter());
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+          caller.receive(chooseInputPort(args.car(), thread, this).readCharacter());
         }
       }, new Builtin("close") {
         public ArcObject invoke(Pair args) {

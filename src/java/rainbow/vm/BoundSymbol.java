@@ -30,6 +30,5 @@ public class BoundSymbol extends ArcObject {
   
   public String toString() {
     return name.name();
-//    return "BoundSymbol:" + name + "[" + nesting + "][" + index + "]";
   }
 }

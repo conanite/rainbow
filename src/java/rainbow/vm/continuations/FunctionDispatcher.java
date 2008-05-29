@@ -1,17 +1,18 @@
 package rainbow.vm.continuations;
 
 import rainbow.*;
-import rainbow.functions.InterpretedFunction;
-import rainbow.functions.Threads;
 import rainbow.functions.Builtin;
+import rainbow.functions.InterpretedFunction;
 import rainbow.types.*;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.Interpreter;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.awt.*;
 
 public class FunctionDispatcher extends ContinuationSupport {
   public static final boolean ALLOW_MACRO_EXPANSION = false;
@@ -61,10 +62,14 @@ public class FunctionDispatcher extends ContinuationSupport {
   private void anarkiCompatibleTypeDispatch(ArcObject fn) {
     Hash dispatchers = (Hash) thread.environment().lookup(TYPE_DISPATCHER_TABLE);
     try {
-      typeDispatch(Builtin.cast(dispatchers.value(fn.type()), this), Tagged.rep(fn));
+      ArcObject typeFunction = dispatchers.value(fn.type());
+      if (typeFunction.isNil() || !(typeFunction instanceof Function)) {
+        throw new ArcError("Function dispatch on inappropriate object: " + fn);
+      }
+      typeDispatch((Function) typeFunction, Tagged.rep(fn));
     } catch (NullPointerException e) {
       if (dispatchers == null) {
-        throw new ArcError("call* table not found in environment!");
+        throw new ArcError("call* table not found in environment: if you are not using anarki please specify --strict-arc on the command-line");
       } else {
         throw e;
       }
@@ -126,5 +131,9 @@ public class FunctionDispatcher extends ContinuationSupport {
       ae.evaluatedArgs = new LinkedList(this.evaluatedArgs);
     }
     return ae;
+  }
+
+  protected ArcObject getCurrentTarget() {
+    return functionName;
   }
 }

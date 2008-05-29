@@ -13,10 +13,10 @@ public class Pair extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("cons");
 
   public static final Function REF = new Function() {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
       Pair pair = Pair.cast(args.car(), this);
       ArcNumber index = ArcNumber.cast(args.cdr().car(), this);
-      whatToDo.receive(pair.nth(index.toInt()).car());
+      caller.receive(pair.nth(index.toInt()).car());
     }
 
     public String toString() {

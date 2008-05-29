@@ -16,8 +16,8 @@ public class PairExpander extends ContinuationSupport {
   private List result = new LinkedList();
   private boolean atLast;
 
-  public PairExpander(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair expressions, Map[] lexicalBindings) {
-    super(thread, lc, whatToDo);
+  public PairExpander(ArcThread thread, LexicalClosure lc, Continuation caller, Pair expressions, Map[] lexicalBindings) {
+    super(thread, lc, caller);
     this.body = expressions;
     this.lexicalBindings = lexicalBindings;
   }

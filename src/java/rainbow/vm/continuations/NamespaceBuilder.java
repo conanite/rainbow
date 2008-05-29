@@ -13,17 +13,17 @@ public class NamespaceBuilder extends ContinuationSupport {
   private ArcObject parameters;
   private Pair args;
 
-  private NamespaceBuilder(ArcThread thread, LexicalClosure lc, Continuation whatToDo, ArcObject parameters, Pair arguments) {
-    super(thread, lc, whatToDo);
+  private NamespaceBuilder(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject parameters, Pair arguments) {
+    super(thread, lc, caller);
     this.parameters = parameters;
     this.args = arguments;
   }
 
-  public static void build(ArcThread thread, LexicalClosure lc, Continuation whatToDo, ArcObject parameters, Pair arguments) {
+  public static void build(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject parameters, Pair arguments) {
     if (parameters.isNil()) {
-      whatToDo.receive(parameters);
+      caller.receive(parameters);
     } else {
-      new NamespaceBuilder(thread, lc, whatToDo, parameters, arguments).start();
+      new NamespaceBuilder(thread, lc, caller, parameters, arguments).start();
     }
   }
 

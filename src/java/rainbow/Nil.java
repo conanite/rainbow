@@ -63,7 +63,7 @@ public final class Nil extends Pair {
     return this == other || (other instanceof ArcObject && ((ArcObject)other).isNil());
   }
 
-  public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
-    throw new ArcError("Can't invoke " + this);
+  public Object unwrap() {
+    return Boolean.FALSE;
   }
 }

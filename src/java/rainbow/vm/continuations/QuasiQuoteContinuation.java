@@ -16,8 +16,8 @@ public class QuasiQuoteContinuation extends ContinuationSupport {
   private List<ArcObject> result = new LinkedList<ArcObject>();
   private ArcObject current;
 
-  public QuasiQuoteContinuation(ArcThread thread, LexicalClosure lc, Continuation whatToDo, ArcObject expression) {
-    super(thread, lc, whatToDo);
+  public QuasiQuoteContinuation(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression) {
+    super(thread, lc, caller);
     this.expression = expression;
   }
 

@@ -1,5 +1,43 @@
+
+
+BUILD:
+
 to build rainbow and open an interactive arc console, run
 
-	./rainbow.sh
+  ant clean jar
+
+  
+
+INSTALL:
+
+to install rainbow from a build, run
+
+  ant -Darc_home=/path/to/your/copy/of/arc/or/anarki install 
+
+this will copy rainbow.jar to your arc directory, and some arc files to lib/rainbow in your arc directory.
 
 
+
+RUN:
+
+cd to the directory containing arc and rainbow.jar.
+
+run this:
+
+java -jar rainbow.jar [options]
+
+command-line options:
+  --strict-arc              # don't include anarki-compatible extensions
+  -f file1 ... fileN        # evaluate each file
+  -e '(arc axpr)'           # evaluate arc expr (after having evaluated -f, if specified)
+  -args a b c               # sets "*argv*" in the arc environment to (a b c). This option, if present, must be specified last.
+
+  
+
+INSTALLING FROM A BINARY DISTRIBUTION:
+
+the binary distribution is built at build/dist/rainbow-bin.zip
+
+unzip this file anywhere, then cd to the contained rainbow directory, and run:
+
+./install.sh /path/to/your/copy/of/arc/or/anarki

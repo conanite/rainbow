@@ -15,10 +15,10 @@ public class Tables {
   }
 
   public static class MapTable extends Builtin {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation whatToDo, Pair args) {
+    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
       Function f = (Function) args.car();
       Hash h = (Hash) args.cdr().car();
-      h.map(f, thread, lc, whatToDo);
+      h.map(f, thread, lc, caller);
     }
   }
 
