@@ -26,7 +26,11 @@ public class Real extends ArcNumber {
   }
 
   public Object unwrap() {
-    return value();
+    if (isInteger()) {
+      return (long) value();
+    } else {
+      return value();
+    }
   }
 
   public double value() {

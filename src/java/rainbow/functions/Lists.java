@@ -7,7 +7,7 @@ public abstract class Lists {
   public static class Car extends Builtin {
     public ArcObject invoke(Pair args) {
       checkMaxArgCount(args, getClass(), 1);
-      Pair arg = (Pair) args.car();
+      Pair arg = Pair.cast(args.car(), this);
       if (arg.isNil()) {
         return NIL;
       }

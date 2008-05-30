@@ -1,0 +1,20 @@
+(def run-tests (tests (o results (obj passed 0 failed 0)))
+  (execute-test "" tests results)
+  results)
+
+(def execute-test (desc test results)
+  (if (is 'suite (car test))
+      (execute-tests (+ desc " - " (cadr test)) (cddr test) results)
+      (execute-single-test desc test results)))
+
+(def execute-single-test (desc test results)
+	((fn (expected result)
+	      (if (iso result expected)
+	          (do (if (is show-failed-only nil) (pr desc " - " (car test) " - ok" #\newline)) (++ (results 'passed)))
+	          (do (pr desc " - " (car test) " - FAILED: expected " expected ", got " result #\newline) (++ (results 'failed))))
+	    ) (test 2)
+    	  (eval (cadr test))))
+
+(def execute-tests (desc tests results)
+  (execute-test desc (car tests) results)
+  (if (cdr tests) (execute-tests desc (cdr tests) results)))

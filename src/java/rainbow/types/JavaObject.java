@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.*;
 
 public class JavaObject extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("java-object");
@@ -135,7 +136,11 @@ public class JavaObject extends ArcObject {
     if (javaType != Object.class && javaType.isAssignableFrom(arcObject.getClass())) {
       return arcObject;
     } else {
-      return convert(arcObject.unwrap(), javaType);
+      try {
+        return convert(arcObject.unwrap(), javaType);
+      } catch (ClassCastException e) {
+        throw new ArcError("Can't convert " + arcObject.getClass().getName() + " - " + arcObject + " ( a " + arcObject.type() + ") to " + javaType, e);
+      }
     }
   }
 
@@ -200,14 +205,15 @@ public class JavaObject extends ArcObject {
     JFrame jf = new JFrame();
     jf.setBounds(200, 200, 400, 400);
     jf.setTitle("testing");
-    JTextArea ta = new JTextArea(text(), 80, 40);
+    JTextArea ta = new JTextArea(text());
+    ta.setFont(Font.getFont("Courier"));
     JButton eval = new JButton("eval");
     eval.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent event) {
         System.out.println("eval button");
       }
     });
-
+    
     jf.getContentPane().setLayout(new BoxLayout(jf.getContentPane(), BoxLayout.Y_AXIS));
     jf.add(fileControl());
     jf.add(new JScrollPane(ta));
@@ -217,7 +223,11 @@ public class JavaObject extends ArcObject {
   
   private static Box fileControl() {
     Box box = Box.createHorizontalBox();
-    box.add(new JTextField());
+    JTextField filename = new JTextField();
+    Dimension d = filename.getMaximumSize();
+    Dimension min = filename.getMinimumSize();
+    filename.setMaximumSize(new Dimension((int) d.getWidth(), (int) min.getHeight()));
+    box.add(filename);
     JButton jButton = new JButton("Open");
     box.add(jButton);
     box.add(new JButton("Save"));

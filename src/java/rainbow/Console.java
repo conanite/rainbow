@@ -39,6 +39,10 @@ public class Console {
       loadFile(environment, "arc.arc");
       loadFile(environment, "libs.arc");
     }
+    
+    if (!argv.present("--no-java-libs")) {
+      loadFile(environment, "lib/rainbow/libs.arc");
+    }
 
     environment.addToNamespace((Symbol) Symbol.make("*argv*"), Pair.buildFrom(programArgs));
 
@@ -96,12 +100,12 @@ public class Console {
     }
   }
 
-  private static void repl(Environment environemt) throws ParseException {
+  private static void repl(Environment environment) throws ParseException {
     ArcParser parser = new ArcParser("<Console>", System.in);
     while (true) {
       System.out.print("arc> ");
       ArcObject expression = parser.parseOneLine();
-      interpret(environemt, expression);
+      interpret(environment, expression);
     }
   }
 

@@ -26,10 +26,15 @@ public class JavaProxy implements InvocationHandler {
     TopLevelContinuation topLevel = new TopLevelContinuation(thread);
     ArcObject methodImplementation = functions.value(Symbol.make(method.getName()));
     if (methodImplementation.isNil()) {
-      throw new ArcError("No implementation provided for " + method + "; implementations include " + functions);
+      if (method.getName().equals("toString")) {
+        return functions.toString();
+      } else {
+        throw new ArcError("No implementation provided for " + method + "; implementations include " + functions);
+      }
     }
     Function f = (Function) methodImplementation;
-    f.invoke(thread, null, topLevel, (Pair) Java.wrap(arguments));
+    Pair args = (Pair) Java.wrap(arguments);
+    f.invoke(thread, null, topLevel, args);
     thread.run();
     return JavaObject.unwrap(thread.finalValue(), method.getReturnType());
   }
