@@ -1361,8 +1361,8 @@
       ("datetbl breaks date into calendar components"
         ((fn (d)
           (list (d 'year) (d 'month) (d 'day))
-        ) (datetbl 666666666))
-        (2008 05 21)
+        ) (datetbl 1203450000))
+        (2008 01 19)
       )
     )
 
