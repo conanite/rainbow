@@ -973,6 +973,14 @@
       ("variadic for different symbols"
         (is 'f 'f 'f 'g 'f 'f)
         nil)
+        
+      ("nil for different lists, even with identical content" ; see http://arclanguage.org/item?id=6985
+        ((fn (a b) (is a b)) (list 'cons) (list 'cons))
+        nil)
+        
+      ("t for empty lists, however"
+        (is () ())
+        t)
     )
   )
 
@@ -1357,13 +1365,6 @@
         ((fn () (set out (outstring)) (call-w/stdout out (fn () (system "echo boggabogga"))) (inside out)))
         "boggabogga
 ")
-      
-      ("datetbl breaks date into calendar components"
-        ((fn (d)
-          (list (d 'year) (d 'month) (d 'day))
-        ) (datetbl 1203450000))
-        (2008 01 19)
-      )
     )
 
     (suite "File IO"

@@ -1,10 +1,13 @@
-package rainbow.vm.continuations;
+package rainbow.vm.compiler;
 
 import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.ArcThread;
+import rainbow.vm.continuations.ContinuationSupport;
+import rainbow.vm.continuations.NamespaceBuilder;
+import rainbow.vm.compiler.FunctionBodyBuilder;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -45,7 +48,7 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
       Pair maybeOptional = (Pair) first;
       if (NamespaceBuilder.optional(maybeOptional)) {
         optionalParamName = maybeOptional.cdr().car();
-        Compiler.compile(thread, lc, this, maybeOptional.cdr().cdr().car(), lexicalBindings);
+        rainbow.vm.compiler.Compiler.compile(thread, lc, this, maybeOptional.cdr().cdr().car(), lexicalBindings);
       } else {
         continueWith(first);
       }

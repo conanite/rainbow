@@ -44,4 +44,8 @@ public abstract class ArcObject {
   public Object unwrap() {
     return this;
   }
+
+  public boolean isSame(ArcObject other) {
+    return this == other;
+  }
 }

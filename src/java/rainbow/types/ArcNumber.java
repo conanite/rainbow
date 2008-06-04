@@ -29,6 +29,10 @@ public abstract class ArcNumber extends ArcObject {
   public ArcObject type() {
     return isInteger() ? INT_TYPE : NUM_TYPE;
   }
+  
+  public boolean isSame(ArcObject other) {
+    return equals(other);
+  }
 
   public static ArcNumber cast(ArcObject argument, Object caller) {
     try {

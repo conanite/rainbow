@@ -68,7 +68,7 @@ public abstract class Predicates {
         return T;
       }
 
-      if (!test.equals(args.car())) {
+      if (!test.isSame(args.car())) {
         return NIL;
       }
 

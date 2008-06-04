@@ -66,4 +66,8 @@ public final class Nil extends Pair {
   public Object unwrap() {
     return Boolean.FALSE;
   }
+
+  public boolean isSame(ArcObject other) {
+    return other.isNil();
+  }
 }

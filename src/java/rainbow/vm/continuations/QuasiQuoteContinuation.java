@@ -7,6 +7,7 @@ import rainbow.types.Pair;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.Interpreter;
+import rainbow.vm.compiler.QuasiQuoteCompiler;
 
 import java.util.List;
 import java.util.LinkedList;

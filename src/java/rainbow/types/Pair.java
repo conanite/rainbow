@@ -5,7 +5,6 @@ import rainbow.*;
 import rainbow.functions.Builtin;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.vm.continuations.FunctionBodyBuilder;
 
 import java.util.*;
 
@@ -195,10 +194,6 @@ public class Pair extends ArcObject {
     return car.hashCode() + (37 * cdr().hashCode());
   }
 
-  public String code() {
-    return "<pair>";
-  }
-
   public Pair nth(long index) {
     if (index == 0) {
       return this;
@@ -222,6 +217,10 @@ public class Pair extends ArcObject {
     List result = new ArrayList(size());
     unwrapList(result, this);
     return result;
+  }
+
+  public boolean isSame(ArcObject other) {
+    return super.isSame(other) || isNil() && other.isNil();
   }
 
   private static void unwrapList(List result, Pair list) {

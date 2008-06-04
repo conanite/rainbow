@@ -1,4 +1,4 @@
-package rainbow.vm.continuations;
+package rainbow.vm.compiler;
 
 import rainbow.LexicalClosure;
 import rainbow.functions.Macex;
@@ -6,6 +6,7 @@ import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
+import rainbow.vm.continuations.ContinuationSupport;
 
 public class MacExpander extends ContinuationSupport {
   private final Macex macex = new Macex();

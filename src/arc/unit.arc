@@ -10,8 +10,8 @@
 (def execute-single-test (desc test results)
 	((fn (expected result)
 	      (if (iso result expected)
-	          (do (if (is show-failed-only nil) (pr desc " - " (car test) " - ok" #\newline)) (++ (results 'passed)))
-	          (do (pr desc " - " (car test) " - FAILED: expected " expected ", got " result #\newline) (++ (results 'failed))))
+	          (do (if (is show-failed-only nil) (pr desc " - " (car test) " - ok" #\newline)) (++ results!passed))
+	          (do (pr desc " - " (car test) " - FAILED: expected " expected ", got " result #\newline) (++ results!failed)))
 	    ) (test 2)
     	  (eval (cadr test))))
 

@@ -1,12 +1,13 @@
-package rainbow.vm.continuations;
+package rainbow.vm.compiler;
 
 import rainbow.LexicalClosure;
-import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
+import rainbow.vm.continuations.*;
+import rainbow.vm.compiler.Compiler;
 
 import java.util.LinkedList;
 import java.util.Map;

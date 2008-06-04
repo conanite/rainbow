@@ -45,8 +45,9 @@ public abstract class Java {
         }, new Builtin("java-implement") {
           public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
             String className = ArcString.cast(args.car(), this).value();
-            Hash functions = Hash.cast(args.cdr().car(), this);
-            caller.receive(JavaProxy.create(thread.environment(), className, functions));
+            ArcObject strict = args.cdr().car();
+            Hash functions = Hash.cast(args.cdr().cdr().car(), this);
+            caller.receive(JavaProxy.create(thread.environment(), className, functions, strict));
           }
         }
     });

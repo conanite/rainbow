@@ -1,8 +1,9 @@
-package rainbow.vm.continuations;
+package rainbow.vm.compiler;
 
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.vm.Continuation;
+import rainbow.vm.continuations.ContinuationSupport;
 
 public class Rebuilder extends ContinuationSupport {
   private ArcObject car;

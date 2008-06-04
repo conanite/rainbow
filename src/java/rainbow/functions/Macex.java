@@ -8,7 +8,7 @@ import rainbow.types.Symbol;
 import rainbow.types.Tagged;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.vm.continuations.MacExpander;
+import rainbow.vm.compiler.MacExpander;
 
 public class Macex extends Builtin {
   public void invoke(final ArcThread thread, LexicalClosure lc, final Continuation caller, final Pair args) {

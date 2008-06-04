@@ -115,6 +115,10 @@ public class ArcCharacter extends ArcObject {
     return this == other || (other instanceof ArcCharacter && ((ArcCharacter) other).value == this.value);
   }
 
+  public boolean isSame(ArcObject other) {
+    return equals(other);
+  }
+
   public ArcObject eqv(ArcObject other) {
     return Truth.valueOf(equals(other));
   }

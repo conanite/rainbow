@@ -17,19 +17,13 @@ public class Environment {
     Maths.collect(this);
     Typing.collect(this);
     ThreadLocals.collect(this);
+    Threads.collect(this);
 
     addBuiltin("t", ArcObject.T);
     addBuiltin("nil", ArcObject.NIL);
     addBuiltin("uniq", new Uniq());
     addBuiltin("newstring", new Lists.NewString());
-    addBuiltin("ccc", new Threads.CCC());
     addBuiltin("macex", new Macex());
-
-    /* threading */
-    addBuiltin("atomic-invoke", new Threads.AtomicInvoke());
-    addBuiltin("new-thread", new Threads.NewThread());
-    addBuiltin("dead", new Threads.Dead());
-    addBuiltin("sleep", new Threads.Sleep());
 
     /* errors */
     addBuiltin("protect", new Errors.Protect());

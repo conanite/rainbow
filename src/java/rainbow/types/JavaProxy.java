@@ -15,10 +15,12 @@ import java.lang.reflect.Method;
 public class JavaProxy implements InvocationHandler {
   private Environment environment;
   private Hash functions;
+  private boolean strict;
 
-  public JavaProxy(Environment environment, Hash functions) {
+  public JavaProxy(Environment environment, boolean strict, Hash functions) {
     this.environment = environment;
     this.functions = functions;
+    this.strict = strict;
   }
 
   public Object invoke(Object target, Method method, Object[] arguments) throws Throwable {
@@ -29,7 +31,11 @@ public class JavaProxy implements InvocationHandler {
       if (method.getName().equals("toString")) {
         return functions.toString();
       } else {
-        throw new ArcError("No implementation provided for " + method + "; implementations include " + functions);
+        if (strict) {
+          throw new ArcError("No implementation provided for " + method + "; implementations include " + functions);
+        } else {
+          return null;
+        }
       }
     }
     Function f = (Function) methodImplementation;
@@ -39,10 +45,10 @@ public class JavaProxy implements InvocationHandler {
     return JavaObject.unwrap(thread.finalValue(), method.getReturnType());
   }
 
-  public static ArcObject create(Environment environment, String className, Hash functions) {
+  public static ArcObject create(Environment environment, String className, Hash functions, ArcObject strict) {
     try {
       Class target = Class.forName(className);
-      return new JavaObject(Proxy.newProxyInstance(JavaProxy.class.getClassLoader(), new Class[] { target }, new JavaProxy(environment, functions)));
+      return new JavaObject(Proxy.newProxyInstance(JavaProxy.class.getClassLoader(), new Class[] { target }, new JavaProxy(environment, !strict.isNil(), functions)));
     } catch (ClassNotFoundException e) {
       throw new ArcError("Class " + className + " not found", e);
     }

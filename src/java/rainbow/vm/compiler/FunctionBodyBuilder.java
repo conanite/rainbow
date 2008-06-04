@@ -1,4 +1,4 @@
-package rainbow.vm.continuations;
+package rainbow.vm.compiler;
 
 import rainbow.LexicalClosure;
 import rainbow.functions.InterpretedFunction;
@@ -6,6 +6,10 @@ import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
+import rainbow.vm.continuations.ContinuationSupport;
+import rainbow.vm.compiler.FunctionParameterListBuilder;
+import rainbow.vm.compiler.MacExpander;
+import rainbow.vm.compiler.PairExpander;
 
 import java.util.LinkedList;
 import java.util.List;

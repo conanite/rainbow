@@ -99,7 +99,7 @@ public class ArcThread extends ArcObject implements Runnable {
     try {
       return (ArcThread) argument;
     } catch (ClassCastException e) {
-      throw new ArcError("Wrong argument type: " + caller + " expected a ArcThread, got " + argument);
+      throw new ArcError("Wrong argument type: " + caller + " expected a thread, got " + argument);
     }
   }
 }

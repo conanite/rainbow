@@ -52,10 +52,6 @@ public class InterpretedFunction extends ArcObject implements Function {
     }
   }
 
-  public String code() {
-    return toString();
-  }
-
   public ArcObject nth(int index) {
     return body[index];
   }

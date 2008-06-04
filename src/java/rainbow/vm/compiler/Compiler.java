@@ -1,8 +1,10 @@
-package rainbow.vm.continuations;
+package rainbow.vm.compiler;
 
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.BoundSymbol;
+import rainbow.vm.continuations.*;
+import rainbow.vm.compiler.QuasiQuoteCompiler;
 import rainbow.Function;
 import rainbow.LexicalClosure;
 import rainbow.functions.Evaluation;

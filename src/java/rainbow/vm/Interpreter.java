@@ -5,7 +5,6 @@ import rainbow.functions.InterpretedFunction;
 import rainbow.functions.Threads;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
-import rainbow.vm.continuations.Compiler;
 import rainbow.vm.continuations.EvaluatorContinuation;
 import rainbow.vm.continuations.FunctionDispatcher;
 
@@ -13,7 +12,7 @@ import java.util.Map;
 
 public class Interpreter {
   public static void compileAndEval(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression) {
-    Compiler.compile(thread, lc, new EvaluatorContinuation(thread, lc, caller), expression, new Map[0]);
+    rainbow.vm.compiler.Compiler.compile(thread, lc, new EvaluatorContinuation(thread, lc, caller), expression, new Map[0]);
   }
 
   public static void interpret(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression) {

@@ -113,8 +113,9 @@ public class Console {
     try {
       System.out.println(compileAndEval(environment, expression));
     } catch (ArcError e) {
-      System.out.println(e.getMessage());
-      System.out.println(e.getStacktrace());
+      System.out.println("Message    : " + e.getMessage());
+      System.out.println("Arc stack  : " + e.getStacktrace());
+      System.out.print("Java stack : ");
       e.printStackTrace(System.out);
     }
   }

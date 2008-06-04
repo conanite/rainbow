@@ -89,10 +89,10 @@ public class ArcString extends ArcObject {
     this.value = b.toString();
   }
 
-  public String code() {
-    return "<string>";
+  public boolean isSame(ArcObject other) {
+    return equals(other);
   }
-  
+
   public static ArcString cast(ArcObject argument, Object caller) {
     try {
       return (ArcString) argument;

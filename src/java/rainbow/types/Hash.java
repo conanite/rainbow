@@ -44,10 +44,6 @@ public class Hash extends ArcObject {
     map.put(key, value);
   }
 
-  public String code() {
-    return "<hash>";
-  }
-
   public ArcObject value(ArcObject key) {
     ArcObject result = (ArcObject) map.get(key);
     return result == null ? NIL : result;

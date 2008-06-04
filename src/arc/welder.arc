@@ -11,10 +11,10 @@
 
 (def welder-buttons (editor)
   (box 'horizontal
-       (button "eval buffer" (eval-these (readall (editor 'getText))))
+       (button "eval buffer"    (eval-these (readall (editor 'getText))))
        (button "eval selection" (eval-these (readall (editor 'getSelectedText))))
-       (button "ppr" (editor 'setText (ppr-these (readall (editor 'getText)))))
-       (button "new" (welder))))
+       (button "ppr"            (editor 'setText (ppr-these (readall (editor 'getText)))))
+       (button "new"            (welder))))
 
 (def ppr-these (exprs)
   (let os (outstring)
@@ -29,8 +29,8 @@
           (ppr-exprs (cdr exprs)))))
 
 (def welder ((o file))
-  (with (editor (text-area))
-    (editor 'setFont (courier))
+  (let editor (text-area)
+    (editor 'setFont (courier 12))
     (let f (frame 150 150 800 640 "Arc Welder")
       (f 'add
          (file-control editor 
