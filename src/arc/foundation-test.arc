@@ -404,6 +404,10 @@
         (coerce '(#\z #\o #\o #\, #\?) 'string)
         "zoo,?" )
 
+      ("list to string"
+        (coerce '(#\a #\b #\c #\@ #\e #\x #\a #\m #\p #\l #\e #\. #\c #\o #\m) 'string)
+        "abc@example.com" )
+
       (suite "characters"
         ("char to int"
           (coerce #\A 'int)

@@ -87,7 +87,7 @@ TOKEN : /* dot - cons separator */
 TOKEN : /* characters */
 {
   < CHARACTER            : <SINGLE_CHARACTER> | <TAB_CHARACTER> | <RETURN_CHARACTER> | <SPACE_CHARACTER> | <NEWLINE_CHARACTER> | <NULL_CHARACTER> | <ASCII_CHARACTER> | <UNICODE_CHARACTER> >
-| < #SINGLE_CHARACTER    : "#\\" (<SUBSEQUENT> | ["A"-"Z"] | [",","?","'","\"","`",";","#","(",")","[","]","{","}"," "])  >
+| < #SINGLE_CHARACTER    : "#\\" (<SUBSEQUENT> | ["A"-"Z"] | [",","?","'","\"","`",";","#","(",")","[","]","{","}"," ","@"])  >
 | < #NEWLINE_CHARACTER   : "#\\newline"                                                       >
 | < #TAB_CHARACTER       : "#\\tab"                                                           >
 | < #SPACE_CHARACTER     : "#\\space"                                                         >
