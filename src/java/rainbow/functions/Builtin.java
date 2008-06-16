@@ -56,10 +56,6 @@ public abstract class Builtin extends ArcObject implements Function {
     }
   }
 
-  public String source() {
-    return "<functions>";
-  }
-
   public String toString() {
     return "<Builtin:" + (name == null || name.length() == 0 ? getClass().getSimpleName() : name) + ">";
   }

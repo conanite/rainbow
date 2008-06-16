@@ -1,30 +1,38 @@
-(set key-rotate* #\u key-left* #\h key-right* #\k key-drop* #\j key-new* #\n key-pause* #\p)
-(set tetris-width* 8 tetris-height* 20 acceleration* 1.01)
-(set colours nil shape-info (table) universe-cells* (table) shape-rotations (table) game-thread* nil)
+(mac set-cell (colour row col)
+  (w/uniq (gk)
+    `(let ,gk (key ,row ,col)
+      (= (universe ,gk) ,colour)
+      (= (cell-updates* ,gk) ,colour))))
 
-(def reset-game ()
-  (set delay* 0.5 score* 0 paused* nil)
-  (set universe (table))
-  (new-shape)
-  (maptable (fn (k v) (repaint-cell k nil)) universe-cells*)
-  (update-score))
-
+(mac shape-cells (colour-var rotation row-var col-var . body)
+  `(for ,row-var 0 3
+    (for ,col-var 0 3
+      (if (shape-info (shape-cell-key ,colour-var ,rotation ,row-var ,col-var))
+        (do ,@body)))))
+        
 (mac tetrisop (name args . body)
   (w/uniq (gv)
     `(atdef ,name ,args
       (if paused* 
           t
           (let ,gv nil
+            (set cell-updates* (table))
             (draw-shape nil)
             (set ,gv (do ,@body ))
             (draw-shape)
+            (update-updates cell-updates*)
             ,gv)))))
 
-(mac set-cell (colour row col)
-  (w/uniq (gk)
-    `(let ,gk (key ,row ,col)
-      (= (universe ,gk) ,colour)
-      (repaint-cell ,gk ,colour))))
+(set key-rotate* #\u key-left* #\h key-right* #\k key-drop* #\j key-new* #\n key-pause* #\p)
+(set tetris-width* 8 tetris-height* 20 acceleration* 1.01)
+(set colours nil shape-info (table) universe-cells* (table) shape-rotations (table) game-thread* nil)
+
+(def reset-game ()
+  (set delay* 0.5 score* 0 paused* nil)
+  (set universe (table) cell-updates* (table))
+  (new-shape)
+  (maptable (fn (k v) (repaint-cell k nil)) universe-cells*)
+  (update-score))
 
 (def key (row col) 
   (tostring (pr row "-" col)))
@@ -87,8 +95,7 @@
 (def game-loop ()
   (sleep delay*)
   (if (advance-shape) 
-      (game-loop)
-      (prn "finished: score " score*)))
+      (game-loop)))
 
 (atdef full ()
   (ccc (fn (return)
@@ -105,7 +112,7 @@
 
 (def bottom () 
   (illegal falling!colour falling!rotation falling!x (+ 1 falling!y)))
-
+  
 (tetrisop advance-shape ()
   (if (bottom)
       (end-round)
@@ -145,12 +152,6 @@
     (for col 0 (- tetris-width* 1)
       (set-cell (universe (key (- row 1) col)) row col))))
 
-(mac shape-cells (colour-var rotation row-var col-var . body)
-  `(for ,row-var 0 3
-    (for ,col-var 0 3
-      (if (shape-info (shape-cell-key ,colour-var ,rotation ,row-var ,col-var))
-        (do ,@body)))))
-
 (def illegal (c rot x y)
   (ccc (fn (return) 
            (shape-cells c rot row column 
@@ -172,6 +173,9 @@
   (shape-cells falling!colour falling!rotation row col
     (set-cell colour (+ row falling!y) (+ col falling!x))))
 
+(def update-updates (cells-to-update)
+  (maptable (fn (k v) (repaint-cell k v)) cells-to-update))
+
 (def repaint-cell (k colour)
   (universe-cells*.k (or colour 'black)))
 
@@ -190,8 +194,7 @@
   (prn "move left  : " key-left*)
   (prn "move right : " key-right*)
   (prn "drop       : " key-drop*)
-  (prn "new game   : " key-new*)
-)
+  (prn "new game   : " key-new*))
 
 (def tetris ()
   (game-setup (tetris-keybindings) universe-cells*)

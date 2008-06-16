@@ -33,7 +33,7 @@ public class IfContinuation extends ContinuationSupport {
       caller.receive(args);
     } else {
       current = args.car();
-      Interpreter.interpret(thread, lc, this, current);
+      Interpreter.interpret(thread, lc, (args.cdr().isNil() ? caller : this), current);
     }
   }
 

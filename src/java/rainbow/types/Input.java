@@ -36,7 +36,7 @@ public class Input extends ArcObject {
       if (reader != null) {
         parser = new ArcParser(reader);
       } else {
-        parser = new ArcParser(getName(), getInputStream());
+        parser = new ArcParser(getInputStream());
       }
     }
     return parser;

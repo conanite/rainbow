@@ -19,21 +19,31 @@ import rainbow.*;
 import rainbow.types.*;
 
 public class ArcParser {
-
-  public ArcParser(File source) throws FileNotFoundException {
-    this(new FileInputStream(source));
-  }
-
   public ArcParser(String expression) {
     this(new ByteArrayInputStream(expression.getBytes()));
   }
 
-  public ArcParser(String sourceName, InputStream in) {
-    this(in);
-  }
-
-  private static String stripQuotes(String s) {
-    return s.substring(1, s.length() - 1);
+  private static String cleanString(String s) {
+    StringBuffer sb = new StringBuffer();
+    boolean escaping = false;
+    for (int i = 1; i < s.length() - 1; i++) {
+      char c = s.charAt(i);
+      if (escaping) {
+        escaping = false;
+        switch (c) {
+          case 'n'  : sb.append('\n'); break;
+          case 't'  : sb.append('\t'); break;
+          case 'r'  : sb.append('\r'); break;
+          case '\\' : sb.append('\\'); break;
+          case '"'  : sb.append('"');  break;
+        }
+      } else if (c == '\\') {
+        escaping = true;
+      } else {
+        sb.append(c);
+      }
+    }
+    return sb.toString();
   }
 }
 PARSER_END(ArcParser)
@@ -76,7 +86,7 @@ TOKEN : /* identifier */
 TOKEN : /* string */
 {
   < STRING : "\"" ( <STRING_ELEMENT> )* "\"" >
-| < #STRING_ELEMENT : ~["\"","\\"] | "\\" ["\"","\\", "n"] >
+| < #STRING_ELEMENT : ~["\"","\\"] | "\\" ["\"","\\", "n", "r", "t"] >
 }
 
 TOKEN : /* dot - cons separator */
@@ -87,7 +97,7 @@ TOKEN : /* dot - cons separator */
 TOKEN : /* characters */
 {
   < CHARACTER            : <SINGLE_CHARACTER> | <TAB_CHARACTER> | <RETURN_CHARACTER> | <SPACE_CHARACTER> | <NEWLINE_CHARACTER> | <NULL_CHARACTER> | <ASCII_CHARACTER> | <UNICODE_CHARACTER> >
-| < #SINGLE_CHARACTER    : "#\\" (<SUBSEQUENT> | ["A"-"Z"] | [",","?","'","\"","`",";","#","(",")","[","]","{","}"," ","@"])  >
+| < #SINGLE_CHARACTER    : "#\\" (<SUBSEQUENT> | ["A"-"Z"] | [",","?","'","\"","\\","`",";","#","(",")","[","]","{","}"," ","@"])  >
 | < #NEWLINE_CHARACTER   : "#\\newline"                                                       >
 | < #TAB_CHARACTER       : "#\\tab"                                                           >
 | < #SPACE_CHARACTER     : "#\\space"                                                         >
@@ -182,9 +192,9 @@ ArcObject list():             {
 ArcObject atom():             { Token s; ArcObject o; } {
   (
     s=<INTEGER>               { return Rational.make(Long.parseLong(s.toString()), 1);  }
-  | s=<DOUBLE>                { return Real.parse(s.toString());                   }
+  | s=<DOUBLE>                { return Real.parse(s.toString());                        }
   | s=<FRACTION>              { return Rational.parse(s.toString());                    }
-  | s=<STRING>                { return ArcString.parse(stripQuotes(s.toString()));      }
+  | s=<STRING>                { return ArcString.make(cleanString(s.toString()));       }
   | s=<IDENTIFIER>            { return Symbol.make(s.toString());                       }
   | s=<CHARACTER>             { return ArcCharacter.make(s.toString());                 }
   )

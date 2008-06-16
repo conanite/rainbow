@@ -3,15 +3,24 @@ package rainbow.types;
 import rainbow.ArcError;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicTextUI;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.StyleSheet;
+import javax.swing.text.*;
+import javax.swing.event.CaretListener;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.DocumentEvent;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.*;
+import java.io.IOException;
 
 public class JavaObject extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("java-object");
@@ -106,10 +115,18 @@ public class JavaObject extends ArcObject {
   }
 
   private static Object invokeMethod(Object target, Class aClass, String methodName, Pair args) {
+    Object[] javaArgs = new Object[0];
     try {
       Method method = findMethod(aClass, methodName, args.size());
-      Object[] javaArgs = unwrapList(args, method.getParameterTypes());
+      method.setAccessible(true);
+      javaArgs = unwrapList(args, method.getParameterTypes());
       return method.invoke(target, javaArgs);
+    } catch (IllegalArgumentException e) {
+      System.out.println("arc args: " + args);
+      System.out.println("java args: " + new ArrayList(Arrays.asList(javaArgs)));
+      System.out.println("method: " + methodName);
+      System.out.println("on class: " + aClass);
+      throw e;
     } catch (IllegalAccessException e) {
       throw new ArcError("Method " + methodName + " is not accessible on " + aClass, e);
     } catch (InvocationTargetException e) {
@@ -145,7 +162,9 @@ public class JavaObject extends ArcObject {
   }
 
   private static Object convert(Object o, Class javaType) {
-    if (javaType == Integer.class || javaType == Integer.TYPE) {
+    if (o == Boolean.FALSE && !(javaType == Boolean.class || javaType == Boolean.TYPE)) {
+      return null;
+    } else if (javaType == Integer.class || javaType == Integer.TYPE) {
       return ((Long) o).intValue();
     } else if (javaType == Long.class || javaType == Long.TYPE || javaType == Double.class || javaType == Double.TYPE) {
       return o;
@@ -201,26 +220,62 @@ public class JavaObject extends ArcObject {
     return p == Integer.TYPE || p == Long.TYPE || p == Double.TYPE || p == Float.TYPE;
   }
   
-  public static void main(String[] args) {
+  public static void main(String[] args) throws BadLocationException, IOException {
     JFrame jf = new JFrame();
     jf.setBounds(200, 200, 400, 400);
     jf.setTitle("testing");
-    JTextArea ta = new JTextArea(text());
-    ta.setFont(Font.getFont("Courier"));
-    JButton eval = new JButton("eval");
-    eval.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent event) {
-        System.out.println("eval button");
+    JTextPane jtp = new JTextPane();
+    jtp.setContentType("text/html");
+    
+    jtp.setCaretColor(Color.white);
+    HTMLDocument doc = (HTMLDocument) jtp.getDocument();
+    doc.getStyleSheet().addRule(" .foo { color: red;} .bar {background:blue;color:white;}");
+    jtp.setText("<html><body thing='what'><span id='parent'>parent blah<span id='the_foo' class='foo'>(</span> <span class='foo'>this is some bar text</span></span></body></html>");
+    
+    jtp.addCaretListener(new CaretListener() {
+      public void caretUpdate(CaretEvent event) {
       }
     });
-    
     jf.getContentPane().setLayout(new BoxLayout(jf.getContentPane(), BoxLayout.Y_AXIS));
     jf.add(fileControl());
-    jf.add(new JScrollPane(ta));
-    jf.add(eval);
+    jf.add(new JScrollPane(jtp));
     jf.show();
+    
+    jtp.grabFocus();
+    jtp.getCaret().setDot(20);
+    jtp.getCaret().moveDot(30);
+    Element[] elements = doc.getRootElements();
+    for (int i = 0; i < elements.length; i++) {
+      Element element = elements[i];
+      System.out.println("element " + i);
+      showInfo(element);
+    }
+
+    System.out.println(jtp.getText(0, jtp.getDocument().getEndPosition().getOffset()));
+    
+    Element fooElement = doc.getCharacterElement(12);
+    doc.setOuterHTML(fooElement, "<span class='bar'>(</span>");
   }
-  
+
+  private static void showInfo(Element element) {
+    System.out.println("Element " + element + "attrs " + attrs(element));
+    for (int i = 0; i < element.getElementCount(); i++) {
+      Element k = element.getElement(i);
+      showInfo(k);
+    }
+  }
+
+  private static String attrs(Element element) {
+    StringBuffer sb = new StringBuffer();
+    AttributeSet attributes = element.getAttributes();
+    for (Enumeration e = attributes.getAttributeNames(); e.hasMoreElements(); ) {
+      Object name = e.nextElement();
+      Object value = attributes.getAttribute(name);
+      sb.append(name + "  " + name.getClass().getName() + "\t=\t" + value + " " + value.getClass().getName() + "\n");
+    }
+    return sb.toString();
+  }
+
   private static Box fileControl() {
     Box box = Box.createHorizontalBox();
     JTextField filename = new JTextField();

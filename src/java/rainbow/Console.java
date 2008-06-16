@@ -3,17 +3,13 @@ package rainbow;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Interpreter;
 import rainbow.vm.continuations.TopLevelContinuation;
-import rainbow.types.ArcObject;
-import rainbow.types.Symbol;
-import rainbow.types.Pair;
+import rainbow.types.*;
 import rainbow.parser.ParseException;
 import rainbow.parser.ArcParser;
 import rainbow.util.Argv;
 
 import java.io.*;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 
 public class Console {
   public static boolean ARC2_COMPATIBILITY = false;
@@ -21,6 +17,7 @@ public class Console {
 
   public static void main(String args[]) throws ParseException, IOException {
     Object o = ArcObject.NIL;
+    String[] path = getArcPath();
     Argv argv = new Argv(args);
     List programArgs = parseAll(argv.terminal("-args"));
 
@@ -35,18 +32,17 @@ public class Console {
     }
 
     Environment environment = new Environment();
-    if (!argv.present("--no-arc")) {
-      loadFile(environment, "arc.arc");
-      loadFile(environment, "libs.arc");
+    environment.addToNamespace((Symbol) Symbol.make("*argv*"), Pair.buildFrom(programArgs));
+    environment.addToNamespace((Symbol) Symbol.make("*env*"), getEnvironment());
+    
+    if (!argv.present("--no-libs")) {
+      loadFile(environment, path, "arc.arc");
+      loadFile(environment, path, "strings.arc");
+      loadFile(environment, path, "rainbow/rainbow.arc");
+      loadFile(environment, path, "rainbow/rainbow-libs.arc");
     }
     
-    if (!argv.present("--no-java-libs")) {
-      loadFile(environment, "lib/rainbow/libs.arc");
-    }
-
-    environment.addToNamespace((Symbol) Symbol.make("*argv*"), Pair.buildFrom(programArgs));
-
-    loadAll(environment, argv.multi("-f"));
+    loadAll(environment, path, argv.multi("-f"));
 
     interpretAll(environment, argv.multi("-e"));
 
@@ -66,23 +62,22 @@ public class Console {
             "\n   -f file ...  load and interpret file                      " +
             "\n   -e expr ...  evaluate expr                                " +
             "\n   -q           quit after -e or -f, don't enter the REPL    " +
-            "\n   --no-arc     don't load the base Arc libraries            " +
+            "\n   --no-libs    don't load any arc libraries                 " +
             "\n");
   }
 
   private static List parseAll(List list) throws ParseException {
     List result = new ArrayList();
     for (Iterator it = list.iterator(); it.hasNext();) {
-      String arg = (String) it.next();
-      result.add(new ArcParser(arg).parseOneLine());
+      result.add(new ArcParser((String) it.next()).parseOneLine());
     }
     return result;
   }
 
-  private static void loadAll(Environment environment, List files) throws ParseException, IOException {
+  private static void loadAll(Environment environment, String[] arcPath, List files) throws ParseException, IOException {
     for (Iterator i = files.iterator(); i.hasNext();) {
       String f = (String) i.next();
-      loadFile(environment, f);
+      loadFile(environment, arcPath, f);
     }
   }
 
@@ -101,7 +96,7 @@ public class Console {
   }
 
   private static void repl(Environment environment) throws ParseException {
-    ArcParser parser = new ArcParser("<Console>", System.in);
+    ArcParser parser = new ArcParser(System.in);
     while (true) {
       System.out.print("arc> ");
       ArcObject expression = parser.parseOneLine();
@@ -120,16 +115,26 @@ public class Console {
     }
   }
 
-  public static void loadResource(Environment arc, String resource) throws ParseException {
-    load(arc, resource, Console.class.getResourceAsStream(resource));
+  public static File find(String[] arcPath, String filePath) throws IOException {
+    for (String s : arcPath) {
+      File f = new File(s + "/" + filePath);
+      if (f.exists() && !f.isDirectory()) {
+        return f.getCanonicalFile();
+      }
+    }
+    throw new FileNotFoundException("Could not find " + filePath + " under " + toList(arcPath));
   }
 
-  public static void loadFile(Environment arc, String path) throws ParseException, IOException {
-    load(arc, path, new FileInputStream(new File(path).getCanonicalFile()));
+  private static List toList(String[] arcPath) {
+    return new ArrayList(Arrays.asList(arcPath));
+  }
+
+  public static void loadFile(Environment arc, String[] arcPath, String path) throws ParseException, IOException {
+    load(arc, path, new FileInputStream(find(arcPath, path)));
   }
 
   private static void load(Environment arc, String name, InputStream stream) throws ParseException {
-    ArcParser parser = new ArcParser(name, stream);
+    ArcParser parser = new ArcParser(stream);
     ArcObject expression = parser.parseOneLine();
     while (expression != null) {
       compileAndEval(arc, expression);
@@ -143,5 +148,36 @@ public class Console {
     Interpreter.compileAndEval(thread, null, topLevel, expression);
     thread.run();
     return thread.finalValue();
+  }
+
+  public static Hash getEnvironment() throws ParseException {
+    Hash env = new Hash();
+    Map<String, String> s = System.getenv();
+    for (String k : s.keySet()) {
+      env.sref(ArcString.make(k), ArcString.make(s.get(k)));
+    }
+    return env;
+  }
+
+  public static String[] getArcPath() {
+    String arcPath = System.getenv("ARC_PATH");
+    if (arcPath == null || arcPath.trim().length() == 0) {
+      return new String[] {"."};
+    }
+
+    String[] strings = arcPath.split(":");
+    List elements = Arrays.asList(strings);
+    String cwd = ".";
+    for (Object element : elements) {
+      if (cwd.equals(element)) {
+        return strings;
+      }
+    }
+    
+    List result = new ArrayList();
+    result.add(cwd);
+    result.addAll(elements);
+    
+    return (String[]) result.toArray(new String[result.size()]);
   }
 }

@@ -19,7 +19,7 @@ public abstract class ContinuationSupport implements Continuation, Cloneable {
     this.lc = lc;
     this.caller = caller;
   }
-
+  
   public final void receive(ArcObject returned) {
     if (stopped) {
       return;

@@ -7,6 +7,8 @@ public abstract class ArcObject {
   public static final Nil NIL = Nil.NIL;
   public static final Truth T = Truth.T;
 
+  public Hash source;
+  
   public ArcObject eval(Environment env) {
     return this;
   }
@@ -47,5 +49,16 @@ public abstract class ArcObject {
 
   public boolean isSame(ArcObject other) {
     return this == other;
+  }
+  
+  public void source(Hash source) {
+    this.source = source;
+  }
+  
+  public Hash source() {
+    if (source == null) {
+      source = new Hash();
+    }
+    return source;
   }
 }

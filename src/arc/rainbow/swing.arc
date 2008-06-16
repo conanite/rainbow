@@ -11,6 +11,7 @@
 
 (mac button (text . action)
   `(let jb (java-new "javax.swing.JButton" ,text)
+    (jb 'setRequestFocusEnabled nil)
     (jb 'addActionListener 
         (java-implement "java.awt.event.ActionListener" t (obj actionPerformed (fn (action-event) ,@action))))
     jb))
@@ -30,6 +31,11 @@
     tf))
 
 (def text-area () (java-new "javax.swing.JTextArea"))
+
+(def html-pane () 
+  (let hp (java-new "javax.swing.JTextPane")
+    (hp 'setContentType "text/html")
+    hp))
 
 (def scroll-pane (component) (java-new "javax.swing.JScrollPane" component))
 
@@ -53,19 +59,20 @@
   `(,component 'addKeyListener (java-implement "java.awt.event.KeyListener" nil
       (obj keyTyped (fn (event) (,fun event!getKeyChar))))))
 
-(def load-file (fname)
-  (w/infile f fname
-    (awhen (readc f)
-      (tostring 
-        (writec it)
-        (whiler c (readc f) nil
-          (writec c))))))
+(def selected-text (editor)
+  (aif editor!getSelectedText it
+       (all-text editor)))
+       
+(def all-text (editor)
+  (editor 'getText 0 (text-length editor)))
 
-(def write-file (fname text)
-  (w/outfile f fname (w/stdout f (pr text))))
-
-(def eval-these (exprs)
-  (if (acons exprs)
-      (do (eval (car exprs)) (eval-these (cdr exprs)))))
+(def text-length (editor)
+  (editor!getDocument 'getLength))
 
 
+(def open-text-area (text)
+  (let editor (text-area)
+    editor!setText.text
+    (let f (frame 200 200 600 480 "Arc Welder")
+      (f 'add (scroll-pane editor))
+      f!show)))

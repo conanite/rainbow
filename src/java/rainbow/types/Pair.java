@@ -191,7 +191,7 @@ public class Pair extends ArcObject {
   }
 
   public int hashCode() {
-    return car.hashCode() + (37 * cdr().hashCode());
+    return car().hashCode() + (37 * cdr().hashCode());
   }
 
   public Pair nth(long index) {

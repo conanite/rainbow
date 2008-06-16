@@ -31,6 +31,17 @@ public class FunctionDispatcher extends ContinuationSupport {
     super(thread, lc, caller);
     this.args = expression.cdr();
     this.functionName = expression.car();
+//    if (caller instanceof FunctionDispatcher) {
+//      System.out.println("FD trail: " + fdtrail());
+//    }
+  }
+
+  private String fdtrail() {
+    if (caller instanceof FunctionDispatcher) {
+      return functionName + " " + ((FunctionDispatcher) caller).fdtrail();
+    } else {
+      return "";
+    }
   }
 
   public void process() {
@@ -116,11 +127,7 @@ public class FunctionDispatcher extends ContinuationSupport {
   }
 
   public void digestArgument(ArcObject o) {
-    if (o instanceof InterpretedFunction) {
-      throw new Error("FD.digestArgument: we should never get in here, isn't this handled by Interpreter???");
-    } else {
-      evaluatedArgs.add(o);
-    }
+    evaluatedArgs.add(o);
     startEvaluation();
   }
 

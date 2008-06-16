@@ -40,7 +40,24 @@ public class ArcString extends ArcObject {
   }
 
   public String toString() {
-    return "\"" + value + "\"";
+    return escape(value);
+  }
+
+  private String escape(String value) {
+    StringBuffer sb = new StringBuffer();
+    sb.append("\"");
+    String v = value;
+    for (int i = 0; i < v.length(); i++) {
+      switch (v.charAt(i)) {
+        case '"'  : sb.append("\\\""); break;
+        case '\\' : sb.append("\\\\"); break;
+        case '\n' : sb.append("\\n"); break;
+        case '\r' : sb.append("\\r"); break;
+        default   : sb.append(v.charAt(i));
+      }
+    }
+    sb.append("\"");
+    return sb.toString();
   }
 
   public ArcObject eval(Environment env) {
@@ -65,10 +82,6 @@ public class ArcString extends ArcObject {
 
   public static ArcString make(String element) {
     return new ArcString(element);
-  }
-
-  public static ArcString parse(String input) {
-    return make(input.replaceAll("\\\\\"", "\"").replaceAll("\\\\n", "\n"));
   }
 
   public void setValue(String s) {
