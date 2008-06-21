@@ -5,7 +5,6 @@ import rainbow.Environment;
 import rainbow.Function;
 import rainbow.functions.Java;
 import rainbow.vm.ArcThread;
-import rainbow.vm.Interpreter;
 import rainbow.vm.continuations.TopLevelContinuation;
 
 import java.lang.reflect.Proxy;
@@ -16,11 +15,13 @@ public class JavaProxy implements InvocationHandler {
   private Environment environment;
   private Hash functions;
   private boolean strict;
+  private Class targetInterface;
 
-  public JavaProxy(Environment environment, boolean strict, Hash functions) {
+  public JavaProxy(Environment environment, boolean strict, Hash functions, Class target) {
     this.environment = environment;
     this.functions = functions;
     this.strict = strict;
+    this.targetInterface = target;
   }
 
   public Object invoke(Object target, Method method, Object[] arguments) throws Throwable {
@@ -29,7 +30,7 @@ public class JavaProxy implements InvocationHandler {
     ArcObject methodImplementation = functions.value(Symbol.make(method.getName()));
     if (methodImplementation.isNil()) {
       if (method.getName().equals("toString")) {
-        return functions.toString();
+        return "Arc implementation of " + targetInterface + " : " + functions.toString();
       } else {
         if (strict) {
           throw new ArcError("No implementation provided for " + method + "; implementations include " + functions);
@@ -48,7 +49,7 @@ public class JavaProxy implements InvocationHandler {
   public static ArcObject create(Environment environment, String className, Hash functions, ArcObject strict) {
     try {
       Class target = Class.forName(className);
-      return new JavaObject(Proxy.newProxyInstance(JavaProxy.class.getClassLoader(), new Class[] { target }, new JavaProxy(environment, !strict.isNil(), functions)));
+      return new JavaObject(Proxy.newProxyInstance(JavaProxy.class.getClassLoader(), new Class[] { target }, new JavaProxy(environment, !strict.isNil(), functions, target)));
     } catch (ClassNotFoundException e) {
       throw new ArcError("Class " + className + " not found", e);
     }

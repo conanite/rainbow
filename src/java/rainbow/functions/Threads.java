@@ -16,13 +16,13 @@ public class Threads {
       new Builtin("new-thread") {
         public void invoke(ArcThread thread, final LexicalClosure lc, Continuation caller, final Pair args) {
           final ArcThread newThread = new ArcThread(thread.environment());
-          new Thread(new Runnable() {
+          new Thread() {
             public void run() {
               Function fn = Builtin.cast(args.car(), this);
               fn.invoke(newThread, lc, new TopLevelContinuation(newThread), NIL);
               newThread.run();
             }
-          }).start();
+          }.start();
           caller.receive(newThread);
         }
       }, new Builtin("kill-thread") {

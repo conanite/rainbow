@@ -178,11 +178,7 @@ public class Pair extends ArcObject {
         if (isPair) {
           boolean eqCar = ((Pair) other).car.equals(car);
           boolean eqCdr = ((Pair) other).cdr.equals(cdr);
-          if ((eqCar && eqCdr)) {
-            return true;
-          } else {
-            return false;
-          }
+          return (eqCar && eqCdr);
         } else {
           return false;
         }

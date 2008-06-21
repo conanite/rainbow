@@ -6,11 +6,9 @@ import javax.swing.*;
 import javax.swing.plaf.basic.BasicTextUI;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.StyleSheet;
+import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.*;
-import javax.swing.event.CaretListener;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.DocumentEvent;
+import javax.swing.event.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -19,8 +17,12 @@ import java.util.*;
 import java.util.List;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
 import java.awt.*;
 import java.io.IOException;
+import java.io.Reader;
+import java.beans.PropertyChangeListener;
 
 public class JavaObject extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("java-object");
@@ -117,7 +119,7 @@ public class JavaObject extends ArcObject {
   private static Object invokeMethod(Object target, Class aClass, String methodName, Pair args) {
     Object[] javaArgs = new Object[0];
     try {
-      Method method = findMethod(aClass, methodName, args.size());
+      Method method = findMethod(aClass, methodName, args);
       method.setAccessible(true);
       javaArgs = unwrapList(args, method.getParameterTypes());
       return method.invoke(target, javaArgs);
@@ -156,7 +158,7 @@ public class JavaObject extends ArcObject {
       try {
         return convert(arcObject.unwrap(), javaType);
       } catch (ClassCastException e) {
-        throw new ArcError("Can't convert " + arcObject.getClass().getName() + " - " + arcObject + " ( a " + arcObject.type() + ") to " + javaType, e);
+        throw new ArcError("Can't convert " + typeOf(arcObject) + " - " + arcObject + " ( a " + arcObject.type() + ") to " + javaType, e);
       }
     }
   }
@@ -179,14 +181,43 @@ public class JavaObject extends ArcObject {
     }
   }
 
-  private static Method findMethod(Class c, String methodName, int argCount) {
+  private static final Map methodCache = new HashMap();
+
+  private static Method findMethod(Class c, String methodName, Pair args) {
+    if (methodName.equals("setEditable")) {
+      System.out.println("setEditable: args are " + args);
+    }
+    String key = c.getName() + methodName + types(args);
+    if (methodCache.containsKey(key)) {
+      return (Method) methodCache.get(key);
+    }
+    int argCount = args.size();
     for (int i = 0; i < c.getMethods().length; i++) {
       Method method = c.getMethods()[i];
-      if (method.getName().equals(methodName) && method.getParameterTypes().length == argCount) {
+      if (method.getName().equals(methodName) && method.getParameterTypes().length == argCount && match(method.getParameterTypes(), args, 0)) {
+        methodCache.put(key, method);
         return method;
       }
     }
-    throw new ArcError("no method " + methodName + " found on " + c + " with " + argCount + " parameters");
+    throw new ArcError("no method " + methodName + " found on " + c + " to accept " + args);
+  }
+
+  private static String types(ArcObject args) {
+    if (args.isNil()) {
+      return "";
+    } else if (args instanceof Pair) {
+      return typeOf(args.car()) + types(args.cdr());
+    } else {
+      return typeOf(args);
+    }
+  }
+
+  private static String typeOf(ArcObject obj) {
+    if (obj instanceof JavaObject) {
+      return obj.unwrap().getClass().getName();
+    } else {
+      return obj.getClass().getName();
+    }
   }
 
   private static boolean match(Class[] parameterTypes, Pair args, int i) {
@@ -194,7 +225,7 @@ public class JavaObject extends ArcObject {
   }
 
   private static boolean match(Class parameterType, ArcObject arcObject) {
-    if (parameterType == Boolean.class) {
+    if (parameterType == Boolean.class || parameterType == Boolean.TYPE) {
       return true;
     } else if (isPrimitiveNumber(parameterType) && arcObject instanceof ArcNumber) {
       return true;
@@ -218,82 +249,5 @@ public class JavaObject extends ArcObject {
 
   private static boolean isPrimitiveNumber(Class p) {
     return p == Integer.TYPE || p == Long.TYPE || p == Double.TYPE || p == Float.TYPE;
-  }
-  
-  public static void main(String[] args) throws BadLocationException, IOException {
-    JFrame jf = new JFrame();
-    jf.setBounds(200, 200, 400, 400);
-    jf.setTitle("testing");
-    JTextPane jtp = new JTextPane();
-    jtp.setContentType("text/html");
-    
-    jtp.setCaretColor(Color.white);
-    HTMLDocument doc = (HTMLDocument) jtp.getDocument();
-    doc.getStyleSheet().addRule(" .foo { color: red;} .bar {background:blue;color:white;}");
-    jtp.setText("<html><body thing='what'><span id='parent'>parent blah<span id='the_foo' class='foo'>(</span> <span class='foo'>this is some bar text</span></span></body></html>");
-    
-    jtp.addCaretListener(new CaretListener() {
-      public void caretUpdate(CaretEvent event) {
-      }
-    });
-    jf.getContentPane().setLayout(new BoxLayout(jf.getContentPane(), BoxLayout.Y_AXIS));
-    jf.add(fileControl());
-    jf.add(new JScrollPane(jtp));
-    jf.show();
-    
-    jtp.grabFocus();
-    jtp.getCaret().setDot(20);
-    jtp.getCaret().moveDot(30);
-    Element[] elements = doc.getRootElements();
-    for (int i = 0; i < elements.length; i++) {
-      Element element = elements[i];
-      System.out.println("element " + i);
-      showInfo(element);
-    }
-
-    System.out.println(jtp.getText(0, jtp.getDocument().getEndPosition().getOffset()));
-    
-    Element fooElement = doc.getCharacterElement(12);
-    doc.setOuterHTML(fooElement, "<span class='bar'>(</span>");
-  }
-
-  private static void showInfo(Element element) {
-    System.out.println("Element " + element + "attrs " + attrs(element));
-    for (int i = 0; i < element.getElementCount(); i++) {
-      Element k = element.getElement(i);
-      showInfo(k);
-    }
-  }
-
-  private static String attrs(Element element) {
-    StringBuffer sb = new StringBuffer();
-    AttributeSet attributes = element.getAttributes();
-    for (Enumeration e = attributes.getAttributeNames(); e.hasMoreElements(); ) {
-      Object name = e.nextElement();
-      Object value = attributes.getAttribute(name);
-      sb.append(name + "  " + name.getClass().getName() + "\t=\t" + value + " " + value.getClass().getName() + "\n");
-    }
-    return sb.toString();
-  }
-
-  private static Box fileControl() {
-    Box box = Box.createHorizontalBox();
-    JTextField filename = new JTextField();
-    Dimension d = filename.getMaximumSize();
-    Dimension min = filename.getMinimumSize();
-    filename.setMaximumSize(new Dimension((int) d.getWidth(), (int) min.getHeight()));
-    box.add(filename);
-    JButton jButton = new JButton("Open");
-    box.add(jButton);
-    box.add(new JButton("Save"));
-    return box;
-  }
-
-  private static String text() {
-    String foo = "vd lfvgs fjlvkergel kjvflkjelrkj\n erfelgk lkrg elrkgj k\n erglwekrg lmvlkemrlkwemrlkgmwl ml\n";
-    for (int i = 0; i < 8; i++) {
-      foo += foo;
-    }
-    return foo;
   }
 }

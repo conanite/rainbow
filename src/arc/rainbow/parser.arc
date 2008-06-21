@@ -2,6 +2,16 @@
 (set syntax-chars (obj #\( 'left-paren #\) 'right-paren #\[ 'left-bracket #\] 'right-bracket #\' 'quote #\` 'quasiquote))
 (set ws-char-names (obj space " " newline #\newline return "\\r" tab "\t"))
 
+(set syntax-char-names  (obj 
+  left-paren        "(" 
+  left-bracket      "[" 
+  right-paren       ")" 
+  right-bracket     "]" 
+  quote             "'" 
+  quasiquote        "`" 
+  unquote           "," 
+  unquote-splicing  ",@"))
+
 (def arc-tokens (reader)
   (let token-list nil
     (read-arc-tokens reader 
@@ -123,11 +133,11 @@
                         (if (ws-char-names (car args))    (pop result))
                         (if (is (car args) 'right-bracket) 
                             (let original (pop brackets)
-                              (pop result)
+                              (= (args 1) (original 1))
                               (= (original 2) (args 2))))
                         (if (is (car args) 'right-paren) 
                             (let original (pop parens)
-                              (pop result)
+                              (= (args 1) (original 1))
                               (= (original 2) (args 2))))))
     (rev result)))
 
@@ -167,7 +177,7 @@
 
 
 (def run-parser-tests ()
-  (set show-failed-only nil)
+  (set show-failed-only t)
   (run-tests parser-test-suite))
 
 (run-parser-tests)

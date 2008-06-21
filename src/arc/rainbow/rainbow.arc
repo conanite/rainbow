@@ -7,13 +7,14 @@
       (java-invoke jo method args)))
 
 (def bean (class . args)
-  (configure-bean (java-new class) (pair args)))
+  (apply configure-bean (java-new class) args))
 
-(def configure-bean (target args)
-  (if args
-    (with ((prop val) (car args))
-      (apply target prop (if (acons val) val (list val)))
-      (configure-bean target (cdr args))))
+(def configure-bean (target . args)
+  ((afn (props)
+    (if props
+      (with ((prop val) (car props))
+        (apply target prop (if (acons val) val (list val)))
+        (self (cdr props))))) (pair args))
   target)
 
 (mac atdef (name args . body)
