@@ -105,11 +105,31 @@
 (def read-form (token-generator)
   (next-form (token-generator) token-generator))
 
+(def read-string-tok (tok-chars)
+  (string:rev (accum s
+    ((afn (chs escaping)
+      (let ch (car chs)
+        (if escaping 
+            (do
+              (case ch
+                #\\ (s ch)
+                #\" (s ch)
+                #\n (s #\newline)
+                #\r (s #\return)
+                #\t (s #\tab))
+              (self (cdr chs) nil))
+            (case ch
+              #\\ (self (cdr chs) t)
+              #\" nil
+                  (do (s ch) 
+                      (self (cdr chs) nil)))))
+    ) (cdr tok-chars) nil))))
+
 (def read-atom (tok)
   (if (is (type tok) 'char)     tok
       (is (type tok) 'comment)  tok
       (and (is #\" (tok 0)) (is #\" (tok (- (len tok) 1))))
-                                (string (rev (cdr (rev (cdr (coerce tok 'cons))))))
+                                (read-string-tok (coerce tok 'cons))
                                 (on-err (fn (ex) (coerce tok 'sym))
                                         (fn ()   (coerce tok 'int)))))
 
