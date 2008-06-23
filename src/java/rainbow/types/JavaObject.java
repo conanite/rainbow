@@ -184,9 +184,6 @@ public class JavaObject extends ArcObject {
   private static final Map methodCache = new HashMap();
 
   private static Method findMethod(Class c, String methodName, Pair args) {
-    if (methodName.equals("setEditable")) {
-      System.out.println("setEditable: args are " + args);
-    }
     String key = c.getName() + methodName + types(args);
     if (methodCache.containsKey(key)) {
       return (Method) methodCache.get(key);

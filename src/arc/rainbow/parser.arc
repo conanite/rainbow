@@ -12,6 +12,12 @@
   unquote           "," 
   unquote-splicing  ",@"))
 
+(set unmatched (obj 
+  unmatched-left-paren        "(" 
+  unmatched-left-bracket      "[" 
+  unmatched-right-paren       ")" 
+  unmatched-right-bracket     "]"))
+
 (def arc-tokens (reader)
   (let token-list nil
     (read-arc-tokens reader 
@@ -19,12 +25,16 @@
                         (push tok token-list)))
     (rev token-list)))
 
+(def numeric-char-spec (tok)
+  (on-err (fn (ex) (err (+ "unknown char: #\\" tok)))
+          (fn ()   (coerce (coerce tok 'int 8) 'char))))
+
 (def tokenise (charlist)
-  (let tok (coerce (rev charlist) 'string)
+  (let tok (string:rev charlist)
     (if (and (is (tok 0) #\#) (is (tok 1) #\\))
       (if (is (len tok) 2)      #\space
           (is (len tok) 3)      (tok 2)
-          (aif (named-chars tok) it (err (+ "unknown char: " tok))))
+          (aif (named-chars tok) it (numeric-char-spec (string:cddr:rev charlist))))
       (is (tok 0) #\;) (annotate 'comment tok)
       tok)))
 
@@ -130,7 +140,7 @@
       (is (type tok) 'comment)  tok
       (and (is #\" (tok 0)) (is #\" (tok (- (len tok) 1))))
                                 (read-string-tok (coerce tok 'cons))
-                                (on-err (fn (ex) (coerce tok 'sym))
+                                (on-err (fn (ex) (sym tok))
                                         (fn ()   (coerce tok 'int)))))
 
 (def read-list (token-generator terminator)
@@ -143,22 +153,25 @@
       )) (token-generator))
     (rev toklist)))
 
+(def link-parens (right left)
+  (if left
+    (do
+      (= (right 1) (left 1))
+      (= (left 2) (right 2)))
+    (scar right (sym (+ "unmatched-" (string (car right)))))))
+
 (def index-source (text)
   (with (result nil parens nil brackets nil) 
     (read-arc-tokens (instring text) 
                      (fn args
                         (push args result)
-                        (if (is (car args) 'left-paren)   (push args parens))
-                        (if (is (car args) 'left-bracket) (push args brackets))
-                        (if (ws-char-names (car args))    (pop result))
-                        (if (is (car args) 'right-bracket) 
-                            (let original (pop brackets)
-                              (= (args 1) (original 1))
-                              (= (original 2) (args 2))))
-                        (if (is (car args) 'right-paren) 
-                            (let original (pop parens)
-                              (= (args 1) (original 1))
-                              (= (original 2) (args 2))))))
+                        (if (is (car args) 'left-paren)     (push args parens)
+                            (is (car args) 'left-bracket)   (push args brackets)
+                            (ws-char-names (car args))      (pop result)
+                            (is (car args) 'right-bracket)  (link-parens args (pop brackets))
+                            (is (car args) 'right-paren)    (link-parens args (pop parens)))))
+    (each p parens   (scar p 'unmatched-left-paren))
+    (each p brackets (scar p 'unmatched-left-bracket))
     (rev result)))
 
 
