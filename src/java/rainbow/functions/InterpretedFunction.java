@@ -47,8 +47,7 @@ public class InterpretedFunction extends ArcObject implements Function {
       caller.receive(NIL);
     } else {
       LexicalClosure childClosure = parameterList.isNil() ? lc : new LexicalClosure(lexicalBindings, lc); // todo this doesn't make any sense: why does childClosure extend the caller's closure?
-      FunctionEvaluator evaluator = new FunctionEvaluator(thread, childClosure, caller, this);
-      NamespaceBuilder.build(thread, childClosure, evaluator, parameterList, args);
+      NamespaceBuilder.build(thread, childClosure, caller, parameterList, args, this);
     }
   }
 

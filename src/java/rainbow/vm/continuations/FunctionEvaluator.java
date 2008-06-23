@@ -25,4 +25,12 @@ public class FunctionEvaluator extends ContinuationSupport {
   protected ArcObject getCurrentTarget() {
     return index == 0 ? ArcObject.NIL : f.nth(index - 1);
   }
+
+  public static void evaluate(ArcThread thread, LexicalClosure lc, Continuation caller, InterpretedFunction f) {
+    if (f.last(0)) {
+      Interpreter.interpret(thread, lc, caller, f.nth(0));
+    } else {
+      new FunctionEvaluator(thread, lc, caller, f).receive(ArcObject.NIL);
+    }
+  }
 }

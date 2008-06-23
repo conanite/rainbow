@@ -1,6 +1,7 @@
 package rainbow.vm.continuations;
 
 import rainbow.LexicalClosure;
+import rainbow.functions.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
@@ -12,30 +13,33 @@ public class NamespaceBuilder extends ContinuationSupport {
   private static final Symbol o = (Symbol) Symbol.make("o");
   private ArcObject parameters;
   private Pair args;
+  private InterpretedFunction f;
 
-  private NamespaceBuilder(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject parameters, Pair arguments) {
+  private NamespaceBuilder(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject parameters, Pair arguments, InterpretedFunction f) {
     super(thread, lc, caller);
     this.parameters = parameters;
     this.args = arguments;
+    this.f = f;
   }
 
-  public static void build(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject parameters, Pair arguments) {
+  public static void build(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject parameters, Pair arguments, InterpretedFunction f) {
     if (parameters.isNil()) {
-      caller.receive(parameters);
+      FunctionEvaluator.evaluate(thread, lc, caller, f);
     } else {
-      new NamespaceBuilder(thread, lc, caller, parameters, arguments).start();
+      new NamespaceBuilder(thread, lc, caller, parameters, arguments, f).start();
     }
   }
 
   public void start() {
     if (parameters.isNil()) {
-      caller.receive(parameters);
+      finished();
       return;
     } else if (parameters instanceof Symbol) {
       lc.add(args);
-      caller.receive(parameters);
+      finished();
       return;
     }
+
     ArcObject nextParameter = parameters.car();
     ArcObject nextArg = args.car();
     if (nextParameter instanceof Symbol) {
@@ -49,14 +53,21 @@ public class NamespaceBuilder extends ContinuationSupport {
         return;
       }
     } else {
-      Continuation toDo = new NestedNamespaceBuilder(this);
       shift();
-      new NamespaceBuilder(thread, lc, toDo, Pair.cast(nextParameter, this), Pair.cast(nextArg, this)).start();
+      new NamespaceBuilder(thread, lc, this, Pair.cast(nextParameter, this), Pair.cast(nextArg, this), null).start();
       return;
     }
 
     shift();
     start();
+  }
+  
+  private void finished() {
+    if (f == null) {
+      ((NamespaceBuilder)caller).start();
+    } else {
+      FunctionEvaluator.evaluate(thread, lc, caller, f);
+    }
   }
 
   private void shift() {
