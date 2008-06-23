@@ -1,6 +1,4 @@
-(set show-failed-only t)
-
-(set java-interface-test-suite '(suite "Java Interface Tests"
+(register-test '(suite "Java Interface Tests"
   ("Type of java object is java-object"
     (type (java-new "java.util.HashMap"))
     java-object)
@@ -37,9 +35,5 @@
         (sorted-set 'add "rrrr")
         (sorted-set 'toString)
       ))
-      "[x, ww, ppp, rrrr, nananana]")
-  )
-))
-
-(prn (run-tests java-interface-test-suite))
+      "[x, ww, ppp, rrrr, nananana]"))))
 

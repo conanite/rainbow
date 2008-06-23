@@ -8,9 +8,7 @@
 
 (mac overwrite (after) `(+ ,after 3))
 
-(set show-failed-only t)
-
-(set test-suite '(suite "Foundation Tests"
+(register-test '(suite "Foundation Tests"
   (suite "Special Forms"
     (suite "Quotation"
       (suite "quote"
@@ -1396,6 +1394,4 @@
 ; (also commented-out code)
   )
 ))
-
-(prn (run-tests test-suite))
 

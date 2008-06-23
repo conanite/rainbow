@@ -1,5 +1,17 @@
 (set show-failed-only t)
 
+(set all-tests nil)
+
+(def register-test (test)
+  (push test all-tests))
+  
+(def run-all-tests ()
+  (let results (obj passed 0 failed 0)
+    (run-tests `(suite "all tests" ,@all-tests) results)
+    (prn "passed: " results!passed)
+    (prn "failed: " results!failed)
+    (/ results!passed (+ results!passed results!failed))))
+
 (def run-tests (tests (o results (obj passed 0 failed 0)))
   (execute-test "" tests results)
   results)
@@ -18,3 +30,4 @@
 (def execute-tests (desc tests results)
   (execute-test desc (car tests) results)
   (if (cdr tests) (execute-tests desc (cdr tests) results)))
+
