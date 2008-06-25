@@ -1,7 +1,7 @@
-(set background-colour (awt-color 'black))
-
-(set token-attributes (obj
-  default           (swing-style-attributes 'Foreground (awt-color 'gray) 'Background background-colour)
+(set night-colour-scheme (obj
+  background        (awt-color 'black)
+  caret             (awt-color 'white)
+  default           (swing-style-attributes 'Foreground (awt-color 'gray) 'Background (awt-color 'black))
   syntax            (swing-style-attributes 'Foreground (awt-color 'gray))
   unmatched-syntax  (swing-style-attributes 'Foreground (awt-color 'black) 'Bold t 'Background (awt-color 'red))
   paren-match       (swing-style-attributes 'Foreground (awt-color 'gray) 'Background (awt-color 'blue))
@@ -12,8 +12,25 @@
   string            (swing-style-attributes 'Foreground (awt-color "#C0D0D0"))
   int               (swing-style-attributes 'Foreground (awt-color "#808040"))
   char              (swing-style-attributes 'Foreground (awt-color "#706090"))
-  comment           (swing-style-attributes 'Foreground (awt-color "#604060"))))
+  comment           (swing-style-attributes 'Foreground (awt-color "#604060") 'Italic t)))
 
+(set day-colour-scheme (obj
+  background        (awt-color 'white)
+  caret             (awt-color 'black)
+  default           (swing-style-attributes 'Foreground (awt-color "#444444") 'Background (awt-color 'white))
+  syntax            (swing-style-attributes 'Foreground (awt-color 'gray))
+  unmatched-syntax  (swing-style-attributes 'Foreground (awt-color 'white) 'Bold t 'Background (awt-color 'red))
+  paren-match       (swing-style-attributes 'Foreground (awt-color 'black) 'Background (awt-color "#8080FF"))
+  sym               (swing-style-attributes 'Foreground (awt-color "#206020"))
+  sym-string        (swing-style-attributes 'Foreground (awt-color "#602020"))
+  sym-fn            (swing-style-attributes 'Foreground (awt-color "#202060") 'Bold t)
+  sym-mac           (swing-style-attributes 'Foreground (awt-color "#802080") 'Bold t)
+  string            (swing-style-attributes 'Foreground (awt-color "#206060"))
+  int               (swing-style-attributes 'Foreground (awt-color "#808040"))
+  char              (swing-style-attributes 'Foreground (awt-color "#706090"))
+  comment           (swing-style-attributes 'Foreground (awt-color "#909090") 'Italic t)))
+
+(set colour-scheme day-colour-scheme)
 (set file-chooser (new-file-chooser))
 (set welder-actions* (table))
 (set welder-key-bindings* (table))
@@ -32,10 +49,11 @@
 
 (defweld close "Close"
          "Close this welder window"
-         (editor!frame 'dispose))
+         (editor!frame 'dispose)
+         (kill-thread editor!update-thread))
 
 (defweld save "Save"
-         "Save the file in this window"             
+         "Save the file in this window"
          (write-file editor!file all-text.editor))
 
 (defweld save-as "Save As ..."
@@ -43,7 +61,7 @@
          (choose-save-file file-chooser f
             (write-file f all-text.editor)
             (= editor!file f) 
-            (editor!frame 'setTitle (+ f " - Arc Welder"))))
+            (editor!frame 'setTitle (welder-window-title editor))))
 
 (defweld quit "Quit"
          "Close all welder windows and exit arc"             
@@ -81,15 +99,16 @@
 (def defkey (key binding) 
   (= welder-key-bindings*.key binding))
 
-(defkey 'f1     'help           )
-(defkey 'ctrl-k 'keystroke-help )
-(defkey 'ctrl-h 'htmlify        )
-(defkey 'meta-s 'save           )
-(defkey 'ctrl-w 'widen          )
-(defkey 'ctrl-e 'eval           )
-(defkey 'meta-o 'open           )
-(defkey 'ctrl-l 'recolour       )
-(defkey 'meta-n 'new            )
+(defkey 'f1      'help           )
+(defkey 'ctrl-k  'keystroke-help )
+(defkey 'ctrl-h  'htmlify        )
+(defkey 'meta-s  'save           )
+(defkey 'f4      'close          )
+(defkey 'ctrl-w  'widen          )
+(defkey 'ctrl-e  'eval           )
+(defkey 'meta-o  'open           )
+(defkey 'ctrl-l  'recolour       )
+(defkey 'meta-n  'new            )
 
 (def welder-menu (editor)
   (let a welder-actions*
@@ -99,7 +118,7 @@
 
 (def welder-key-help (editor)
   (prn "welder-key-help")
-  (editor!show-help (tostring (htmlify-keybindings welder-key-bindings*))))
+  (editor!show-help (tostring:htmlify-keybindings welder-key-bindings*)))
 
 (def htmlify-keybindings (bindings)
   (pr "<table border='1' width='100%'>")
@@ -176,7 +195,7 @@
   (pr "</pre>"))
   
 (def to-html-string (text)
-  (tostring (to-html-fragment text)))
+  (tostring:to-html-fragment text))
 
 (def ppr-exprs (exprs)
   (if (acons exprs)
@@ -203,16 +222,14 @@
     (each (tok start finish) index
       (if (and (is tok match)
                (is finish position))
-          (throw start)))
-  nil))
+          (throw start)))))
 
 (def find-right-matching (match text position index)
   (catch
     (each (tok start finish) index
       (if (and (is tok match) 
                (is start position)) 
-          (throw finish)))
-  nil))
+          (throw finish)))))
 
 (def highlight-match (editor position)
   (aif editor!highlighting (highlight-position editor (car it) (cadr it) nil))
@@ -223,7 +240,7 @@
 
 (def highlight-position (editor pos1 pos2 colour)
   (= editor!highlighting (if colour list.pos1.pos2 nil))
-  (let attrs (token-attributes (if colour 'paren-match 'syntax))
+  (let attrs (colour-scheme (if colour 'paren-match 'syntax))
     (editor!doc 'setCharacterAttributes pos1 1 attrs t)
     (editor!doc 'setCharacterAttributes pos2 1 attrs t)))
 
@@ -235,43 +252,43 @@
 
 (def bound-symbol-token-attribute (asym)
   (let bound-type (coerce (+ "sym-" (coerce (type:eval asym) 'string)) 'sym)
-    (if (token-attributes bound-type) bound-type 'sym)))
+    (if (colour-scheme bound-type) bound-type 'sym)))
 
 (def colourise (editor)
-  (with (pane editor!pane doc editor!doc)
-    (pane 'setCaretColor (awt-color 'white))
+  (with (pane editor!pane doc editor!doc (vis-start vis-finish) (visible-text editor!pane))
+    (pane 'setCaretColor colour-scheme!caret)
     (pane 'setFont (courier 12))
-    (pane 'setBackground (awt-color 'black))
-    (doc 'setCharacterAttributes 0 (text-length doc) (token-attributes 'default) t)
+    (pane 'setBackground colour-scheme!background)
+    (doc 'setCharacterAttributes vis-start (- vis-finish vis-start) colour-scheme!default t)
     (each (tok start finish) editor!index
-      (aif (syntax-char-names tok)
-             (doc 'setCharacterAttributes 
-               (if (or (is tok 'right-paren) (is tok 'right-bracket)) (- finish 1) start) 
-               (len it)
-               (token-attributes 'syntax) 
-               t)
-           (unmatched tok)
-             (doc 'setCharacterAttributes 
-               start 
-               1
-               (token-attributes 'unmatched-syntax) 
-               t)
-             (let attrs (token-attributes (token-attribute tok))
-               (if attrs
-                 (doc 'setCharacterAttributes start (- finish start) attrs t)))))))
+;      (if (and (> finish vis-start) (< start vis-finish))
+          (aif (syntax-char-names tok)
+                 (doc 'setCharacterAttributes 
+                   (if (or (is tok 'right-paren) (is tok 'right-bracket)) (- finish 1) start) 
+                   (len it)
+                   colour-scheme!syntax
+                   t)
+               (unmatched tok)
+                 (doc 'setCharacterAttributes 
+                   start 
+                   1
+                   colour-scheme!unmatched-syntax 
+                   t)
+               (colour-scheme (token-attribute tok))
+                 (doc 'setCharacterAttributes start (- finish start) it t))))) ;)
 
-(def on-update (editor)
+(def on-update (editor event)
   (= editor!dirty (msec)))
 
 (def follow-updates (editor)
   (thread ((afn ()
-    (if (and editor!dirty (> (- (msec) editor!dirty) 100))
+    (if (and editor!dirty (> (- (msec) editor!dirty) 300))
         (do
           (wipe editor!dirty)
           (welder-reindex editor)
           (later (colourise editor)
                  (editor!frame 'setTitle (welder-window-title editor)))))
-    (sleep 0.2)
+    (sleep 0.3)
     (self)))))
 
 (def welder-reindex (editor)
@@ -288,18 +305,24 @@
   (aif welder-key-bindings*.keystroke
     ((welder-actions*.it 'action) editor)))
 
+(def search-field (editor)
+  (withs (tf (text-field) sf (box 'horizontal tf))
+    (on-key tf k (if (is k 'escape) sf!hide))
+    (on-doc-update tf!getDocument (c) (prn "search for" tf!getText))
+    sf))
+
 (def welder ((o file))
   (let editor (editor-pane)
     (on-caret-move editor!pane (event) (later (highlight-match editor event!getDot)))
-    (on-doc-update editor!doc  (event) (on-update editor))
-    (follow-updates editor)
+    (on-doc-update editor!doc  (event) (on-update editor event))
+    (= editor!update-thread (follow-updates editor))
     (= editor!handle-key (fn (keystroke) (welder-keystroke editor keystroke)))
     (with (f  (frame 150 150 800 800 "Arc Welder")
-           sc (scroll-pane editor!pane background-colour))
+           sc (scroll-pane editor!pane colour-scheme!background))
       (= editor!frame f)
       (f 'add sc)
+;      (f 'add (search-field editor))
       (f 'setJMenuBar (welder-menu editor))
       (= editor!show-help (help-window f))
       f!show
       (if file (welder-open editor file)))))
-

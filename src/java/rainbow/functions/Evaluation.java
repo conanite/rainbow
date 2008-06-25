@@ -104,7 +104,15 @@ public class Evaluation {
   }
 
   private static boolean isComposeComplement(String symbol) {
-    return symbol.contains(":") || symbol.contains("~");
+    return isCompose(symbol) || isComplement(symbol);
+  }
+
+  private static boolean isComplement(String symbol) {
+    return symbol.contains("~");
+  }
+
+  private static boolean isCompose(String symbol) {
+    return symbol.contains(":");
   }
 
   public static class SSExpand extends Builtin {

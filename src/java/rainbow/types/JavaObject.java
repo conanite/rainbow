@@ -3,6 +3,7 @@ package rainbow.types;
 import rainbow.ArcError;
 
 import javax.swing.*;
+import javax.swing.undo.UndoableEdit;
 import javax.swing.plaf.basic.BasicTextUI;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.StyleSheet;

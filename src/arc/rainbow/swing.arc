@@ -57,6 +57,11 @@
   `(,component 'addKeyListener (java-implement "java.awt.event.KeyListener" nil (obj keyPressed 
     (fn (,gev) (let ,var (convert-key-event ,gev) ,@actions)))))))
 
+(def visible-text (scrolled-pane)
+  (let vr (scrolled-pane!getParent 'getViewRect)
+    (list (scrolled-pane 'viewToModel vr!getLocation)
+          (scrolled-pane 'viewToModel (java-new "java.awt.Point" vr!getMaxX vr!getMaxY)))))
+
 (def editor-pane ()
   (let ed (table)
     (= ed!pane      (java-new "rainbow.cheat.NoWrapTextPane"))
@@ -118,9 +123,7 @@
   `(,doc 'addDocumentListener
     (java-implement "javax.swing.event.DocumentListener" nil (obj
       insertUpdate  (fn (,var) ,@body)
-      removeUpdate  (fn (,var) ,@body)
-;      changedUpdate (fn (,var) ,@body)
-      ))))
+      removeUpdate  (fn (,var) ,@body)))))
 
 (mac later body
   `(java-static-invoke "javax.swing.SwingUtilities" 'invokeLater 

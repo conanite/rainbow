@@ -5,7 +5,7 @@
 (mac the-mac args (if (is nil args) 1 `(* ,(car args) (the-mac ,@(cdr args)))))
 (mac make-pair (a b) `(cons ,a ,b))
 (mac new-repeat-mac (x n) (if (is n 0) nil `(make-pair ,x (new-repeat-mac ,x ,(- n 1)))))
-
+(mac test-double (x) `(+ ,x ,x))
 (mac overwrite (after) `(+ ,after 3))
 
 (register-test '(suite "Foundation Tests"
@@ -1281,14 +1281,16 @@
     (suite "special syntax invocation (compose is implemented in Arc)"
       ("direct invocation"
         ((fn ()
-          (set compose (fn (a b) (fn args (a (b (car args) (car (cdr args))))) ))
           (sqrt:+ 40 2.25)
         ))
         6.5 )
 
+      ("compose macro invocation"
+        (test-double:sqrt 25)
+        10.0)
+
       ("invoke as parameter"
         ((fn ()
-          (set compose (fn (a b) (fn args (a (b (car args) (car (cdr args))))) ))
           (set addand (fn (op x y z) (+ z (op x y))))
           (addand sqrt:* 5 20 1.0)
         ))
