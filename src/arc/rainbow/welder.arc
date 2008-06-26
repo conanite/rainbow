@@ -1,34 +1,34 @@
 (set night-colour-scheme (obj
   background        (awt-color 'black)
   caret             (awt-color 'white)
-  default           (swing-style-attributes 'Foreground (awt-color 'gray) 'Background (awt-color 'black))
-  syntax            (swing-style-attributes 'Foreground (awt-color 'gray))
-  unmatched-syntax  (swing-style-attributes 'Foreground (awt-color 'black) 'Bold t 'Background (awt-color 'red))
-  paren-match       (swing-style-attributes 'Foreground (awt-color 'gray) 'Background (awt-color 'blue))
-  sym               (swing-style-attributes 'Foreground (awt-color "#80D080"))
-  sym-string        (swing-style-attributes 'Foreground (awt-color "#80D080"))
-  sym-fn            (swing-style-attributes 'Foreground (awt-color "#C0D0C0") 'Bold t)
-  sym-mac           (swing-style-attributes 'Foreground (awt-color "#9090B0") 'Bold t)
-  string            (swing-style-attributes 'Foreground (awt-color "#C0D0D0"))
-  int               (swing-style-attributes 'Foreground (awt-color "#808040"))
-  char              (swing-style-attributes 'Foreground (awt-color "#706090"))
-  comment           (swing-style-attributes 'Foreground (awt-color "#604060") 'Italic t)))
+  default           (swing-style 'foreground 'gray      'background 'black)
+  syntax            (swing-style 'foreground 'gray)
+  unmatched-syntax  (swing-style 'foreground 'black     'background 'red   'bold t )
+  paren-match       (swing-style 'foreground 'gray      'background 'blue)
+  sym               (swing-style 'foreground "#80D080")
+  sym-string        (swing-style 'foreground "#80D080")
+  sym-fn            (swing-style 'foreground "#C0D0C0"  'bold t)
+  sym-mac           (swing-style 'foreground "#9090B0"  'bold t)
+  string            (swing-style 'foreground "#C0D0D0")
+  int               (swing-style 'foreground "#808040")
+  char              (swing-style 'foreground "#706090")
+  comment           (swing-style 'foreground "#604060"  'italic t)))
 
 (set day-colour-scheme (obj
   background        (awt-color 'white)
   caret             (awt-color 'black)
-  default           (swing-style-attributes 'Foreground (awt-color "#444444") 'Background (awt-color 'white))
-  syntax            (swing-style-attributes 'Foreground (awt-color 'gray))
-  unmatched-syntax  (swing-style-attributes 'Foreground (awt-color 'white) 'Bold t 'Background (awt-color 'red))
-  paren-match       (swing-style-attributes 'Foreground (awt-color 'black) 'Background (awt-color "#8080FF"))
-  sym               (swing-style-attributes 'Foreground (awt-color "#206020"))
-  sym-string        (swing-style-attributes 'Foreground (awt-color "#602020"))
-  sym-fn            (swing-style-attributes 'Foreground (awt-color "#202060") 'Bold t)
-  sym-mac           (swing-style-attributes 'Foreground (awt-color "#802080") 'Bold t)
-  string            (swing-style-attributes 'Foreground (awt-color "#206060"))
-  int               (swing-style-attributes 'Foreground (awt-color "#808040"))
-  char              (swing-style-attributes 'Foreground (awt-color "#706090"))
-  comment           (swing-style-attributes 'Foreground (awt-color "#909090") 'Italic t)))
+  default           (swing-style 'foreground "#444444"  'background 'white)
+  syntax            (swing-style 'foreground 'gray)
+  unmatched-syntax  (swing-style 'foreground 'white     'background 'red       'bold t)
+  paren-match       (swing-style 'foreground 'black     'background "#8080FF")
+  sym               (swing-style 'foreground "#206020")
+  sym-string        (swing-style 'foreground "#602020")
+  sym-fn            (swing-style 'foreground "#202060"  'bold t) 
+  sym-mac           (swing-style 'foreground "#802080"  'bold t)
+  string            (swing-style 'foreground "#206060")
+  int               (swing-style 'foreground "#808040")
+  char              (swing-style 'foreground "#706090")
+  comment           (swing-style 'foreground "#909090"  'italic t)))
 
 (set colour-scheme day-colour-scheme)
 (set file-chooser (new-file-chooser))
@@ -73,7 +73,7 @@
 
 (defweld keystroke-help "Keystroke Help"
          "Show key bindings"             
-         (prn "keystroke-help") (welder-key-help editor))
+         (welder-key-help editor))
 
 (defweld widen "Widen Selection"
          "Expand the selection to the token under caret,
@@ -92,11 +92,11 @@
          "Convert selected or all code to HTML, suitable for copy-pasting into your blog."
          (open-text-area:to-html-string:selected-text editor))
 
-(defweld recolour "Colourise"
-         "re-index and update code colouring"
-         (welder-reindex editor) (colourise editor))
+(defweld show-search "Search"
+         "Opens the search bar"
+         (editor!show-search))
 
-(def defkey (key binding) 
+(def defkey (key binding)
   (= welder-key-bindings*.key binding))
 
 (defkey 'f1      'help           )
@@ -107,17 +107,16 @@
 (defkey 'ctrl-w  'widen          )
 (defkey 'ctrl-e  'eval           )
 (defkey 'meta-o  'open           )
-(defkey 'ctrl-l  'recolour       )
 (defkey 'meta-n  'new            )
+(defkey 'meta-f  'show-search    )
 
 (def welder-menu (editor)
   (let a welder-actions*
     (swing-menubar  (swing-menu "File" editor a!new a!open a!close a!save a!save-as a!quit)
-                    (swing-menu "Edit" editor a!widen a!ppr a!eval a!htmlify a!recolour)
+                    (swing-menu "Edit" editor a!widen a!ppr a!eval a!htmlify a!show-search)
                     (swing-menu "Help" editor a!help a!keystroke-help))))
 
 (def welder-key-help (editor)
-  (prn "welder-key-help")
   (editor!show-help (tostring:htmlify-keybindings welder-key-bindings*)))
 
 (def htmlify-keybindings (bindings)
@@ -251,14 +250,15 @@
         tok-type)))
 
 (def bound-symbol-token-attribute (asym)
-  (let bound-type (coerce (+ "sym-" (coerce (type:eval asym) 'string)) 'sym)
+  (let bound-type (sym+ 'sym- (type:eval asym))
     (if (colour-scheme bound-type) bound-type 'sym)))
 
 (def colourise (editor)
   (with (pane editor!pane doc editor!doc (vis-start vis-finish) (visible-text editor!pane))
-    (pane 'setCaretColor colour-scheme!caret)
-    (pane 'setFont (courier 12))
-    (pane 'setBackground colour-scheme!background)
+    (configure-bean pane
+      'caretColor colour-scheme!caret
+      'font       (courier 12)
+      'background colour-scheme!background)
     (doc 'setCharacterAttributes vis-start (- vis-finish vis-start) colour-scheme!default t)
     (each (tok start finish) editor!index
 ;      (if (and (> finish vis-start) (< start vis-finish))
@@ -295,7 +295,7 @@
   (= editor!index (index-source:all-text editor)))
 
 (def welder-window-title (editor)
-  (+ (or editor!file "*scratch*") " - " (string (len editor!index)) " tokens - Arc Welder" ))
+  (+ (or editor!file "*scratch*") " - " (string (len editor!index)) " tokens - Arc Welder"))
 
 (def welder-open (editor file)
   (= editor!file file)
@@ -305,24 +305,41 @@
   (aif welder-key-bindings*.keystroke
     ((welder-actions*.it 'action) editor)))
 
-(def search-field (editor)
-  (withs (tf (text-field) sf (box 'horizontal tf))
-    (on-key tf k (if (is k 'escape) sf!hide))
-    (on-doc-update tf!getDocument (c) (prn "search for" tf!getText))
-    sf))
+(def make-search-field (editor)
+  (withs (tf   (text-field) 
+          sf   (box 'horizontal tf)
+          show (fn () sf!show 
+                      (sf!getParent 'revalidate)
+                      tf!grabFocus)
+          hide (fn () sf!hide
+                      (sf!getParent 'revalidate)))
+    (on-key tf k (if (is k 'escape) (hide)))
+    (on-doc-update tf!getDocument (c) 
+      (let pos (+ 1 (editor!caret 'getDot))
+        (if (> pos (text-length editor!doc)) (= pos 0))
+        (= pos (posmatch tf!getText (all-text editor)))
+        (editor!caret 'setDot pos)))
+    sf!hide
+    (list sf show hide)))
 
 (def welder ((o file))
   (let editor (editor-pane)
-    (on-caret-move editor!pane (event) (later (highlight-match editor event!getDot)))
-    (on-doc-update editor!doc  (event) (on-update editor event))
-    (= editor!update-thread (follow-updates editor))
-    (= editor!handle-key (fn (keystroke) (welder-keystroke editor keystroke)))
+    (on-caret-move editor!pane (event) 
+      (later (highlight-match editor event!getDot)))
+    (on-doc-update editor!doc  (event) 
+      (on-update editor event))
     (with (f  (frame 150 150 800 800 "Arc Welder")
-           sc (scroll-pane editor!pane colour-scheme!background))
-      (= editor!frame f)
+           sc (scroll-pane editor!pane colour-scheme!background)
+           (sf show hide) (make-search-field editor))
       (f 'add sc)
-;      (f 'add (search-field editor))
+      (f 'add sf)
       (f 'setJMenuBar (welder-menu editor))
-      (= editor!show-help (help-window f))
+      (fill-table editor (list 
+        'update-thread (follow-updates editor)
+        'handle-key    (fn (keystroke) 
+                           (welder-keystroke editor keystroke))
+        'frame f 
+        'show-search show 
+        'show-help (help-window f)))
       f!show
       (if file (welder-open editor file)))))

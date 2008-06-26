@@ -1,3 +1,18 @@
+(def sym+ args
+  (sym (apply + (map [string _] args))))
+
+(def upcase-initial (x)
+  (case (type x)
+    string (string `(,(upcase (x 0)) ,@(cdr (coerce x 'cons))))
+    sym    (sym:upcase-initial:string x)))
+
+(def java-accessor (dir name)
+  (let prop-chars (coerce (string name) 'cons)
+    (sym+ dir (upcase-initial name))))
+
+(defmemo java-getter (prop) (java-accessor 'get prop))
+(defmemo java-setter (prop) (java-accessor 'set prop))
+
 (mac implement (class . body)
   `(java-implement ,class nil (obj ,@body)))
 
@@ -13,7 +28,7 @@
   ((afn (props)
     (if props
       (with ((prop val) (car props))
-        (apply target prop (if (acons val) val (list val)))
+        (apply target (java-setter prop) (if (acons val) val (list val)))
         (self (cdr props))))) (pair args))
   target)
 

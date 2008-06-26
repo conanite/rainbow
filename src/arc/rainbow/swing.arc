@@ -15,12 +15,12 @@
           (/ (coerce (string (list (c 5) (c 6))) 'int 16) 256.0))))
 
 (defmemo style-constant (name) 
-  (java-static-field "javax.swing.text.StyleConstants" name))
+  (java-static-field "javax.swing.text.StyleConstants" (upcase-initial name)))
 
-(defmemo swing-style-attributes name-value-pairs
-  (with (nvp (pair name-value-pairs) sas (java-new "javax.swing.text.SimpleAttributeSet"))
-    (each (name value) nvp
-      (sas 'addAttribute (style-constant name) value))
+(defmemo swing-style name-value-pairs
+  (let sas (java-new "javax.swing.text.SimpleAttributeSet")
+    (each (name value) (pair name-value-pairs)
+      (sas 'addAttribute (style-constant name) (if (is value t) t (awt-color value))))
     sas))
 
 (mac courier (font-size) 
@@ -37,9 +37,10 @@
     jb))
 
 (def frame (left top width height title)
-  (let jf (bean "javax.swing.JFrame" 'setBounds (list left top width height) 'setTitle title)
-    (jf 'setLayout (java-new "javax.swing.BoxLayout" jf!getContentPane box-layout-vertical*))
-    jf))
+  (bean "javax.swing.JFrame" 
+    'bounds       (list left top width height) 
+    'title        title
+    'contentPane  (box 'vertical)))
 
 (def panel () (bean "javax.swing.JPanel"))
 
@@ -169,11 +170,16 @@
   `(obj label ,label help-text ,help-text action (fn () ,@body)))
 
 (def help-window (frame)
-  (with (w (java-new "javax.swing.JFrame") jta (java-new "javax.swing.JTextPane"))
-    (jta 'setEditable nil)
-    (jta 'setContentType "text/html")
-    (w 'setContentPane (scroll-pane jta (awt-color 'white)))
-    (w 'setSize 600 200)
-    (w 'setLocationRelativeTo frame)
-    (on-key jta keystroke (if (is keystroke 'escape) w!hide))
-    (fn (text) (jta 'setText text) w!show jta!grabFocus)))
+  (withs (jta (bean "javax.swing.JTextPane"
+                'editable nil
+                'contentType "text/html")
+          w   (bean "javax.swing.JFrame" 
+                'size               '(600 200)  
+                'locationRelativeTo frame
+                'contentPane        (scroll-pane jta (awt-color 'white))))
+    (on-key jta keystroke 
+      (if (is keystroke 'escape) w!hide))
+    (fn (text) 
+        (jta 'setText text) 
+        w!show 
+        jta!grabFocus)))
