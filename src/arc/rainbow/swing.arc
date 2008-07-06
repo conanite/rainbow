@@ -18,102 +18,37 @@
   (java-static-field "javax.swing.text.StyleConstants" (upcase-initial name)))
 
 (defmemo swing-style name-value-pairs
-  (let sas (java-new "javax.swing.text.SimpleAttributeSet")
+  (alet (java-new "javax.swing.text.SimpleAttributeSet")
     (each (name value) (pair name-value-pairs)
-      (sas 'addAttribute (style-constant name) (if (is value t) t (awt-color value))))
-    sas))
+      (it 'addAttribute (style-constant name) (if (is value t) t (awt-color value))))))
 
-(mac courier (font-size) 
+(mac courier (font-size)
   `(java-new "java.awt.Font" "Courier" font-plain* ,font-size))
 
 (mac dim (x y) 
   `(java-new "java.awt.Dimension" ,x ,y))
 
 (mac button (text . action)
-  `(let jb (java-new "javax.swing.JButton" ,text)
-    (jb 'setRequestFocusEnabled nil)
-    (jb 'addActionListener 
+  (w/uniq (jb)
+  `(let ,jb (java-new "javax.swing.JButton" ,text)
+    (,jb 'setRequestFocusEnabled nil)
+    (,jb 'addActionListener 
         (java-implement "java.awt.event.ActionListener" t (obj actionPerformed (fn (action-event) ,@action))))
-    jb))
-
-(def frame (left top width height title)
-  (bean "javax.swing.JFrame" 
-    'bounds       (list left top width height) 
-    'title        title
-    'contentPane  (box 'vertical)))
-
-(def panel () (bean "javax.swing.JPanel"))
-
-(def text-field ()
-  (let tf (java-new "javax.swing.JTextField")
-    (with (height (tf!getMinimumSize 'getHeight)
-           width (tf!getMaximumSize 'getWidth))
-      (tf 'setMaximumSize (dim width height)))
-    tf))
-
-(def text-area () (java-new "javax.swing.JTextArea"))
+    ,jb)))
 
 (mac on-key (component var . actions)
   (w/uniq (gev)
   `(,component 'addKeyListener (java-implement "java.awt.event.KeyListener" nil (obj keyPressed 
     (fn (,gev) (let ,var (convert-key-event ,gev) ,@actions)))))))
 
-(def visible-text (scrolled-pane)
-  (let vr (scrolled-pane!getParent 'getViewRect)
-    (list (scrolled-pane 'viewToModel vr!getLocation)
-          (scrolled-pane 'viewToModel (java-new "java.awt.Point" vr!getMaxX vr!getMaxY)))))
-
-(def editor-pane ()
-  (let ed (table)
-    (= ed!pane      (java-new "rainbow.cheat.NoWrapTextPane"))
-    (= ed!doc       (ed!pane 'getDocument))
-    (= ed!caret     (ed!pane 'getCaret))
-    (on-key ed!pane keystroke (ed!handle-key keystroke))
-    ed))
-
-(def selected-text (editor)
-  (aif (editor!pane 'getSelectedText) it
-       (all-text editor)))
-       
-(def all-text (editor)
-  (editor!pane 'getText 0 (editor!doc 'getLength)))
-
-(def text-length (doc)
-  (doc 'getLength))
-
-(def scroll-pane (component bgcolor) 
-  (let jsp (java-new "javax.swing.JScrollPane" component)
-    (jsp!getViewport 'setBackground bgcolor)
-    jsp))
-
-(def box (orientation . content)
-  (let the-box (java-static-invoke "javax.swing.Box" (if (is orientation 'horizontal) 'createHorizontalBox 'createVerticalBox))
-    ((afn (components) 
-      (if components (do
-        (the-box 'add (car components))
-        (self (cdr components))))) content)
-    the-box))
-    
-(mac key-dispatcher bindings
-   (let bb (pair bindings)
-     `(fn (key)
-          (if ,@((afn (bb1)   
-                      (if bb1
-                        (let (key-char body) (car bb1)
-                          (cons `(is key ,key-char) (cons body (self (cdr bb1))))))) bb)))))
-
 (mac on-char (component fun)
   `(,component 'addKeyListener (java-implement "java.awt.event.KeyListener" nil
       (obj keyTyped (fn (event) (,fun event!getKeyChar))))))
 
-(def open-text-area (text)
-  (let editor (text-area)
-    editor!setText.text
-    (editor!getCaret 'setDot  0)
-    (editor!getCaret 'moveDot (len text))
-    (let f (frame 200 200 600 480 "Arc Welder")
-      (f 'add (scroll-pane editor (awt-color 'white)))
-      f!show)))
+(mac on-scroll (component (var) . body)
+  `(,component 'addAdjustmentListener 
+    (java-implement "java.awt.event.AdjustmentListener" t (obj 
+      adjustmentValueChanged (fn (,var) ,@body)))))
 
 (mac on-caret-move (component (var) . body)
   `(,component 'addCaretListener 
@@ -126,28 +61,108 @@
       insertUpdate  (fn (,var) ,@body)
       removeUpdate  (fn (,var) ,@body)))))
 
+(mac on-edit (doc (var) . body)
+  `(,doc 'addUndoableEditListener
+    (java-implement "javax.swing.event.UndoableEditListener" t (make-obj
+      (undoableEditHappened (,var) ,@body)))))
+
+(def frame (left top width height title)
+  (bean "javax.swing.JFrame" 
+    'bounds       (list left top width height) 
+    'title        title
+    'contentPane  (box 'vertical)))
+
+(def panel () (bean "javax.swing.JPanel"))
+
+(def undo-manager () (bean "javax.swing.undo.UndoManager"))
+
+(def jtree (root-node) 
+  (java-new "javax.swing.JTree" root-node))
+
+(def text-field ()
+  (alet (java-new "javax.swing.JTextField")
+    (with (height (it!getMinimumSize 'getHeight)
+           width (it!getMaximumSize 'getWidth))
+      (it 'setMaximumSize (dim width height)))))
+
+(def text-area () (java-new "javax.swing.JTextArea"))
+
+(def visible-text (scrolled-pane)
+  (let vr (scrolled-pane!getParent 'getViewRect)
+    (list (scrolled-pane 'viewToModel vr!getLocation)
+          (scrolled-pane 'viewToModel (java-new "java.awt.Point" vr!getMaxX vr!getMaxY)))))
+
+(def editor-pane ()
+  (alet (table)
+    (= it!pane      (java-new "rainbow.cheat.NoWrapTextPane"))
+    (= it!doc       (it!pane 'getDocument))
+    (= it!caret     (it!pane 'getCaret))
+    (on-key it!pane keystroke (it!handle-key keystroke))))
+
+(def selected-text (editor)
+  (aif (editor!pane 'getSelectedText) it
+       (all-text editor)))
+       
+(def all-text (editor)
+  (editor!pane 'getText 0 (editor!doc 'getLength)))
+
+(def text-length (doc)
+  (doc 'getLength))
+
+(def scroll-pane (component bgcolor) 
+  (alet (java-new "javax.swing.JScrollPane" component)
+    (it!getViewport 'setBackground bgcolor)))
+
+(def box (orientation . content)
+  (alet (java-static-invoke "javax.swing.Box" 
+                            (if (is orientation 'horizontal) 
+                                'createHorizontalBox 
+                                'createVerticalBox))
+    ((afn (components)
+      (if components (do
+        (it 'add (car components))
+        (self (cdr components))))) content)))
+    
+(mac key-dispatcher bindings
+   (let bb (pair bindings)
+     `(fn (key)
+          (if ,@((afn (bb1)   
+                      (if bb1
+                        (let (key-char body) (car bb1)
+                          (cons `(is key ,key-char) 
+                                 (cons body (self (cdr bb1))))))) bb)))))
+
+(def open-text-area (text)
+  (let editor (text-area)
+    editor!setText.text
+    (editor!getCaret 'setDot  0)
+    (editor!getCaret 'moveDot (len text))
+    (let f (frame 200 200 600 480 "Arc Welder")
+      (f 'add (scroll-pane editor (awt-color 'white)))
+      f!show)))
+
 (mac later body
-  `(java-static-invoke "javax.swing.SwingUtilities" 'invokeLater 
-    (java-implement "java.lang.Runnable" t (obj run (fn () ,@body)))))
+  `(java-static-invoke "javax.swing.SwingUtilities" 
+                       'invokeLater 
+                       (java-implement "java.lang.Runnable" 
+                                       t 
+                                       (obj run (fn () ,@body)))))
 
-(def to-swing-action (action context)
-  (java-implement "javax.swing.Action" nil (obj
-    actionPerformed (fn (event) (action!action context))
-    getValue        (fn (s) (if (is s "Name") action!label))
-    isEnabled       (fn () t)
-  )))
+(def to-swing-action (item label-fn action-fn)
+  (java-implement "javax.swing.Action" nil (make-obj
+    (actionPerformed (event) (action-fn item))
+    (getValue        (s) (if (is s "Name") (label-fn item)))
+    (isEnabled       () t))))
 
-(def swing-menu (name context . items)
-  (let jm (java-new "javax.swing.JMenu" name)
+(def swing-menu (name label-fn action-fn items)
+  (alet (java-new "javax.swing.JMenu" name)
     (each item items
-      (jm 'add (to-swing-action item context)))
-    jm))
+      (it 'add (to-swing-action item label-fn action-fn)))))
 
 (def swing-menubar menus
-  (let jmb (java-new "javax.swing.JMenuBar")
+  (alet (java-new "javax.swing.JMenuBar")
     (each menu menus
-      (jmb 'add menu))
-    jmb))
+      (it 'add menu))))
 
 (def new-file-chooser () 
   (java-new "javax.swing.JFileChooser"))
@@ -163,11 +178,19 @@
   `(jfilechooser ,chooser ,file showSaveDialog ,@actions))
 
 (def convert-key-event (event)
-  (let ks ((java-static-invoke "javax.swing.KeyStroke" 'getKeyStrokeForEvent event) 'toString)
-    (coerce (downcase (subst "-" " " (subst "" "pressed " ks))) 'sym)))
+  (let ks ((java-static-invoke "javax.swing.KeyStroke" 
+                               'getKeyStrokeForEvent 
+                               event) 'toString)
+    (coerce (downcase (subst "-" 
+                             " " 
+                             (subst "" 
+                                    "pressed " 
+                                    ks))) 'sym)))
 
 (mac create-action (label help-text . body)
-  `(obj label ,label help-text ,help-text action (fn () ,@body)))
+  `(obj label     ,label 
+        help-text ,help-text 
+        action    (fn () ,@body)))
 
 (def help-window (frame)
   (withs (jta (bean "javax.swing.JTextPane"

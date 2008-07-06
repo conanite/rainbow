@@ -1,3 +1,32 @@
+(mac alet (val . body)
+  `(let it ,val
+       ,@body
+       it))
+
+(with ((make-def double-each) nil)
+  (= make-def (fn ((name args . body))
+     `(def ,name ,args ,@body)))
+  (= double-each (fn (lst)
+     (if lst
+         `(,(car lst) 
+           ,(car lst) 
+           ,@(double-each (cdr lst))))))
+  (mac make-obj args
+    "args are of the form (name (args) body),
+     make-obj returns a hash where each name keys
+     a function with the given args and body; functions
+     may invoke each other"
+    `(with (,(map car args) nil)
+           ,@(map make-def args)
+           (obj ,@(double-each (map car args))))))
+
+(def index-of (x xs)
+  (catch
+    ((afn (count xs1)
+      (if (no xs1) (throw -1)
+          (caris xs1 x) (throw count)
+          (self (+ 1 count) (cdr xs1)))) 0 xs)))
+
 (def sym+ args
   (sym (apply + (map [string _] args))))
 
@@ -31,6 +60,13 @@
         (apply target (java-setter prop) (if (acons val) val (list val)))
         (self (cdr props))))) (pair args))
   target)
+
+(def j-enumeration (mapper xs)
+  (java-implement "java.util.Enumeration" t (obj
+    hasMoreElements (fn () xs)
+    nextElement     (fn () (let next (car xs) 
+                                (zap cdr xs) 
+                                (mapper next))))))
 
 (mac atdef (name args . body)
   `(def ,name ,args (atomic ,@body)))

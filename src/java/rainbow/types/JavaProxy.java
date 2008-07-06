@@ -15,13 +15,13 @@ public class JavaProxy implements InvocationHandler {
   private Environment environment;
   private Hash functions;
   private boolean strict;
-  private Class targetInterface;
+  private Pair interfaces;
 
-  public JavaProxy(Environment environment, boolean strict, Hash functions, Class target) {
+  public JavaProxy(Environment environment, boolean strict, Hash functions, Pair interfaces) {
     this.environment = environment;
     this.functions = functions;
     this.strict = strict;
-    this.targetInterface = target;
+    this.interfaces = interfaces;
   }
 
   public Object invoke(Object target, Method method, Object[] arguments) throws Throwable {
@@ -30,7 +30,7 @@ public class JavaProxy implements InvocationHandler {
     ArcObject methodImplementation = functions.value(Symbol.make(method.getName()));
     if (methodImplementation.isNil()) {
       if (method.getName().equals("toString")) {
-        return "Arc implementation of " + targetInterface + " : " + functions.toString();
+        return "Arc implementation of " + interfaces + " : " + functions.toString();
       } else {
         if (strict) {
           throw new ArcError("No implementation provided for " + method + "; implementations include " + functions);
@@ -46,12 +46,21 @@ public class JavaProxy implements InvocationHandler {
     return JavaObject.unwrap(thread.finalValue(), method.getReturnType());
   }
 
-  public static ArcObject create(Environment environment, String className, Hash functions, ArcObject strict) {
+  public static ArcObject create(Environment environment, Pair interfaceNames, Hash functions, ArcObject strict) {
+    Class[] targets = new Class[interfaceNames.size()];
+    getClasses(interfaceNames, targets, 0);
+    return new JavaObject(Proxy.newProxyInstance(JavaProxy.class.getClassLoader(), targets, new JavaProxy(environment, !strict.isNil(), functions, interfaceNames)));
+  }
+
+  private static void getClasses(Pair interfaceNames, Class[] classes, int i) {
+    ArcString className = ArcString.cast(interfaceNames.car(), JavaProxy.class);
     try {
-      Class target = Class.forName(className);
-      return new JavaObject(Proxy.newProxyInstance(JavaProxy.class.getClassLoader(), new Class[] { target }, new JavaProxy(environment, !strict.isNil(), functions, target)));
+      classes[i] = Class.forName(className.value());
     } catch (ClassNotFoundException e) {
-      throw new ArcError("Class " + className + " not found", e);
+      throw new ArcError("Class " + className.value() + " not found", e);
+    }
+    if ((++i) < classes.length) {
+      getClasses((Pair) interfaceNames.cdr(), classes, i);
     }
   }
 }

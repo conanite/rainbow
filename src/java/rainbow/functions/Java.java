@@ -44,10 +44,13 @@ public abstract class Java {
           }
         }, new Builtin("java-implement") {
           public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-            String className = ArcString.cast(args.car(), this).value();
+            ArcObject interfaces = args.car();
+            if (interfaces instanceof ArcString) {
+              interfaces = Pair.buildFrom(interfaces);
+            }
             ArcObject strict = args.cdr().car();
             Hash functions = Hash.cast(args.cdr().cdr().car(), this);
-            caller.receive(JavaProxy.create(thread.environment(), className, functions, strict));
+            caller.receive(JavaProxy.create(thread.environment(), Pair.cast(interfaces, this), functions, strict));
           }
         }
     });
@@ -73,7 +76,7 @@ public abstract class Java {
     } else if (o instanceof Map) {
       return wrapMap((Map)o);
     } else if (o instanceof Boolean) {
-      if (o == Boolean.TRUE) {
+      if ((Boolean) o) {
         return ArcObject.T;
       } else {
         return ArcObject.NIL;

@@ -1,9 +1,15 @@
 package rainbow.types;
 
 import rainbow.ArcError;
+import rainbow.cheat.NoWrapTextPane;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
 import javax.swing.undo.UndoableEdit;
+import javax.swing.undo.UndoManager;
 import javax.swing.plaf.basic.BasicTextUI;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.StyleSheet;
@@ -16,10 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.awt.*;
 import java.io.IOException;
 import java.io.Reader;
@@ -62,10 +65,7 @@ public class JavaObject extends ArcObject {
       Constructor constructor = c.getConstructors()[i];
       if (constructor.getParameterTypes().length == parameterCount) {
         if (match(constructor.getParameterTypes(), args, 0)) {
-          return constructor;
-        }
-      }
-    }
+          return constructor; } } }
     throw new ArcError("no constructor found matching " + args + " on " + c);
   }
 
@@ -86,7 +86,7 @@ public class JavaObject extends ArcObject {
   }
 
   public String toString() {
-    return TYPE + ":" + object;
+    return object.toString();
   }
 
   private static Class toClass(String className) {
@@ -172,8 +172,8 @@ public class JavaObject extends ArcObject {
     } else if (javaType == Long.class || javaType == Long.TYPE || javaType == Double.class || javaType == Double.TYPE) {
       return o;
     } else if (javaType == Float.class || javaType == Float.TYPE) {
-      return ((Double) o).floatValue();
-    } else if (javaType == Boolean.class) {
+      return ((Number) o).floatValue();
+    } else if (javaType == Boolean.class || javaType == Boolean.TYPE) {
       return o != Boolean.FALSE;
     } else if (javaType == Void.class) {
       return o == Boolean.FALSE ? null : o;
@@ -248,4 +248,5 @@ public class JavaObject extends ArcObject {
   private static boolean isPrimitiveNumber(Class p) {
     return p == Integer.TYPE || p == Long.TYPE || p == Double.TYPE || p == Float.TYPE;
   }
+  
 }

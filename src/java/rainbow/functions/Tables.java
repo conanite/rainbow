@@ -31,7 +31,7 @@ public class Tables {
       } else if (args.car() instanceof Pair) {
         return srefList(args);
       }
-      throw new ArcError("sref: expects first argument to be a string or a hash or a list");
+      throw new ArcError("sref: expects first argument to be a string or a hash or a list: got " + args);
     }
 
     private ArcObject srefList(Pair args) {

@@ -199,7 +199,10 @@ public class Pair extends ArcObject {
   }
 
   public boolean isSpecial() {
-    return car() instanceof Symbol && specials.containsKey(((Symbol) car()).name()) && cdr() instanceof Pair;
+    return car() instanceof Symbol &&
+            specials.containsKey(((Symbol) car()).name()) &&
+            cdr() instanceof Pair && 
+            ((Pair)cdr()).size() == 1;
   }
 
   public Pair copy() {

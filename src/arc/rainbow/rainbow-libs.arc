@@ -7,12 +7,13 @@
     "app"
     "prompt"
     "ffi"
-    "rainbow/unit"
-    "rainbow/parser"
+    "lib/unit-test"
+    "lib/parser"
     "rainbow/swing"
     "rainbow/welder"
     "rainbow/tetris"
-    "rainbow/tests/foundation-test"
+    "lib/tests/foundation-test"
+    "lib/tests/parser-test"
     "rainbow/tests/anarki-compatibility-test"
     "rainbow/tests/java-interface-test"))
 
