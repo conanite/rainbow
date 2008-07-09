@@ -138,10 +138,17 @@ public class Pair extends ArcObject {
   public int size() {
     if (isNil()) {
       return 0;
-    } else if (cdr instanceof Pair) {
-      return 1 + ((Pair)cdr).size();
     } else {
-      throw new ArcError("cannot take size: not a proper list: " + this);
+      int result = 1;
+      Pair rest = (Pair) cdr;
+      while (!rest.isNil()) {
+        result++;
+        if (!(rest.cdr() instanceof Pair)) {
+          throw new ArcError("cannot take size: not a proper list: " + this);
+        }
+        rest = (Pair) rest.cdr();
+      }
+      return result;
     }
   }
 

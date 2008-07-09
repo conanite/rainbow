@@ -248,5 +248,4 @@ public class JavaObject extends ArcObject {
   private static boolean isPrimitiveNumber(Class p) {
     return p == Integer.TYPE || p == Long.TYPE || p == Double.TYPE || p == Float.TYPE;
   }
-  
 }

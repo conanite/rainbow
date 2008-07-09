@@ -66,6 +66,13 @@
     (java-implement "javax.swing.event.UndoableEditListener" t (make-obj
       (undoableEditHappened (,var) ,@body)))))
 
+(def handle-keystroke (bindings actions keystroke f)
+  "Looks for keystroke in bindings. If found, result is
+   a key into actions. Action is a hash with key 'action.
+   passes 'action value of action to f"
+  (aif bindings.keystroke
+    (f (actions.it 'action))))
+
 (def frame (left top width height title)
   (bean "javax.swing.JFrame" 
     'bounds       (list left top width height) 
@@ -99,10 +106,10 @@
     (= it!caret     (it!pane 'getCaret))
     (on-key it!pane keystroke (it!handle-key keystroke))))
 
-(def selected-text (editor)
-  (aif (editor!pane 'getSelectedText) it
-       (all-text editor)))
-       
+(def selected-text (editor else)
+  (or (editor!pane 'getSelectedText) 
+      (else editor)))
+
 (def all-text (editor)
   (editor!pane 'getText 0 (editor!doc 'getLength)))
 
@@ -122,7 +129,7 @@
       (if components (do
         (it 'add (car components))
         (self (cdr components))))) content)))
-    
+
 (mac key-dispatcher bindings
    (let bb (pair bindings)
      `(fn (key)

@@ -61,7 +61,7 @@
 
 (defweld save "Save"
          "Save the file in this window"
-         (write-file editor!file all-text.editor))
+         (welder-save-editor-content editor))
 
 (defweld save-as "Save As ..."
          "Choose a file to save the text in this window to"
@@ -93,48 +93,82 @@
 
 (defweld eval "Eval"
          "Evaluate selected or all code"             
-         (eval-these:readall:selected-text editor))
+         (eval-these:readall:selected-text editor all-text))
 
 (defweld htmlify  "Htmlify"
-         "Convert selected or all code to HTML, suitable for copy-pasting into your blog."
-         (open-text-area:to-html-string:selected-text editor))
+         "Convert selected or all code to HTML, 
+          suitable for copy-pasting into your blog."
+         (open-text-area:to-html-string:selected-text editor all-text))
 
 (defweld show-search "Search"
          "Opens the search bar"
-         (editor!show-search))
+         ((editor!search 'show)))
+
+(defweld search-next "Find Again"
+         "Search again for the next occurence
+          of the current search term"
+         ((editor!search 'next)))
+
+(defweld search-prev "Find Previous"
+         "Search for the previous occurence 
+          of the current search term"
+         ((editor!search 'prev)))
+
+(defweld dismiss "Dismiss"
+         "Closes search bar and unhighlights
+          matches"
+         ((editor!search 'hide)))
 
 (defweld undo "Undo"
          "Undo last edit if possible"
-         (editor!undoer 'undo))
+         (later (editor!undoer 'undo)))
 
 (defweld redo "Redo"
          "Redo last edit if possible"
-         (editor!undoer 'redo))
+         (later (editor!undoer 'redo)))
+
+(defweld duplicate "Duplicate"
+         "Duplicate selection or current line"
+         (aif (selected-text editor nilfn)
+           (duplicate-selection editor it)
+           (duplicate-line editor)))
 
 (def defkey (key binding)
   (= welder-key-bindings*.key binding))
 
-(defkey 'f1      'help           )
-(defkey 'ctrl-k  'keystroke-help )
-(defkey 'ctrl-h  'htmlify        )
-(defkey 'meta-s  'save           )
-(defkey 'f4      'close          )
-(defkey 'ctrl-w  'widen          )
-(defkey 'ctrl-e  'eval           )
-(defkey 'meta-o  'open           )
-(defkey 'meta-n  'new            )
-(defkey 'meta-f  'show-search    )
-(defkey 'meta-z  'undo           )
-(defkey 'shift-meta-z  'redo     )
+(defkey 'escape   'dismiss        )
+(defkey 'f1       'help           )
+(defkey 'ctrl-k   'keystroke-help )
+(defkey 'ctrl-h   'htmlify        )
+(defkey 'meta-s   'save           )
+(defkey 'f3       'search-next    )
+(defkey 'shift-f3 'search-prev    )
+(defkey 'f4       'close          )
+(defkey 'ctrl-w   'widen          )
+(defkey 'ctrl-e   'eval           )
+(defkey 'meta-o   'open           )
+(defkey 'meta-n   'new            )
+(defkey 'meta-f   'show-search    )
+(defkey 'meta-d   'duplicate      )
+(defkey 'meta-z   'undo           )
+(defkey 'shift-meta-z  'redo      )
+
+(def welder-save-editor-content (editor)
+  (write-file editor!file all-text.editor))
 
 (def welder-menu (editor)
   (with (label   (fn (item)
                      (welder-actions*.item 'label))
          action  (fn (item)
                      ((welder-actions*.item 'action) editor)))
-    (swing-menubar  (swing-menu "File" label action '(new open close save save-as quit))
-                    (swing-menu "Edit" label action '(undo redo widen ppr eval htmlify show-search))
-                    (swing-menu "Help" label action '(help keystroke-help)))))
+    (swing-menubar  (swing-menu "File"   label action 
+                      '(new open close save save-as quit))
+                    (swing-menu "Edit"   label action 
+                      '(undo redo widen ppr eval htmlify show-search))
+                    (swing-menu "Window" label action 
+                      nil)
+                    (swing-menu "Help"   label action 
+                      '(help keystroke-help)))))
 
 (def welder-key-help (editor)
   (editor!show-help (tostring:htmlify-keybindings welder-key-bindings*)))
@@ -184,7 +218,9 @@
                (if (is (last-index-item 1) current-dot)
                    (throw previous-index-item)
                    (throw last-index-item))
-            (> (index-item 2) current-dot)
+            (and (> (index-item 2) current-dot)
+                 (no:is car.index-item 'right-paren)
+                 (no:is car.index-item 'right-bracket))
               (do (= previous-index-item last-index-item)
                   (= last-index-item index-item)))))))
 
@@ -220,7 +256,7 @@
           (prn)
           (prn)
           (ppr-exprs (cdr exprs)))))
-          
+
 (def match-pair (text position index)
   (if (< position (len text))
     (let current-char (text position)
@@ -240,6 +276,33 @@
       (if (and (is tok match)
                (is finish position))
           (throw start)))))
+
+(def duplicate-selection (editor text)
+  (let ins (dot)
+    (if (< ins (editor!caret 'getMark))
+        (= ins (editor!caret 'getMark)))
+    (later (editor!doc 'insertString 
+                       ins
+                       text 
+                       colour-scheme!default))))
+
+(def duplicate-line (editor)
+  (withs (text (all-text editor)
+          text-len (text-length editor!doc)
+          cond [no:is (text _) #\newline]
+          (begin end) nil)
+    (loop (= begin (dot))
+          (and (> begin 0) 
+               (cond begin))
+          (-- begin))
+    (loop (= end (dot))
+          (and (< end text-len) 
+               (cond end))
+          (++ end))
+    (later (editor!doc 'insertString 
+                       begin 
+                       (editor!doc 'getText begin (- end begin)) 
+                       colour-scheme!default))))
 
 (def find-right-matching (match text position index)
   (catch
@@ -287,9 +350,9 @@
                    1
                    'unmatched-syntax 
                    t)
-               (colour-region doc 
-                 start 
-                 (- finish start) 
+               (colour-region doc
+                 start
+                 (- finish start)
                  (token-attribute tok)
                  t)))))
 
@@ -305,6 +368,7 @@
   (if (and editor!dirty (> (- (msec) editor!dirty) 500))
       (do
         (wipe editor!dirty)
+        (welder-save-editor-content editor)
         (welder-reindex editor)
         (later (colourise editor)
                (editor!frame 'setTitle (welder-window-title editor)))))
@@ -319,11 +383,14 @@
 
 (def welder-open (editor file)
   (= editor!file file)
+  (prn "loading file " file)
   (editor!pane 'setText (load-file file)))
 
 (def welder-keystroke (editor keystroke)
-  (aif welder-key-bindings*.keystroke
-    ((welder-actions*.it 'action) editor)))
+  (handle-keystroke welder-key-bindings*
+                    welder-actions*
+                    keystroke
+                    [_ editor]))
 
 (def colour-region (doc index length colour-key replace)
   (aif (and colour-key colour-scheme.colour-key)
@@ -385,45 +452,69 @@
       (if (is k 'escape)   (hide)
           (is k 'down)     (next)
           (is k 'up)       (prev)
-          (is k 'f3)       (next)))
+          (is k 'f3)       (next)
+          (is k 'shift-f3) (prev)))
     (on-doc-update tf!getDocument (c)
       (search tf!getText))
     (sf 'hide)
-    (list sf show hide)))
+    (obj sf sf show show hide hide next next prev prev)))
 
-(def welder ((o file))
-  (let editor (editor-pane)
-    (configure-bean editor!pane
-      'caretColor colour-scheme!caret
-      'font       (courier 12)
-      'background colour-scheme!background)
-    (on-caret-move editor!pane (event) 
-      (later (highlight-match editor event!getDot)))
-    (on-doc-update editor!doc  (event)
-      (on-update editor))
-    (with (f  (frame 150 150 800 800 "Arc Welder")
-           sc (scroll-pane editor!pane colour-scheme!background)
-           undoer (undo-manager)
-           (sf show hide) (make-search-field editor))
-      (f 'add sc)
-      (f 'add sf)
-      (f 'setJMenuBar (welder-menu editor))
-      (on-scroll sc!getVerticalScrollBar (e) (on-update editor))
+(set welder-initialisers nil)
+
+(mac welder-init (var . body)
+  `(push (fn ,var ,@body) welder-initialisers))
+
+(welder-init (editor)
+  (configure-bean editor!pane
+    'caretColor colour-scheme!caret
+    'font       (courier 12)
+    'background colour-scheme!background))
+
+(welder-init (editor)
+  (on-caret-move editor!pane (event) 
+    (later (highlight-match editor event!getDot))))
+
+(welder-init (editor)
+  (on-doc-update editor!doc  (event)
+    (on-update editor)))
+
+(welder-init (editor)
+  (let f (frame 150 150 800 800 "Arc Welder")
+    (= editor!frame f)
+    (= editor!show-help
+       (help-window f))
+    (f 'setJMenuBar 
+       (welder-menu editor))))
+
+(welder-init (editor)
+  (let sc (scroll-pane editor!pane colour-scheme!background)
+    (editor!frame 'add sc)
+    (on-scroll sc!getVerticalScrollBar (e) (on-update editor))))
+
+(welder-init (editor)
+  (= editor!undoer (undo-manager))
+  (on-edit editor!doc (event)
+    (if (no:is "style change" (event!getEdit 'getPresentationName))
+        (editor!undoer 'undoableEditHappened event))))
+
+(welder-init (editor)
+  (let search (make-search-field editor)
+    (editor!frame 'add search!sf)
+    (= editor!search search)))
+
+(welder-init (editor)
       (fill-table editor (list 
         'update-thread  (thread (follow-updates editor))
         'handle-key     (fn (keystroke)
                             (welder-keystroke editor keystroke))
-        'frame          f 
-        'undoer         undoer
-        'show-search    show
-        'show-help      (help-window f)
         'select-region  (fn ((start finish))
                             (editor!caret 'setDot (if (isa finish 'fn) 
                                                       (finish start) 
                                                       finish))
-                            (editor!caret 'moveDot start))))
-      f!show
-      (if file (welder-open editor file))
-      (on-edit editor!doc (event)
-        (if (no:is "style change" (event!getEdit 'getPresentationName))
-            (undoer 'undoableEditHappened event))))))
+                            (editor!caret 'moveDot start)))))
+
+(def welder ((o file))
+  (let editor (editor-pane)
+    (map [_ editor] rev.welder-initialisers)
+    (editor!frame 'show)
+    (if file (welder-open editor file))))
