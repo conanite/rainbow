@@ -3,14 +3,12 @@
        ,@body
        it))
 
+(mac nobj args ; with thanks to http://arclanguage.org/item?id=7478 and http://arclanguage.org/item?id=7480
+  `(obj ,@(mappend [list _ _] args)))
+
 (with ((make-def double-each) nil)
   (= make-def (fn ((name args . body))
      `(def ,name ,args ,@body)))
-  (= double-each (fn (lst)
-     (if lst
-         `(,(car lst) 
-           ,(car lst) 
-           ,@(double-each (cdr lst))))))
   (mac make-obj args
     "args are of the form (name (args) body),
      make-obj returns a hash where each name keys
@@ -18,7 +16,7 @@
      may invoke each other"
     `(with (,(map car args) nil)
            ,@(map make-def args)
-           (obj ,@(double-each (map car args))))))
+           (nobj ,@(map car args)))))
 
 (def index-of (x xs)
   (catch

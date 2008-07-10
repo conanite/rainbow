@@ -13,93 +13,97 @@ public abstract class Maths {
 
   public static void collect(Environment bindings) {
     bindings.add(new Builtin[]{
-            new Builtin("trunc") {
-              public ArcObject invoke(Pair args) {
-                checkMaxArgCount(args, getClass(), 1);
-                double value = ((ArcNumber) args.car()).toDouble();
-                return new Rational((long) Math.floor(value), 1);
-              }
-            }, new Builtin("expt") {
-      public ArcObject invoke(Pair args) {
-        checkMaxArgCount(args, getClass(), 2);
-        double value = ((ArcNumber) args.car()).toDouble();
-        double exponent = ((ArcNumber) args.cdr().car()).toDouble();
-        return new Real(Math.pow(value, exponent));
-      }
-    }, new Builtin("rand") {
-      public ArcObject invoke(Pair args) {
-        if (args.isNil()) {
-          return new Real(random.nextDouble());
-        } else {
-          ArcNumber r = (ArcNumber) args.car();
-          if (!r.isInteger()) {
-            throw new ArcError("rand: requires one exact integer argument, got " + args);
+      new Builtin("trunc") {
+        public ArcObject invoke(Pair args) {
+          checkMaxArgCount(args, getClass(), 1);
+          double value = ((ArcNumber) args.car()).toDouble();
+          return new Rational((long) Math.floor(value), 1);
+        }
+      }, new Builtin("expt") {
+        public ArcObject invoke(Pair args) {
+          checkMaxArgCount(args, getClass(), 2);
+          double value = ((ArcNumber) args.car()).toDouble();
+          double exponent = ((ArcNumber) args.cdr().car()).toDouble();
+          return new Real(Math.pow(value, exponent));
+        }
+      }, new Builtin("rand") {
+        public ArcObject invoke(Pair args) {
+          if (args.isNil()) {
+            return new Real(random.nextDouble());
+          } else {
+            ArcNumber r = (ArcNumber) args.car();
+            if (!r.isInteger()) {
+              throw new ArcError("rand: requires one exact integer argument, got " + args);
+            }
+            return new Rational(Math.abs(random.nextLong() % r.toInt()), 1);
           }
-          return new Rational(Math.abs(random.nextLong() % r.toInt()), 1);
         }
-      }
-    }, new Builtin("sqrt") {
-      public ArcObject invoke(Pair args) {
-        checkMaxArgCount(args, getClass(), 1);
-        double value = ArcNumber.cast(args.car(), this).toDouble();
-        return new Real(Math.sqrt(value));
-      }
-    }, new Builtin("quotient") {
-      public ArcObject invoke(Pair args) {
-        checkExactArgsCount(args, 2, getClass());
-        Rational top = Rational.cast(args.car(), this);
-        Rational bottom = Rational.cast(args.cdr().car(), this);
-        if (!(top.isInteger() && bottom.isInteger())) {
-          throw new ArcError("Type error: " + this + " : expected integer, got " + args);
-        }
-        return Rational.make(top.toInt() / bottom.toInt());
-      }
-    }, new Builtin("mod") {
-      public ArcObject invoke(Pair args) {
-        checkMaxArgCount(args, getClass(), 2);
-        ArcNumber first = (ArcNumber) args.car();
-        ArcNumber second = (ArcNumber) args.cdr().car();
-        if (!first.isInteger() || !second.isInteger()) {
-          throw new ArcError("modulo: expects integer, got " + args);
-        }
-        long numerator = first.toInt();
-        long divisor = second.toInt();
-        long result = numerator % divisor;
-        if (result < 0) {
-          result += divisor;
-        }
-        return Rational.make(result);
-      }
-    }, new Builtin("+") {
-      public ArcObject invoke(Pair args) {
-        if (args.car() instanceof ArcNumber) {
-          return sum(args);
-        } else if (args.car() instanceof ArcString) {
-          try {
-            return concat(args);
-          } catch (Exception e) {
-            throw new ArcError("Adding " + args, e);
+      }, new Builtin("sqrt") {
+        public ArcObject invoke(Pair args) {
+          checkMaxArgCount(args, getClass(), 1);
+          double result = Math.sqrt(ArcNumber.cast(args.car(), this).toDouble());
+          if ((long)result == result) {
+            return Rational.make((long) result);
+          } else {
+            return new Real(result);
           }
-        } else if (args.car() instanceof Pair) {
-          return joinLists(args);
-        } else {
-          throw new ArcError("Cannot sum " + args);
+        }
+      }, new Builtin("quotient") {
+        public ArcObject invoke(Pair args) {
+          checkExactArgsCount(args, 2, getClass());
+          Rational top = Rational.cast(args.car(), this);
+          Rational bottom = Rational.cast(args.cdr().car(), this);
+          if (!(top.isInteger() && bottom.isInteger())) {
+            throw new ArcError("Type error: " + this + " : expected integer, got " + args);
+          }
+          return Rational.make(top.toInt() / bottom.toInt());
+        }
+      }, new Builtin("mod") {
+        public ArcObject invoke(Pair args) {
+          checkMaxArgCount(args, getClass(), 2);
+          ArcNumber first = (ArcNumber) args.car();
+          ArcNumber second = (ArcNumber) args.cdr().car();
+          if (!first.isInteger() || !second.isInteger()) {
+            throw new ArcError("modulo: expects integer, got " + args);
+          }
+          long numerator = first.toInt();
+          long divisor = second.toInt();
+          long result = numerator % divisor;
+          if (result < 0) {
+            result += divisor;
+          }
+          return Rational.make(result);
+        }
+      }, new Builtin("+") {
+        public ArcObject invoke(Pair args) {
+          if (args.car() instanceof ArcNumber) {
+            return sum(args);
+          } else if (args.car() instanceof ArcString) {
+            try {
+              return concat(args);
+            } catch (Exception e) {
+              throw new ArcError("Adding " + args, e);
+            }
+          } else if (args.car() instanceof Pair) {
+            return joinLists(args);
+          } else {
+            throw new ArcError("Cannot sum " + args);
+          }
+        }
+      }, new Builtin("-") {
+        public ArcObject invoke(Pair args) {
+          Pair pair = new Pair(((ArcNumber) args.car()).negate(), args.cdr());
+          return sum(pair).negate();
+        }
+      }, new Builtin("*") {
+        public ArcObject invoke(Pair args) {
+          return precision(args).multiply(args);
+        }
+      }, new Builtin("/") {
+        public ArcObject invoke(Pair args) {
+          return precision(args).divide(args);
         }
       }
-    }, new Builtin("-") {
-      public ArcObject invoke(Pair args) {
-        Pair pair = new Pair(((ArcNumber) args.car()).negate(), args.cdr());
-        return sum(pair).negate();
-      }
-    }, new Builtin("*") {
-      public ArcObject invoke(Pair args) {
-        return precision(args).multiply(args);
-      }
-    }, new Builtin("/") {
-      public ArcObject invoke(Pair args) {
-        return precision(args).divide(args);
-      }
-    }
     });
   }
 
