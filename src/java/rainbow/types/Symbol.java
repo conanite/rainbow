@@ -1,18 +1,19 @@
 package rainbow.types;
 
-import rainbow.types.ArcObject;
-import rainbow.*;
+import rainbow.ArcError;
+import rainbow.Environment;
+import rainbow.Truth;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Symbol extends ArcObject {
   private static final Map<String, Symbol> map = new HashMap();
   public static final Symbol TYPE = (Symbol) Symbol.make("sym");
   public static final Symbol EMPTY_STRING = (Symbol) Symbol.make("||");
-  private static int count = 0;
   private String name;
   private int hash;
+  private ArcObject value;
 
   protected Symbol(String name) {
     this.name = name;
@@ -72,15 +73,31 @@ public class Symbol extends ArcObject {
   }
 
   public ArcObject eval(Environment env) {
-    ArcObject result = env.lookup(this);
-    if (result == null) {
-      throw new Unbound(this);
-    }
-    return result;
+    return value();
+//    ArcObject result = env.lookup(this);
+//    if (result == null) {
+//      throw new Unbound(this);
+//    }
+//    return result;
   }
 
   public static boolean is(String s, ArcObject o) {
     return (o instanceof Symbol) && ((Symbol)o).name().equals(s);
+  }
+
+  public void setValue(ArcObject value) {
+    this.value = value;
+  }
+
+  public ArcObject value() {
+    if (value == null) {
+      throw new Unbound(this);
+    }
+    return value;
+  }
+
+  public boolean bound() {
+    return value != null;
   }
 
   private class Unbound extends ArcError {

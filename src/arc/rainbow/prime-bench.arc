@@ -12,5 +12,3 @@
 
 (def prime-bench (n) (time (primes-under n)))
 
-
-

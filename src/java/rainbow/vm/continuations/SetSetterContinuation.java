@@ -1,7 +1,6 @@
 package rainbow.vm.continuations;
 
 import rainbow.LexicalClosure;
-import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 import rainbow.vm.ArcThread;

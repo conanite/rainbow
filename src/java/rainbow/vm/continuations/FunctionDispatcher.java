@@ -1,18 +1,14 @@
 package rainbow.vm.continuations;
 
 import rainbow.*;
-import rainbow.functions.Builtin;
-import rainbow.functions.InterpretedFunction;
 import rainbow.types.*;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.Interpreter;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.awt.*;
 
 public class FunctionDispatcher extends ContinuationSupport {
   public static final boolean ALLOW_MACRO_EXPANSION = false;
@@ -31,17 +27,6 @@ public class FunctionDispatcher extends ContinuationSupport {
     super(thread, lc, caller);
     this.args = expression.cdr();
     this.functionName = expression.car();
-//    if (caller instanceof FunctionDispatcher) {
-//      System.out.println("FD trail: " + fdtrail());
-//    }
-  }
-
-  private String fdtrail() {
-    if (caller instanceof FunctionDispatcher) {
-      return functionName + " " + ((FunctionDispatcher) caller).fdtrail();
-    } else {
-      return "";
-    }
   }
 
   public void process() {

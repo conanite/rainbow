@@ -3,8 +3,10 @@ package rainbow;
 import rainbow.functions.*;
 import rainbow.types.*;
 
-import java.util.*;
-import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 
 public class Environment {
   private java.util.Set defaults;
@@ -20,7 +22,7 @@ public class Environment {
     Threads.collect(this);
 
     addBuiltin("t", ArcObject.T);
-    addBuiltin("nil", ArcObject.NIL);
+//    addBuiltin("nil", ArcObject.NIL);
     addBuiltin("uniq", new Uniq());
     addBuiltin("newstring", new Lists.NewString());
     addBuiltin("macex", new Macex());
@@ -30,7 +32,7 @@ public class Environment {
     addBuiltin("err", new Errors.Err());
     addBuiltin("on-err", new Errors.OnErr());
     addBuiltin("details", new Errors.Details());
-    
+
     /* lists */
     addBuiltin("car", new Lists.Car());
     addBuiltin("cdr", new Lists.Cdr());
@@ -85,15 +87,24 @@ public class Environment {
   }
 
   private void addBuiltin(String name, ArcObject o) {
-    namespace.put(Symbol.make(name), o);
+//    bindingFor((Symbol) Symbol.make(name)).set(o);
+//    namespace.put(Symbol.make(name), o);
+    ((Symbol) Symbol.make(name)).setValue(o);
   }
 
   public void addToNamespace(Symbol s, ArcObject o) {
-    namespace.put(s, o);
+//    bindingFor(s).set(o);
+//    namespace.put(s, o);
+    s.setValue(o);
   }
 
   public ArcObject lookup(Symbol s) {
-    return (ArcObject) namespace.get(s);
+//    return bindingFor(s).lookup();
+//    return (ArcObject) namespace.get(s);
+    if (!s.bound()) {
+      return null;
+    }
+    return s.value();
   }
 
   public Output stdOut() {
@@ -121,7 +132,7 @@ public class Environment {
     return sb.toString();
   }
 
-  
+
   protected synchronized void collectKeys(java.util.Set s) {
     java.util.Set top = new HashSet(namespace.keySet());
     top.removeAll(defaults);

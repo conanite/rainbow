@@ -1,17 +1,16 @@
 package rainbow.vm.compiler;
 
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
-import rainbow.vm.BoundSymbol;
-import rainbow.vm.continuations.*;
-import rainbow.vm.compiler.QuasiQuoteCompiler;
 import rainbow.Function;
 import rainbow.LexicalClosure;
 import rainbow.functions.Evaluation;
-import rainbow.types.Pair;
 import rainbow.types.ArcObject;
+import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.types.Tagged;
+import rainbow.vm.ArcThread;
+import rainbow.vm.BoundSymbol;
+import rainbow.vm.Continuation;
+import rainbow.vm.continuations.ContinuationSupport;
 
 import java.util.Map;
 
@@ -40,6 +39,7 @@ public class Compiler extends ContinuationSupport {
         }
       }
       caller.receive(expression);
+//      caller.receive(thread.environment().bindingFor((Symbol) expression));
     } else {
       caller.receive(expression);
     }
@@ -52,6 +52,7 @@ public class Compiler extends ContinuationSupport {
     } else {
       ArcObject fun = expression.car();
       if (Symbol.is("quote", fun)) {
+//        caller.receive(Pair.buildFrom(thread.environment().bindingFor((Symbol) fun), expression.cdr()));
         caller.receive(expression);
       } else if (fun == QuasiQuoteCompiler.QUASIQUOTE) {
         Rebuilder rebuilder = new Rebuilder(caller, QuasiQuoteCompiler.QUASIQUOTE);

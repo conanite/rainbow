@@ -457,7 +457,7 @@
     (on-doc-update tf!getDocument (c)
       (search tf!getText))
     (sf 'hide)
-    (obj sf sf show show hide hide next next prev prev)))
+    (nobj sf show hide next prev)))
 
 (set welder-initialisers nil)
 

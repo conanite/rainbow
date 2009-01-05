@@ -19,3 +19,6 @@
 
 (prn "self-test:")
 (run-all-tests)
+
+(let func (random-elt:keys help*)
+    (prn "Documentation for " func " " (helpstr func)))
