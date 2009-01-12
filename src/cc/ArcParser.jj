@@ -54,12 +54,10 @@ TOKEN: /* rational */
     < FRACTION : <INTEGER> "/" <UNSIGNED_INTEGER> >
 }
 
-/*
 TOKEN:
 {
-    < COMPLEX : (<INTEGER>|<FRACTION>|<DOUBLE>) <SIGN> (<UNSIGNED_INTEGER> ( "/" <UNSIGNED_INTEGER> )? | <UNSIGNED_DOUBLE>) "i" >
+    < COMPLEX : (<POS_INF>|<NEG_INF>|<NAN>|<DOUBLE>|<INTEGER>|<FRACTION>)? <SIGN> ((<UNSIGNED_INTEGER> ( "/" <UNSIGNED_INTEGER> )? | <UNSIGNED_DOUBLE>))? "i" >
 }
-*/
 
 TOKEN: /* double, integer */
 {
@@ -73,11 +71,19 @@ TOKEN: /* double, integer */
 |   < #SIGN             : ["+","-"]                         >
 }
 
+TOKEN: /* infinities and NaN */
+{
+    < POS_INF           : "+inf.0" >
+|   < NEG_INF           : "-inf.0" >
+|   < NAN               : "+nan.0" >
+}
+
 TOKEN : /* identifier */
 {
   < IDENTIFIER : <INITIAL> ( <SUBSEQUENT> )* >
-| < #INITIAL : <LETTER> | <SPECIAL_INITIAL> >
+| < #INITIAL : <LETTER> | <GREEK> | <SPECIAL_INITIAL> >
 | < #LETTER : ["a"-"z","A"-"Z"] >
+| < #GREEK : ["\u0391"-"\u03A9","\u03B1"-"\u03C9"] >
 | < #SPECIAL_INITIAL : ["+","-","$","%","&","*","/","<","=",">","?","^","_","~", "|","#"] >
 | < #SPECIAL_SUBSEQUENT : [".","!",":"] >
 | < #SUBSEQUENT : <INITIAL> | <DIGIT> | <SPECIAL_SUBSEQUENT> >
@@ -190,9 +196,12 @@ ArcObject list():             {
 }
 
 ArcObject atom():             { Token s; ArcObject o; } {
-  (
-    s=<INTEGER>               { return Rational.make(Long.parseLong(s.toString()), 1);  }
+  ( s=<COMPLEX>               { return Complex.parse(s.toString());                     }
+  | s=<INTEGER>               { return Rational.make(Long.parseLong(s.toString()), 1);  }
   | s=<DOUBLE>                { return Real.parse(s.toString());                        }
+  | s=<POS_INF>               { return Real.positiveInfinity();                         }
+  | s=<NEG_INF>               { return Real.negativeInfinity();                         }
+  | s=<NAN>                   { return Real.nan();                                      }
   | s=<FRACTION>              { return Rational.parse(s.toString());                    }
   | s=<STRING>                { return ArcString.make(cleanString(s.toString()));       }
   | s=<IDENTIFIER>            { return Symbol.make(s.toString());                       }

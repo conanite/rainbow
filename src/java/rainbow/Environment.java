@@ -22,7 +22,6 @@ public class Environment {
     Threads.collect(this);
 
     addBuiltin("t", ArcObject.T);
-//    addBuiltin("nil", ArcObject.NIL);
     addBuiltin("uniq", new Uniq());
     addBuiltin("newstring", new Lists.NewString());
     addBuiltin("macex", new Macex());
@@ -83,24 +82,22 @@ public class Environment {
       addBuiltin("seval", new Evaluation.Seval());
     }
 
+    if (!Console.ARC2_COMPATIBILITY) {
+      Maths.extra(this);
+    }
+
     defaults = new HashSet(namespace.keySet());
   }
 
   private void addBuiltin(String name, ArcObject o) {
-//    bindingFor((Symbol) Symbol.make(name)).set(o);
-//    namespace.put(Symbol.make(name), o);
     ((Symbol) Symbol.make(name)).setValue(o);
   }
 
   public void addToNamespace(Symbol s, ArcObject o) {
-//    bindingFor(s).set(o);
-//    namespace.put(s, o);
     s.setValue(o);
   }
 
   public ArcObject lookup(Symbol s) {
-//    return bindingFor(s).lookup();
-//    return (ArcObject) namespace.get(s);
     if (!s.bound()) {
       return null;
     }

@@ -26,7 +26,7 @@
   search-selected   (swing-style 'background 'blue)
   sym               (swing-style 'foreground "#206020")
   sym-string        (swing-style 'foreground "#602020")
-  sym-fn            (swing-style 'foreground "#202080"  'bold t) 
+  sym-fn            (swing-style 'foreground "#202080"  'bold t)
   sym-mac           (swing-style 'foreground "#A02080"  'bold t)
   string            (swing-style 'foreground "#003030"  'bold t)
   int               (swing-style 'foreground "#808040")
@@ -40,9 +40,9 @@
 
 (mac defweld (name label help-text . body)
   `(= (welder-actions* ',name)
-      (obj label ,label 
-           help-text ,help-text 
-           action (fn (editor) (on-err 
+      (obj label ,label
+           help-text ,help-text
+           action (fn (editor) (on-err
              (fn (ex) (prn ,label " failed: " (details ex)))
              (fn () ,@body))))))
 
@@ -67,19 +67,19 @@
          "Choose a file to save the text in this window to"
          (choose-save-file file-chooser f
             (write-file f all-text.editor)
-            (= editor!file f) 
+            (= editor!file f)
             (editor!frame 'setTitle (welder-window-title editor))))
 
 (defweld quit "Quit"
-         "Close all welder windows and exit arc"             
+         "Close all welder windows and exit arc"
          (quit))
 
 (defweld help "Context Help"
-         "Show help for symbol under caret"             
+         "Show help for symbol under caret"
          (welder-help editor))
 
 (defweld keystroke-help "Keystroke Help"
-         "Show key bindings"             
+         "Show key bindings"
          (welder-key-help editor))
 
 (defweld widen "Widen Selection"
@@ -92,11 +92,11 @@
          (editor!pane 'setText (tostring:ppr-exprs:readall:all-text editor)))
 
 (defweld eval "Eval"
-         "Evaluate selected or all code"             
+         "Evaluate selected or all code"
          (eval-these:readall:selected-text editor all-text))
 
 (defweld htmlify  "Htmlify"
-         "Convert selected or all code to HTML, 
+         "Convert selected or all code to HTML,
           suitable for copy-pasting into your blog."
          (open-text-area:to-html-string:selected-text editor all-text))
 
@@ -110,7 +110,7 @@
          ((editor!search 'next)))
 
 (defweld search-prev "Find Previous"
-         "Search for the previous occurence 
+         "Search for the previous occurence
           of the current search term"
          ((editor!search 'prev)))
 
@@ -161,13 +161,13 @@
                      (welder-actions*.item 'label))
          action  (fn (item)
                      ((welder-actions*.item 'action) editor)))
-    (swing-menubar  (swing-menu "File"   label action 
+    (swing-menubar  (swing-menu "File"   label action
                       '(new open close save save-as quit))
-                    (swing-menu "Edit"   label action 
+                    (swing-menu "Edit"   label action
                       '(undo redo widen ppr eval htmlify show-search))
-                    (swing-menu "Window" label action 
+                    (swing-menu "Window" label action
                       nil)
-                    (swing-menu "Help"   label action 
+                    (swing-menu "Help"   label action
                       '(help keystroke-help)))))
 
 (def welder-key-help (editor)
@@ -175,8 +175,8 @@
 
 (def htmlify-keybindings (bindings)
   (pr "<table border='1' width='100%'>")
-  (ontable k v bindings 
-    (pr "<tr><td>" k "</td>" 
+  (ontable k v bindings
+    (pr "<tr><td>" k "</td>"
         "<td>" (welder-actions*.v 'label) "</td>"
         "<td>" (welder-actions*.v 'help-text) "</td>"
         "</tr>"))
@@ -239,14 +239,14 @@
         (ws-char-names tok)
           (pr (ws-char-names tok))
           (withs (this-tok (read-atom tok) tok-type (type this-tok) bound-type nil)
-            (if (and this-tok (is tok-type 'sym) (no:ssyntax tok) (bound this-tok)) 
+            (if (and this-tok (is tok-type 'sym) (no:ssyntax tok) (bound this-tok))
                 (= bound-type (type (eval this-tok))))
-            (pr "<span class=\"" tok-type " " bound-type "\">") 
+            (pr "<span class=\"" tok-type " " bound-type "\">")
             (pr-escaped (render-token tok this-tok))
             (pr "</span>")))
     (return nil)))
   (pr "</pre>"))
-  
+
 (def to-html-string (text)
   (tostring:to-html-fragment text))
 
@@ -281,9 +281,9 @@
   (let ins (dot)
     (if (< ins (editor!caret 'getMark))
         (= ins (editor!caret 'getMark)))
-    (later (editor!doc 'insertString 
+    (later (editor!doc 'insertString
                        ins
-                       text 
+                       text
                        colour-scheme!default))))
 
 (def duplicate-line (editor)
@@ -292,23 +292,23 @@
           cond [no:is (text _) #\newline]
           (begin end) nil)
     (loop (= begin (dot))
-          (and (> begin 0) 
+          (and (> begin 0)
                (cond begin))
           (-- begin))
     (loop (= end (dot))
-          (and (< end text-len) 
+          (and (< end text-len)
                (cond end))
           (++ end))
-    (later (editor!doc 'insertString 
-                       begin 
-                       (editor!doc 'getText begin (- end begin)) 
+    (later (editor!doc 'insertString
+                       begin
+                       (editor!doc 'getText begin (- end begin))
                        colour-scheme!default))))
 
 (def find-right-matching (match text position index)
   (catch
     (each (tok start finish) index
-      (if (and (is tok match) 
-               (is start position)) 
+      (if (and (is tok match)
+               (is start position))
           (throw finish)))))
 
 (def highlight-match (editor position)
@@ -340,15 +340,15 @@
       (if (and (> finish begin) (< start end))
           (aif (syntax-char-names tok)
                  (colour-region doc
-                   (if (or (is tok 'right-paren) (is tok 'right-bracket)) (- finish 1) start) 
+                   (if (or (is tok 'right-paren) (is tok 'right-bracket)) (- finish 1) start)
                    (len it)
                    'syntax
                    t)
                (unmatched tok)
                  (colour-region doc
-                   start 
+                   start
                    1
-                   'unmatched-syntax 
+                   'unmatched-syntax
                    t)
                (colour-region doc
                  start
@@ -394,9 +394,9 @@
 
 (def colour-region (doc index length colour-key replace)
   (aif (and colour-key colour-scheme.colour-key)
-    (doc 'setCharacterAttributes 
-         index 
-         length 
+    (doc 'setCharacterAttributes
+         index
+         length
          it
          replace)))
 
@@ -418,17 +418,17 @@
                  (if hl-x
                      (do
                        (colourise-interval editor!index
-                                           editor!doc 
+                                           editor!doc
                                            hl-x (+ hl-x hl-len))
                        (wipe hl-x hl-len))))
     (def show    ()
-                 sf!show   
-                 (sf!getParent 'revalidate) 
+                 sf!show
+                 (sf!getParent 'revalidate)
                  tf!grabFocus)
     (def move    (hit-fn)
                  (unhilite)
                  (if hits
-                     (let hit (hit-fn) 
+                     (let hit (hit-fn)
                        (= hl-x hit hl-len (len search-term))
                        (editor!caret 'setDot hit)
                        (colour-region editor!doc
@@ -448,7 +448,7 @@
                  (unhilite)
                  sf!hide
                  (sf!getParent 'revalidate))
-    (on-key tf k 
+    (on-key tf k
       (if (is k 'escape)   (hide)
           (is k 'down)     (next)
           (is k 'up)       (prev)
@@ -471,7 +471,7 @@
     'background colour-scheme!background))
 
 (welder-init (editor)
-  (on-caret-move editor!pane (event) 
+  (on-caret-move editor!pane (event)
     (later (highlight-match editor event!getDot))))
 
 (welder-init (editor)
@@ -483,7 +483,7 @@
     (= editor!frame f)
     (= editor!show-help
        (help-window f))
-    (f 'setJMenuBar 
+    (f 'setJMenuBar
        (welder-menu editor))))
 
 (welder-init (editor)
@@ -503,13 +503,13 @@
     (= editor!search search)))
 
 (welder-init (editor)
-      (fill-table editor (list 
+      (fill-table editor (list
         'update-thread  (thread (follow-updates editor))
         'handle-key     (fn (keystroke)
                             (welder-keystroke editor keystroke))
         'select-region  (fn ((start finish))
-                            (editor!caret 'setDot (if (isa finish 'fn) 
-                                                      (finish start) 
+                            (editor!caret 'setDot (if (isa finish 'fn)
+                                                      (finish start)
                                                       finish))
                             (editor!caret 'moveDot start)))))
 

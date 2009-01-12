@@ -25,6 +25,7 @@
   <target name="compile-parser">
     <mkdir dir="${src}/rainbow/parser"/>
     <javacc target="${compiler-src}/ArcParser.jj" javacchome="${lib}" outputdirectory="${src}/rainbow/parser"/>
+    <javacc target="${compiler-src}/ComplexParser.jj" javacchome="${lib}" outputdirectory="${src}/rainbow/parser"/>
   </target>
 
   <target name="compile" depends="compile-parser">
@@ -59,7 +60,7 @@
         <include name="rainbow/build.xml"/>
       </fileset>
     </zip>
-    
+
     <copy todir="${dist}">
       <fileset dir="src">
         <include name="arc/**"/>

@@ -1,0 +1,84 @@
+options
+{
+    JAVA_UNICODE_ESCAPE=false;
+    UNICODE_INPUT=true;
+    LOOKAHEAD=1;
+    STATIC=false;
+}
+PARSER_BEGIN(ComplexParser)
+package rainbow.parser;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.FileNotFoundException;
+import rainbow.*;
+import rainbow.types.*;
+
+public class ComplexParser {
+  public ComplexParser(String expression) {
+    this(new ByteArrayInputStream(expression.getBytes()));
+  }
+
+  private String trimPlus(String s) {
+    if (s.charAt(0) == '+') {
+      return s.substring(1);
+    } else {
+      return s;
+    }
+  }
+}
+PARSER_END(ComplexParser)
+
+SKIP : { " " | "\r" | "\n" | "\t" }
+
+TOKEN: /* rational */
+{
+    < FRACTION : <INTEGER> "/" <UNSIGNED_INTEGER> >
+}
+
+TOKEN: /* double, integer */
+{
+    < DOUBLE            : (<SIGN>)? <UNSIGNED_DOUBLE>       >
+|   < UNSIGNED_DOUBLE   : <DOUBLE1> | <DOUBLE2>             >
+|   < #DOUBLE1          : <UNSIGNED_INTEGER> ["E","e"] <INTEGER> >
+|   < #DOUBLE2          : (<UNSIGNED_INTEGER>)? "." <UNSIGNED_INTEGER>  ( ["E","e"] <INTEGER> )? >
+|   < INTEGER           : (<SIGN>)? <UNSIGNED_INTEGER>      >
+|   < #UNSIGNED_INTEGER : (<DIGIT>)+                        >
+|   < DIGIT             : ["0"-"9"]                         >
+|   < #SIGN             : ["+","-"]                         >
+}
+
+TOKEN: /* infinities and NaN */
+{
+    < POS_INF           : "+inf.0" >
+|   < NEG_INF           : "-inf.0" >
+|   < NAN               : "+nan.0" >
+}
+
+Complex complex():         { ArcNumber real; ArcNumber imaginary; } {
+  ( "+i"                   { return new Complex(0, 1); }
+  | "-i"                   { return new Complex(0, -1); }
+  | (
+      real = number()
+      ( "+i"               { return new Complex(real, new Real(1)); }
+      | "-i"               { return new Complex(real, new Real(-1)); }
+      | imaginary = number()
+        "i"                { return new Complex(real, imaginary); }
+      )
+    )
+  )
+}
+
+ArcNumber number():           { Token s; ArcObject o; } {
+  ( s=<INTEGER>               { return Rational.make(Long.parseLong(trimPlus(s.toString())), 1);  }
+  | s=<DOUBLE>                { return Real.parse(s.toString());                        }
+  | s=<POS_INF>               { return Real.positiveInfinity();                         }
+  | s=<NEG_INF>               { return Real.negativeInfinity();                         }
+  | s=<NAN>                   { return Real.nan();                                      }
+  | s=<FRACTION>              { return Rational.parse(s.toString());                    }
+  )
+}

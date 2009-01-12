@@ -43,9 +43,9 @@
 (mac implement (class . body)
   `(java-implement ,class nil (obj ,@body)))
 
-(defcall java-object (jo method . args) 
-  (if (no args) 
-      (java-invoke jo method) 
+(defcall java-object (jo method . args)
+  (if (no args)
+      (java-invoke jo method)
       (java-invoke jo method args)))
 
 (def bean (class . args)
@@ -62,8 +62,8 @@
 (def j-enumeration (mapper xs)
   (java-implement "java.util.Enumeration" t (obj
     hasMoreElements (fn () xs)
-    nextElement     (fn () (let next (car xs) 
-                                (zap cdr xs) 
+    nextElement     (fn () (let next (car xs)
+                                (zap cdr xs)
                                 (mapper next))))))
 
 (mac atdef (name args . body)
@@ -91,7 +91,7 @@
 (def load-file (fname)
   (w/infile f fname
     (awhen (readc f)
-      (tostring 
+      (tostring
         (writec it)
         (whiler c (readc f) nil
           (writec c))))))

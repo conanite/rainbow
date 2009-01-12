@@ -22,9 +22,18 @@ public abstract class Maths {
       }, new Builtin("expt") {
         public ArcObject invoke(Pair args) {
           checkMaxArgCount(args, getClass(), 2);
-          double value = ((ArcNumber) args.car()).toDouble();
-          double exponent = ((ArcNumber) args.cdr().car()).toDouble();
-          return new Real(Math.pow(value, exponent));
+          ArcNumber base = (ArcNumber) args.car();
+          ArcNumber exp = (ArcNumber) args.cdr().car();
+          if (base instanceof Complex) {
+            return ((Complex)base).expt(exp);
+          } else if (exp instanceof Complex) {
+            Complex complexBase = new Complex(base, new Real(0.0));
+            return complexBase.expt(exp);
+          } else {
+            double value = base.toDouble();
+            double exponent = exp.toDouble();
+            return new Real(Math.pow(value, exponent));
+          }
         }
       }, new Builtin("rand") {
         public ArcObject invoke(Pair args) {
@@ -107,11 +116,66 @@ public abstract class Maths {
     });
   }
 
+  public static void extra(Environment bindings) {
+    bindings.addToNamespace((Symbol) Symbol.make("¹"), new Real(Math.PI));
+
+    bindings.add(new Builtin[] {
+      new Builtin("sin") {
+        protected ArcObject invoke(Pair args) {
+          checkMaxArgCount(args, getClass(), 1);
+          double result = Math.sin(ArcNumber.cast(args.car(), this).toDouble());
+          return new Real(result);
+        }
+      },
+      new Builtin("cos") {
+        protected ArcObject invoke(Pair args) {
+          checkMaxArgCount(args, getClass(), 1);
+          double result = Math.cos(ArcNumber.cast(args.car(), this).toDouble());
+          return new Real(result);
+        }
+      },
+      new Builtin("tan") {
+        protected ArcObject invoke(Pair args) {
+          checkMaxArgCount(args, getClass(), 1);
+          double result = Math.tan(ArcNumber.cast(args.car(), this).toDouble());
+          return new Real(result);
+        }
+      },
+      new Builtin("log") {
+        protected ArcObject invoke(Pair args) {
+          checkMaxArgCount(args, getClass(), 1);
+          ArcNumber arg = ArcNumber.cast(args.car(), this);
+          if (arg instanceof Complex) {
+            return ((Complex)arg).log();
+          } else {
+            return new Real(Math.log(arg.toDouble()));
+          }
+        }
+      },
+      new Builtin("complex-parts") {
+        protected ArcObject invoke(Pair args) {
+          checkMaxArgCount(args, getClass(), 1);
+          Complex x = Complex.cast(args.car(), this);
+          return Pair.buildFrom(x.realPart(), x.imaginaryPart());
+        }
+      },
+      new Builtin("polar-coordinates") {
+        protected ArcObject invoke(Pair args) {
+          checkMaxArgCount(args, getClass(), 1);
+          Complex x = Complex.cast(args.car(), this);
+          return Pair.buildFrom(new Real(x.radius()), new Real(x.theta()));
+        }
+      }
+    });
+  }
+
   private static MathsOps precision(Pair args) {
     if (args.isNil()) {
       return rationalOps;
     } else if (args.car() instanceof Real) {
       return doubleOps;
+    } else if (args.car() instanceof Complex) {
+      return complexOps;
     } else {
       return precision((Pair) args.cdr());
     }
@@ -181,6 +245,27 @@ public abstract class Maths {
       double first = ((ArcNumber) left).toDouble();
       double rest = multiplyDouble((Pair) args.cdr());
       return first * rest;
+    }
+  };
+
+  static MathsOps complexOps = new MathsOps() {
+    public Complex sum(Pair args) {
+      if (args.isNil()) {
+        return Complex.ZERO;
+      }
+      return Complex.make(args.car()).plus(sum((Pair) args.cdr()));
+    }
+
+    public Complex multiply(Pair args) {
+      if (args.isNil()) {
+        return new Complex(1, 0);
+      }
+
+      return Complex.make(args.car()).times(multiply((Pair) args.cdr()));
+    }
+
+    public ArcNumber divide(Pair args) {
+      return Complex.make(args.car()).times(multiply((Pair) args.cdr()).inverse());
     }
   };
 

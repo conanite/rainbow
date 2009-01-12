@@ -9,6 +9,18 @@ public class Real extends ArcNumber {
     this.value = value;
   }
 
+  public static Real positiveInfinity() {
+    return new Real(Double.POSITIVE_INFINITY);
+  }
+
+  public static Real negativeInfinity() {
+    return new Real(Double.NEGATIVE_INFINITY);
+  }
+
+  public static Real nan() {
+    return new Real(Double.NaN);
+  }
+
   public static Real parse(String rep) {
     return make(Double.parseDouble(rep));
   }
@@ -18,7 +30,17 @@ public class Real extends ArcNumber {
   }
 
   public String toString() {
-    return new DecimalFormat("0.0##############").format(value);
+    if (Double.isInfinite(value)) {
+      if (value < 0) {
+        return "-inf.0";
+      } else {
+        return "+inf.0";
+      }
+    } else if (Double.isNaN(value)) {
+      return "+nan.0";
+    } else {
+      return new DecimalFormat("0.0##############").format(value);
+    }
   }
 
   public ArcObject eqv(ArcObject other) {
