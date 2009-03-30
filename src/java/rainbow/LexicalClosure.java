@@ -24,7 +24,7 @@ public class LexicalClosure {
     bindings[count] = value;
     count++;
   }
-  
+
   public LexicalClosure nth(int n) {
     return (n == 0) ? this : parent.nth(n - 1);
   }
@@ -44,5 +44,17 @@ public class LexicalClosure {
 
   public void set(int index, ArcObject o) {
     bindings[index] = o;
+  }
+
+  public boolean finished() {
+    return count == bindings.length;
+  }
+
+  public int count() {
+    return count;
+  }
+
+  public int size() {
+    return bindings.length;
   }
 }

@@ -60,11 +60,19 @@
   target)
 
 (def j-enumeration (mapper xs)
-  (java-implement "java.util.Enumeration" t (obj
+  (implement "java.util.Enumeration"
     hasMoreElements (fn () xs)
     nextElement     (fn () (let next (car xs)
                                 (zap cdr xs)
-                                (mapper next))))))
+                                (mapper next)))))
+
+(def to-iterator (xs)
+  (implement "java.util.Iterator"
+    hasNext (fn () xs)
+    next    (fn () (let next (car xs)
+                             (zap cdr xs)
+                             next))))
+
 
 (mac atdef (name args . body)
   `(def ,name ,args (atomic ,@body)))
@@ -89,7 +97,7 @@
         (load it)))))
 
 (def load-file (fname)
-  (w/infile f fname
+  (w/infile f (if (is (type fname) 'string) fname (coerce fname 'string))
     (awhen (readc f)
       (tostring
         (writec it)

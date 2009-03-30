@@ -1,5 +1,6 @@
 package rainbow.vm.continuations;
 
+import rainbow.ArcError;
 import rainbow.LexicalClosure;
 import rainbow.functions.InterpretedFunction;
 import rainbow.types.ArcObject;
@@ -61,11 +62,14 @@ public class NamespaceBuilder extends ContinuationSupport {
     shift();
     start();
   }
-  
+
   private void finished() {
     if (f == null) {
       ((NamespaceBuilder)caller).start();
     } else {
+      if (!lc.finished()) {
+        throw new ArcError("Expected " + lc.size() + " arguments, got " + lc.count() + " for function " + f);
+      }
       FunctionEvaluator.evaluate(thread, lc, caller, f);
     }
   }

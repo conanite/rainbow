@@ -35,7 +35,7 @@ public class Typing {
         }
       }
     });
-    
+
     if (Console.ANARKI_COMPATIBILITY) {
       top.add(new Builtin[] {
         new Builtin("ref") {
@@ -46,7 +46,7 @@ public class Typing {
       });
     }
   }
-  
+
   private static void ref(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
     ArcObject target = args.car();
     Function refFn = null;
@@ -197,7 +197,7 @@ public class Typing {
           base = Rational.TEN;
         }
         String source = ((ArcString) original).value();
-        if (source.contains(".") || source.toUpperCase().contains("E")) {
+        if (source.contains(".") || (base.toInt() < 15 && source.matches(".+[eE].+"))) {
           return coerceDouble(source, base.toInt());
         } else if (source.contains("/")) {
           return coerceFraction(source, base.toInt());

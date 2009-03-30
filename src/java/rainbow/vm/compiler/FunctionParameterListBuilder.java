@@ -7,9 +7,7 @@ import rainbow.types.Symbol;
 import rainbow.vm.ArcThread;
 import rainbow.vm.continuations.ContinuationSupport;
 import rainbow.vm.continuations.NamespaceBuilder;
-import rainbow.vm.compiler.FunctionBodyBuilder;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +17,6 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
   private ArcObject parameters;
   private Map[] lexicalBindings;
   List result = new LinkedList();
-  Map indexed = new HashMap();
   private ArcObject optionalParamName;
 
   public FunctionParameterListBuilder(ArcThread thread, LexicalClosure lc, FunctionBodyBuilder caller, ArcObject parameters, Map[] lexicalBindings) {
@@ -69,7 +66,7 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
     if (parameterList.isNil()) {
       return;
     }
-    
+
     if (parameterList instanceof Pair) {
       if (optionable && NamespaceBuilder.optional(parameterList)) {
         index(parameterList.cdr().car(), map, i, true);

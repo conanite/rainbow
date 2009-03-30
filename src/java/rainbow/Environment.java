@@ -20,6 +20,7 @@ public class Environment {
     Typing.collect(this);
     ThreadLocals.collect(this);
     Threads.collect(this);
+    FileSystem.collect(this);
 
     addBuiltin("t", ArcObject.T);
     addBuiltin("uniq", new Uniq());
@@ -69,11 +70,6 @@ public class Environment {
     addBuiltin("instring", new StringIO.InString());
     addBuiltin("outstring", new StringIO.OutString());
     addBuiltin("inside", new StringIO.Inside());
-    addBuiltin("infile", new FileSystem.InFile());
-    addBuiltin("outfile", new FileSystem.OutFile());
-    addBuiltin("dir", new FileSystem.Dir());
-    addBuiltin("dir-exists", new FileSystem.DirExists());
-    addBuiltin("file-exists", new FileSystem.FileExists());
     addBuiltin("rmfile", new FileSystem.RmFile());
     addBuiltin("open-socket", new Network.OpenSocket());
     addBuiltin("socket-accept", new Network.SocketAccept());

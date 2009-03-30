@@ -118,6 +118,7 @@ public abstract class Maths {
 
   public static void extra(Environment bindings) {
     bindings.addToNamespace((Symbol) Symbol.make("¹"), new Real(Math.PI));
+    bindings.addToNamespace((Symbol) Symbol.make("pi"), new Real(Math.PI));
 
     bindings.add(new Builtin[] {
       new Builtin("sin") {

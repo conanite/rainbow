@@ -71,18 +71,18 @@
   )
 
   (suite "sine"
-    ("sin of pi/6 is 0.5"      (<  0.4999 (sin (/ ¹ 6)) 0.5001)   t)
-    ("sin of pi is 0"          (< -0.0001 (sin ¹)       0.0001)   t)
+    ("sin of pi/6 is 0.5"      (<  0.4999 (sin (/ pi 6)) 0.5001)   t)
+    ("sin of pi is 0"          (< -0.0001 (sin pi)       0.0001)   t)
     ("sin of 0 is 0"           (< -0.0001 (sin 0)        0.0001)   t)
-    ("sin of pi/2 is 1"        (sin (/ ¹ 2)) 1.0))
+    ("sin of pi/2 is 1"        (sin (/ pi 2)) 1.0))
 
   (suite "cosine"
     ("cos of 0 is 1"           (cos 0) 1.0)
-    ("cos of pi is 1"          (cos ¹) -1.0)
-    ("cos of pi/3 is 0.5"      (< 0.4999  (cos (/ ¹ 3)) 0.5001)   t)
-    ("cos of pi/2 is 0"        (< -0.0001 (cos (/ ¹ 2)) 0.0001)   t))
+    ("cos of pi is 1"          (cos pi) -1.0)
+    ("cos of pi/3 is 0.5"      (< 0.4999  (cos (/ pi 3)) 0.5001)   t)
+    ("cos of pi/2 is 0"        (< -0.0001 (cos (/ pi 2)) 0.0001)   t))
 
   (suite "tangent"
-    ("tan of pi/4 is 1"        (< 0.9999  (tan (/ ¹ 4)) 1.0001)   t)
+    ("tan of pi/4 is 1"        (< 0.9999  (tan (/ pi 4)) 1.0001)   t)
     ("tan of 0 is 0"           (tan 0) 0.0)
-    ("tan of pi is 0"          (< -0.0001 (tan ¹)       0.0001)   t))))
+    ("tan of pi is 0"          (< -0.0001 (tan pi)       0.0001)   t))))

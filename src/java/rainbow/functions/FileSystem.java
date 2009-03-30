@@ -1,15 +1,31 @@
 package rainbow.functions;
 
-import rainbow.types.*;
 import rainbow.ArcError;
+import rainbow.Environment;
+import rainbow.Truth;
+import rainbow.types.*;
 
 import java.io.File;
-import java.util.List;
-import java.util.LinkedList;
 import java.util.ArrayList;
+import java.util.List;
 
 public class FileSystem {
+  public static void collect(Environment e) {
+    e.add(new Builtin[]{
+            new OutFile(),
+            new InFile(),
+            new DirExists(),
+            new FileExists(),
+            new Dir(),
+            new RmFile(),
+            new MakeDirectory(),
+            new MakeDirectories()
+    });
+  }
+
   public static class OutFile extends Builtin {
+    public OutFile() { super("outfile"); }
+
     public ArcObject invoke(Pair args) {
       String name = ArcString.cast(args.car(), this).value();
       ArcObject appendSymbol = args.cdr().car();
@@ -19,12 +35,16 @@ public class FileSystem {
   }
 
   public static class InFile extends Builtin {
+    public InFile() { super("infile"); }
+
     public ArcObject invoke(Pair args) {
       return new FileInputPort(ArcString.cast(args.car(), this).value());
     }
   }
 
   public static class DirExists extends Builtin {
+    public DirExists() { super("dir-exists"); }
+
     public ArcObject invoke(Pair args) {
       String path = ArcString.cast(args.car(), this).value();
       File dir = new File(path);
@@ -37,6 +57,8 @@ public class FileSystem {
   }
 
   public static class FileExists extends Builtin {
+    public FileExists() { super("file-exists"); }
+
     public ArcObject invoke(Pair args) {
       String path = ArcString.cast(args.car(), this).value();
       File file = new File(path);
@@ -49,6 +71,8 @@ public class FileSystem {
   }
 
   public static class Dir extends Builtin {
+    public Dir() { super("dir"); }
+
     public ArcObject invoke(Pair args) {
       String path = ArcString.cast(args.car(), this).value();
       File dir = new File(path);
@@ -65,6 +89,8 @@ public class FileSystem {
   }
 
   public static class RmFile extends Builtin {
+    public RmFile() { super("rmfile"); }
+
     public ArcObject invoke(Pair args) {
       String path = ArcString.cast(args.car(), this).value();
       File f = new File(path);
@@ -73,6 +99,34 @@ public class FileSystem {
         throw new ArcError("rmfile: unable to delete " + path);
       }
       return NIL;
+    }
+  }
+
+  public static class MakeDirectory extends Builtin {
+    public MakeDirectory() { super("make-directory"); }
+
+    public ArcObject invoke(Pair args) {
+      String path = ArcString.cast(args.car(), this).value();
+      File f = new File(path);
+      if (f.exists() && !f.isDirectory()) {
+        throw new ArcError("make-directory: file exists and is not a directory: " + f);
+      }
+
+      return f.mkdir() ? Truth.T : Truth.NIL;
+    }
+  }
+
+  public static class MakeDirectories extends Builtin {
+    public MakeDirectories() { super("make-directory*"); }
+
+    public ArcObject invoke(Pair args) {
+      String path = ArcString.cast(args.car(), this).value();
+      File f = new File(path);
+      if (f.exists() && !f.isDirectory()) {
+        throw new ArcError("make-directory: file exists and is not a directory: " + f);
+      }
+
+      return f.mkdirs() ? Truth.T : Truth.NIL;
     }
   }
 }
