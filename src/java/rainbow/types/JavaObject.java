@@ -1,32 +1,13 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.cheat.NoWrapTextPane;
+import rainbow.Environment;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreePath;
-import javax.swing.undo.UndoableEdit;
-import javax.swing.undo.UndoManager;
-import javax.swing.plaf.basic.BasicTextUI;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.StyleSheet;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.*;
-import javax.swing.event.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.List;
-import java.awt.event.*;
-import java.awt.*;
-import java.io.IOException;
-import java.io.Reader;
-import java.beans.PropertyChangeListener;
 
 public class JavaObject extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("java-object");
@@ -74,7 +55,33 @@ public class JavaObject extends ArcObject {
   }
 
   public static Object staticInvoke(String className, String methodName, Pair args) {
-    return invokeMethod(null, toClass(className), methodName, args);
+    if (Environment.debugJava) {
+      System.out.println("java:static invoke " + methodName + " on " + className + " with args " + truncateString(args));
+    }
+    Class c = toClass(className);
+    try {
+      return invokeMethod(null, c, methodName, args);
+    } catch (Exception e) {
+      try {
+        Field field = c.getField(methodName);
+        if (!args.isNil()) {
+          field.set(null, unwrap(args.car(), field.getType()));
+          return null;
+        } else {
+          return field.get(null);
+        }
+      } catch (Exception e1) {
+        throw new ArcError("Unable to access method or field " + methodName + " on " + className);
+      }
+    }
+  }
+
+  private static String truncateString(Object o) {
+    String s = o.toString();
+    if (s.length() > 100) {
+      s = s.substring(0, 100);
+    }
+    return s;
   }
 
   public ArcObject type() {
@@ -185,6 +192,15 @@ public class JavaObject extends ArcObject {
   private static final Map methodCache = new HashMap();
 
   private static Method findMethod(Class c, String methodName, Pair args) {
+    Method m = findMethodIfPresent(c, methodName, args);
+    if (m == null) {
+      throw new ArcError("no method " + methodName + " found on " + c + " to accept " + args);
+    } else {
+      return m;
+    }
+  }
+
+  private static Method findMethodIfPresent(Class c, String methodName, Pair args) {
     String key = c.getName() + methodName + types(args);
     if (methodCache.containsKey(key)) {
       return (Method) methodCache.get(key);
@@ -197,7 +213,7 @@ public class JavaObject extends ArcObject {
         return method;
       }
     }
-    throw new ArcError("no method " + methodName + " found on " + c + " to accept " + args);
+    return null;
   }
 
   private static String types(ArcObject args) {

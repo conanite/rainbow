@@ -43,10 +43,6 @@ public class Real extends ArcNumber {
     }
   }
 
-  public ArcObject eqv(ArcObject other) {
-    return ((Real) other).value == value ? T : NIL;
-  }
-
   public Object unwrap() {
     if (isInteger()) {
       return (long) value();
@@ -80,6 +76,9 @@ public class Real extends ArcNumber {
   }
 
   public boolean equals(Object other) {
+    if (other instanceof Complex) {
+      return ((Complex)other).isSame(this);
+    }
     return (this == other) || (other instanceof Real && value == ((Real) other).value);
   }
 }

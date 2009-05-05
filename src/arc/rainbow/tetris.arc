@@ -9,7 +9,7 @@
     (for ,col-var 0 3
       (if (shape-info (shape-cell-key ,colour-var ,rotation ,row-var ,col-var))
         (do ,@body)))))
-        
+
 (mac tetrisop (name args . body)
   (w/uniq (gv)
     `(atdef ,name ,args
@@ -23,7 +23,6 @@
             (update-updates cell-updates*)
             ,gv)))))
 
-(set key-rotate* #\u key-left* #\h key-right* #\k key-drop* #\j key-new* #\n key-pause* #\p)
 (set tetris-width* 8 tetris-height* 20 acceleration* 1.01)
 (set colours nil shape-info (table) universe-cells* (table) shape-rotations (table) game-thread* nil)
 
@@ -82,10 +81,16 @@
     (prn)
     (frame 'setContentPane jp)))
 
-(def game-setup (key-bindings universe-cells)
+(def game-setup (universe-cells)
   (let f (frame 300 150 300 700 "Arc Tetris")
     (tetris-view f tetris-height* tetris-width* universe-cells)
-    (on-char f key-bindings)
+    (on-key-press f
+      up    (rotate-shape)
+      down  (drop-shape)
+      left  (move-shape -1)
+      right (move-shape 1)
+      n     (new-game)
+      p     (zap [no _] paused*))
     f!pack
     (f 'setSize 300 700)
     f!show
@@ -179,25 +184,16 @@
 (def repaint-cell (k colour)
   (universe-cells*.k (or colour 'black)))
 
-(def tetris-keybindings ()
-  (key-dispatcher
-    key-new*    (new-game)
-    key-pause*  (if paused* (wipe paused*) (assert paused*))
-    key-rotate* (rotate-shape)
-    key-left*   (move-shape -1)
-    key-right*  (move-shape 1)
-    key-drop*   (drop-shape)))
-
 (def game-help ()
-  (prn "pause      : " key-pause*)
-  (prn "rotate     : " key-rotate*)
-  (prn "move left  : " key-left*)
-  (prn "move right : " key-right*)
-  (prn "drop       : " key-drop*)
-  (prn "new game   : " key-new*))
+  (prn "pause      : p")
+  (prn "rotate     : up")
+  (prn "move left  : left")
+  (prn "move right : right")
+  (prn "drop       : down")
+  (prn "new game   : n"))
 
 (def tetris ()
-  (game-setup (tetris-keybindings) universe-cells*)
+  (game-setup universe-cells*)
   (game-help)
   (new-game))
   

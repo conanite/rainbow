@@ -136,4 +136,12 @@ public class Complex extends ArcNumber {
       throw new ArcError("Can't make complex number from " + o);
     }
   }
+
+  public boolean isSame(ArcObject other) {
+    if (other instanceof Complex) {
+      return ((Complex)other).real == this.real && ((Complex)other).imaginary == this.imaginary;
+    } else {
+      return other instanceof ArcNumber && imaginary == 0.0 && ((ArcNumber) other).toDouble() == this.real;
+    }
+  }
 }

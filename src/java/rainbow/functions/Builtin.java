@@ -6,7 +6,6 @@ import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.types.SocketInputPort;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
@@ -40,6 +39,7 @@ public abstract class Builtin extends ArcObject implements Function {
 
   public static void checkMaxArgCount(Pair args, Class functionClass, int maxArgs) {
     if (args.size() > maxArgs) {
+      System.out.println(functionClass + " got args " + args + " was expecting at most " + maxArgs);
       throw new ArcError(functionClass.getSimpleName().toLowerCase() + " expects at most " + maxArgs + " arguments: given " + args);
     }
   }

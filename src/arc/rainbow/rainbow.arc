@@ -1,3 +1,15 @@
+(mac dbg-var (var)
+  (w/uniq gvar
+    `(let ,gvar ,var
+       (ero ',var 'is ,gvar)
+       ,gvar)))
+
+(mac java-import (class)
+  (let simple-name (last:tokens class #\.)
+    `(mac ,(sym simple-name) (method . args)
+       (if (is method 'new) `(java-new ,,class ,@args)
+                            `(java-static-invoke ,,class ',method ,@args)))))
+
 (mac alet (val . body)
   `(let it ,val
        ,@body
@@ -8,7 +20,7 @@
 
 (with ((make-def double-each) nil)
   (= make-def (fn ((name args . body))
-     `(def ,name ,args ,@body)))
+     `(= ,name (fn ,args ,@body))))
   (mac make-obj args
     "args are of the form (name (args) body),
      make-obj returns a hash where each name keys

@@ -36,10 +36,24 @@
         (java-implement "java.awt.event.ActionListener" t (obj actionPerformed (fn (action-event) ,@action))))
     ,jb)))
 
+(mac key-dispatcher bindings
+   (w/uniq gkey
+     `(fn (,gkey)
+          (if ,@((afn (bb1)
+                      (if bb1
+                        (let (key-char body) (car bb1)
+                          (cons `(is ,gkey ',key-char)
+                                 (cons body (self (cdr bb1))))))) (pair bindings))))))
+
 (mac on-key (component var . actions)
   (w/uniq (gev)
   `(,component 'addKeyListener (java-implement "java.awt.event.KeyListener" nil (obj keyPressed
     (fn (,gev) (let ,var (convert-key-event ,gev) ,@actions)))))))
+
+(mac on-key-press (component . key-bindings)
+  (w/uniq (gev)
+  `(,component 'addKeyListener (java-implement "java.awt.event.KeyListener" nil (obj keyPressed
+    (fn (,gev) ((key-dispatcher ,@key-bindings) (convert-key-event ,gev))))))))
 
 (mac on-char (component fun)
   `(,component 'addKeyListener (java-implement "java.awt.event.KeyListener" nil
@@ -104,7 +118,7 @@
     (= it!pane      (java-new "rainbow.cheat.NoWrapTextPane"))
     (= it!doc       (it!pane 'getDocument))
     (= it!caret     (it!pane 'getCaret))
-    (on-key it!pane keystroke (it!handle-key keystroke))))
+    (on-key it!pane k (it!handle-key k))))
 
 (def selected-text (editor else)
   (or (editor!pane 'getSelectedText)
@@ -129,15 +143,6 @@
       (if components (do
         (it 'add (car components))
         (self (cdr components))))) content)))
-
-(mac key-dispatcher bindings
-   (let bb (pair bindings)
-     `(fn (key)
-          (if ,@((afn (bb1)
-                      (if bb1
-                        (let (key-char body) (car bb1)
-                          (cons `(is key ,key-char)
-                                 (cons body (self (cdr bb1))))))) bb)))))
 
 (def open-text-area (text)
   (let editor (text-area)

@@ -1,6 +1,3 @@
-(def file-name (f)
-  (last:tokens "/" f))
-
 (def fs-view (parent stringifier root)
   (let this nil
     (= this (java-implement '("javax.swing.tree.TreeNode" "java.util.Map$Entry") t (make-obj
@@ -41,8 +38,7 @@
           sc (scroll-pane tree colour-scheme!background))
     (on-key tree k
       (if (is k 'enter)
-          (welder ((tree!getSelectionPath 'getLastPathComponent) 'getValue)))
-    )
+          (welder ((tree!getSelectionPath 'getLastPathComponent) 'getValue))))
     (f 'add sc)
     f!pack
     f!show))

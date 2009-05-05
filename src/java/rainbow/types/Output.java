@@ -1,7 +1,6 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.functions.Builtin;
 
 import java.io.PrintStream;
 

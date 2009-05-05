@@ -34,14 +34,14 @@ public class Console {
     Environment environment = new Environment();
     environment.addToNamespace((Symbol) Symbol.make("*argv*"), Pair.buildFrom(programArgs));
     environment.addToNamespace((Symbol) Symbol.make("*env*"), getEnvironment());
-    
+
     if (!argv.present("--no-libs")) {
-      loadFile(environment, path, "arc.arc");
-      loadFile(environment, path, "strings.arc");
-      loadFile(environment, path, "rainbow/rainbow.arc");
-      loadFile(environment, path, "rainbow/rainbow-libs.arc");
+      loadFile(environment, path, "arc");
+      loadFile(environment, path, "strings");
+      loadFile(environment, path, "rainbow/rainbow");
+      loadFile(environment, path, "rainbow/rainbow-libs");
     }
-    
+
     loadAll(environment, path, argv.multi("-f"));
 
     interpretAll(environment, argv.multi("-e"));
@@ -63,6 +63,7 @@ public class Console {
             "\n   -e expr ...  evaluate expr                                " +
             "\n   -q           quit after -e or -f, don't enter the REPL    " +
             "\n   --no-libs    don't load any arc libraries                 " +
+            "\n   -args xyz    (if specified must be last) set symbol *argv* to xyz" +
             "\n");
   }
 
@@ -117,7 +118,7 @@ public class Console {
 
   public static File find(String[] arcPath, String filePath) throws IOException {
     for (String s : arcPath) {
-      File f = new File(s + "/" + filePath);
+      File f = new File(s + "/" + filePath + ".arc");
       if (f.exists() && !f.isDirectory()) {
         return f.getCanonicalFile();
       }
@@ -173,11 +174,11 @@ public class Console {
         return strings;
       }
     }
-    
+
     List result = new ArrayList();
     result.add(cwd);
     result.addAll(elements);
-    
+
     return (String[]) result.toArray(new String[result.size()]);
   }
 }

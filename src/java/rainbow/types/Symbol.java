@@ -2,7 +2,6 @@ package rainbow.types;
 
 import rainbow.ArcError;
 import rainbow.Environment;
-import rainbow.Truth;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -58,10 +57,6 @@ public class Symbol extends ArcObject {
 
   public Object unwrap() {
     return name();
-  }
-
-  public ArcObject eqv(ArcObject other) {
-    return Truth.valueOf(equals(other));
   }
 
   public int hashCode() {

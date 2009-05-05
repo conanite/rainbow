@@ -121,7 +121,9 @@ public class Typing {
           base = Rational.TEN;
         }
         ArcNumber n = (ArcNumber) original;
-        if (n instanceof Real && base.toInt() != 10) {
+        if (n instanceof Complex) {
+          return stringify((Complex) n);
+        } else if (n instanceof Real && base.toInt() != 10) {
           return cantCoerce();
         } else if (n instanceof Rational) {
           return stringify((Rational) n, base);
@@ -208,6 +210,10 @@ public class Typing {
     });
   }
 
+  private static ArcObject stringify(Complex c) {
+    return ArcString.make(c.toString());
+  }
+
   private static ArcObject stringify(Rational rational, ArcNumber base) {
     String num = Long.toString(rational.numerator(), (int) base.toInt());
     if (rational.isInteger()) {
@@ -240,6 +246,11 @@ public class Typing {
   }
 
   private static ArcObject coerceDouble(String source, long base) {
+    boolean negative = false;
+    if (source.startsWith("-")) {
+      negative = true;
+      source = source.substring(1);
+    }
     source = source.toUpperCase();
     if (!source.contains("E")) {
       source = source + "E0";
@@ -259,6 +270,9 @@ public class Typing {
     double exponent = Math.pow(base, Long.parseLong(parts[1], (int) base));
 
     double result = (integral + decimal) * exponent;
+    if (negative) {
+      result = -result;
+    }
     return Real.make(result);
   }
 

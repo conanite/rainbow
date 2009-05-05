@@ -27,7 +27,7 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
   }
 
   public void start() {
-    if (parameters.isNil() || !(parameters instanceof Pair)) {
+    if (parameters.isNotPair()) {
       if (result.size() == 0) {
         caller.receive(parameters);
       } else {

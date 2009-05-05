@@ -10,6 +10,7 @@ package rainbow.parser;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ArrayList;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,11 +27,12 @@ public class ArcParser {
   private static String cleanString(String s) {
     StringBuffer sb = new StringBuffer();
     boolean escaping = false;
-    for (int i = 1; i < s.length() - 1; i++) {
+    for (int i = 0; i < s.length(); i++) {
       char c = s.charAt(i);
       if (escaping) {
         escaping = false;
         switch (c) {
+          case '#'  : sb.append("\\#"); break;
           case 'n'  : sb.append('\n'); break;
           case 't'  : sb.append('\t'); break;
           case 'r'  : sb.append('\r'); break;
@@ -89,10 +91,20 @@ TOKEN : /* identifier */
 | < #SUBSEQUENT : <INITIAL> | <DIGIT> | <SPECIAL_SUBSEQUENT> >
 }
 
-TOKEN : /* string */
+TOKEN :
 {
-  < STRING : "\"" ( <STRING_ELEMENT> )* "\"" >
-| < #STRING_ELEMENT : ~["\"","\\"] | "\\" ["\"","\\", "n", "r", "t"] >
+   < START_STRING : "\"" > : IN_STRING
+}
+
+<IN_STRING> TOKEN :
+{
+  < START_INTERPOLATION : "#(" > : DEFAULT
+| < TRAILING_HASH : "#" >
+| < STRING_CONTENT : ( <STRING_ELEMENT> | <ALLOW> | <ESCAPED> )+ >
+| < #ALLOW : "\\#(" | "#" <ESCAPED> | "#" ~["(","\"","\\"]   >
+| < #ESCAPED : "\\" ["\"","\\", "n", "r", "t"] >
+| < #STRING_ELEMENT : ~["\"","\\", "#"] >
+| < END_STRING : "\"" > : DEFAULT
 }
 
 TOKEN : /* dot - cons separator */
@@ -195,6 +207,44 @@ ArcObject list():             {
                               }
 }
 
+ArcObject string():           {
+                                Token s;
+                                Token hash = null;
+                                ArcObject o;
+                                List result = new ArrayList();
+                                String fragment;
+                              } {
+  <START_STRING>
+  (
+    s=<STRING_CONTENT>
+    ( hash = <TRAILING_HASH> )?
+                              {
+                                fragment = s.toString();
+                                if (hash != null) {
+                                  fragment += "#";
+                                }
+                                result.add(ArcString.make(cleanString(fragment)));
+                              }
+  | s=<START_INTERPOLATION>
+    o=expression()            { result.add(o); }
+    s=")"                     {
+                                this.token_source.SwitchTo(ArcParser.IN_STRING);
+                              }
+  )*
+  <END_STRING>                {
+                                if (result.size() == 0) {
+                                  return ArcString.make("");
+                                } else if (result.size() == 1) {
+                                  return (ArcObject)result.get(0);
+                                } else {
+                                  List interpolated = new ArrayList(result.size() + 1);
+                                  interpolated.add(Symbol.make("string"));
+                                  interpolated.addAll(result);
+                                  return Pair.buildFrom(interpolated);
+                                }
+                              }
+}
+
 ArcObject atom():             { Token s; ArcObject o; } {
   ( s=<COMPLEX>               { return Complex.parse(s.toString());                     }
   | s=<INTEGER>               { return Rational.make(Long.parseLong(s.toString()), 1);  }
@@ -203,7 +253,7 @@ ArcObject atom():             { Token s; ArcObject o; } {
   | s=<NEG_INF>               { return Real.negativeInfinity();                         }
   | s=<NAN>                   { return Real.nan();                                      }
   | s=<FRACTION>              { return Rational.parse(s.toString());                    }
-  | s=<STRING>                { return ArcString.make(cleanString(s.toString()));       }
+  | o=string()                { return o;                                               }
   | s=<IDENTIFIER>            { return Symbol.make(s.toString());                       }
   | s=<CHARACTER>             { return ArcCharacter.make(s.toString());                 }
   )

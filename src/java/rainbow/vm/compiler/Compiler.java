@@ -39,7 +39,6 @@ public class Compiler extends ContinuationSupport {
         }
       }
       caller.receive(expression);
-//      caller.receive(thread.environment().bindingFor((Symbol) expression));
     } else {
       caller.receive(expression);
     }
@@ -52,7 +51,6 @@ public class Compiler extends ContinuationSupport {
     } else {
       ArcObject fun = expression.car();
       if (Symbol.is("quote", fun)) {
-//        caller.receive(Pair.buildFrom(thread.environment().bindingFor((Symbol) fun), expression.cdr()));
         caller.receive(expression);
       } else if (fun == QuasiQuoteCompiler.QUASIQUOTE) {
         Rebuilder rebuilder = new Rebuilder(caller, QuasiQuoteCompiler.QUASIQUOTE);

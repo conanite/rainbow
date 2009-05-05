@@ -2,7 +2,6 @@ package rainbow.types;
 
 import rainbow.ArcError;
 import rainbow.Environment;
-import rainbow.Truth;
 
 public class ArcCharacter extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("char");
@@ -117,10 +116,6 @@ public class ArcCharacter extends ArcObject {
 
   public boolean isSame(ArcObject other) {
     return equals(other);
-  }
-
-  public ArcObject eqv(ArcObject other) {
-    return Truth.valueOf(equals(other));
   }
 
   public static ArcCharacter cast(ArcObject argument, Object caller) {

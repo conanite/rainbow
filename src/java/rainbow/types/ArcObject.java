@@ -1,14 +1,16 @@
 package rainbow.types;
 
-import rainbow.*;
-import rainbow.parser.Token;
+import rainbow.ArcError;
+import rainbow.Environment;
+import rainbow.Nil;
+import rainbow.Truth;
 
 public abstract class ArcObject {
   public static final Nil NIL = Nil.NIL;
   public static final Truth T = Truth.T;
 
   public Hash source;
-  
+
   public ArcObject eval(Environment env) {
     return this;
   }
@@ -33,10 +35,6 @@ public abstract class ArcObject {
     return false;
   }
 
-  public ArcObject eqv(ArcObject other) {
-    return Truth.valueOf(this == other);
-  }
-
   public abstract ArcObject type();
 
   public ArcObject copy() {
@@ -50,15 +48,19 @@ public abstract class ArcObject {
   public boolean isSame(ArcObject other) {
     return this == other;
   }
-  
+
   public void source(Hash source) {
     this.source = source;
   }
-  
+
   public Hash source() {
     if (source == null) {
       source = new Hash();
     }
     return source;
+  }
+
+  public boolean isNotPair() {
+    return isNil() || !(this instanceof Pair);
   }
 }

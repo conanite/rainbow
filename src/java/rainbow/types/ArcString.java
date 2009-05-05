@@ -1,10 +1,12 @@
 package rainbow.types;
 
-import rainbow.types.ArcObject;
-import rainbow.*;
+import rainbow.ArcError;
+import rainbow.Environment;
+import rainbow.Function;
+import rainbow.LexicalClosure;
+import rainbow.functions.Builtin;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.functions.Builtin;
 
 public class ArcString extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("string");
@@ -66,10 +68,6 @@ public class ArcString extends ArcObject {
 
   public int compareTo(ArcObject right) {
     return value.compareTo(((ArcString) right).value);
-  }
-
-  public ArcObject eqv(ArcObject other) {
-    return Truth.valueOf(equals(other));
   }
 
   public ArcObject type() {

@@ -17,6 +17,38 @@
       (test-complex (- 12+12i 2.5+2.5i 3.5+2.5i))
       (6 7))
 
+    ("equality"
+      (is 1.23+4.56i 1.23+4.56i)
+      t)
+
+    ("equality with real numbers"
+      (is 1.23+0i 1.23)
+      t)
+
+    ("equality with real numbers in the other direction"
+      (is 1.23 1.23+0i)
+      t)
+
+    ("not equal to a different number"
+      (is 1.23+4.56i 99+99i)
+      nil)
+
+    ("not equal to a different real number"
+      (is 1.23+0i 99.99)
+      nil)
+
+    ("not equal to a different real number in the other direction"
+      (is 99.99 1.23+0i)
+      nil)
+
+    ("definitely not equal to a different real number"
+      (is 1.23+4.56i 99.99)
+      nil)
+
+    ("definitely not equal to a different real number in the other direction"
+      (is 99.99 1.23+4.56i)
+      nil)
+
     ("multiplication by scalar"
       (test-complex (* 2 3.5+2.5i))
       (7 5))
@@ -68,6 +100,14 @@
     ("complex logarithm"
       (test-complex-precise (log 1+2i))
       (8047 11071))
+
+    ("create from parts"
+      (make-complex 1.23 4.56)
+      1.23+4.56i)
+
+    ("create from negative parts"
+      (make-complex -0.123 -0.456)
+      -0.123-0.456i)
   )
 
   (suite "sine"

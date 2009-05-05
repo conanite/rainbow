@@ -1,11 +1,11 @@
 
-(def bm (times fun)
+(def bm (times fun (o verbose nil))
   (with (mintime 2000000000 maxtime 0 totaltime 0 now nil)
     (for i 0 (- times 1)
       (= now (msec))
       (fun)
       (let elapsed (- (msec) now)
-        (prn i " . " elapsed)
+        (if verbose (prn i " . " elapsed))
         (zap [min _ elapsed] mintime)
         (zap [max _ elapsed] maxtime)
         (zap [+ _ elapsed] totaltime)))

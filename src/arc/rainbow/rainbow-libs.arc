@@ -21,13 +21,20 @@
     "lib/tests/parser-test"
     "rainbow/tests/anarki-compatibility-test"
     "rainbow/tests/extra-math-test"
+    "rainbow/tests/string-interpolation-test"
     "rainbow/tests/java-interface-test"))
+
+(def file-join parts
+     " Joins `parts' into a path string. "
+  (apply + parts))
+;     (apply + ((afn (pth) (if pth (cons (car pth) (if (cdr pth) (cons "/" (self:cdr pth)))))) parts)))
+
+(def qualified-path (path)
+  " Returns the fully-qualified path of a possibly relative `path'. "
+  ((java-new "java.io.File" path) 'getAbsolutePath))
 
 (prn "self-test:")
 (run-all-tests)
-
-(let func (random-elt:keys help*)
-    (prn "Documentation for " func " " (helpstr func)))
 
 (def welder ()
   (require-lib "rainbow/swing")

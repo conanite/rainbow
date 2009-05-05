@@ -101,8 +101,12 @@ public abstract class Maths {
         }
       }, new Builtin("-") {
         public ArcObject invoke(Pair args) {
-          Pair pair = new Pair(((ArcNumber) args.car()).negate(), args.cdr());
-          return sum(pair).negate();
+          ArcNumber first = ((ArcNumber) args.car()).negate();
+          Pair rest = (Pair) args.cdr();
+          if (rest.isNil()) {
+            return first;
+          }
+          return sum(new Pair(first, rest)).negate();
         }
       }, new Builtin("*") {
         public ArcObject invoke(Pair args) {
@@ -158,6 +162,14 @@ public abstract class Maths {
           checkMaxArgCount(args, getClass(), 1);
           Complex x = Complex.cast(args.car(), this);
           return Pair.buildFrom(x.realPart(), x.imaginaryPart());
+        }
+      },
+      new Builtin("make-complex") {
+        protected ArcObject invoke(Pair args) {
+          checkMaxArgCount(args, getClass(), 2);
+          ArcNumber a = ArcNumber.cast(args.car(), this);
+          ArcNumber b = ArcNumber.cast(args.cdr().car(), this);
+          return new Complex(a, b);
         }
       },
       new Builtin("polar-coordinates") {

@@ -2,7 +2,6 @@ package rainbow.types;
 
 import rainbow.ArcError;
 import rainbow.Environment;
-import rainbow.Truth;
 
 public class Rational extends ArcNumber {
   private long numerator;
@@ -82,10 +81,6 @@ public class Rational extends ArcNumber {
     return new Rational(denominator, numerator);
   }
 
-  public ArcObject eqv(ArcObject other) {
-    return Truth.valueOf(this == other || (equals(other)));
-  }
-
   public Object unwrap() {
     if (isInteger()) {
       return toInt();
@@ -113,7 +108,7 @@ public class Rational extends ArcNumber {
   public long denominator() {
     return denominator;
   }
-  
+
   public static Rational cast(ArcObject argument, Object caller) {
     try {
       return (Rational) argument;

@@ -42,6 +42,11 @@ public abstract class Java {
             String fieldName = Symbol.cast(args.cdr().car(), this).name();
             return wrap(JavaObject.getStaticFieldValue(target, fieldName));
           }
+        }, new Builtin("java-debug") {
+          protected ArcObject invoke(Pair args) {
+            Environment.debugJava = (args.car() == T);
+            return args.car();
+          }
         }, new Builtin("java-implement") {
           public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
             ArcObject interfaces = args.car();

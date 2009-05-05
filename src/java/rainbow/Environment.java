@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class Environment {
+  public static boolean debugJava = false;
   private java.util.Set defaults;
   protected Map namespace = new HashMap();
 
