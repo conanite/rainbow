@@ -1,6 +1,7 @@
 package rainbow.functions;
 
 import rainbow.*;
+import rainbow.parser.ParseException;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.types.*;
@@ -199,7 +200,9 @@ public class Typing {
           base = Rational.TEN;
         }
         String source = ((ArcString) original).value();
-        if (source.contains(".") || (base.toInt() < 15 && source.matches(".+[eE].+"))) {
+        if (source.toLowerCase().endsWith("i")) {
+          return coerceComplex(source);
+        } else if (source.contains(".") || (base.toInt() < 15 && source.matches(".+[eE].+"))) {
           return coerceDouble(source, base.toInt());
         } else if (source.contains("/")) {
           return coerceFraction(source, base.toInt());
@@ -230,6 +233,14 @@ public class Typing {
     } else {
       String num = Long.toString(d.toInt(), (int) base.toInt());
       return ArcString.make(num + ".0");
+    }
+  }
+
+  private static ArcObject coerceComplex(String source) {
+    try {
+      return Complex.parse(source);
+    } catch (ParseException e) {
+      throw new CantCoerce();
     }
   }
 

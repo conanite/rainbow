@@ -1,3 +1,6 @@
+(mac doif (cond . body)
+  `(if ,cond (do ,@body)))
+
 (mac dbg-var (var)
   (w/uniq gvar
     `(let ,gvar ,var

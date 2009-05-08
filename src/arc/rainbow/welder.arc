@@ -1,3 +1,21 @@
+(set unmatched (obj
+  unmatched-left-paren        "("
+  unmatched-left-bracket      "["
+  unmatched-right-paren       ")"
+  unmatched-right-bracket     "]"))
+
+(set syntax-char-names  (obj
+  left-paren        "("
+  left-bracket      "["
+  right-paren       ")"
+  right-bracket     "]"
+  left-string-delimiter  "\""
+  right-string-delimiter  "\""
+  quote             "'"
+  quasiquote        "`"
+  unquote           ","
+  unquote-splicing  ",@"))
+
 (set night-colour-scheme (obj
   background        (awt-color 'black)
   caret             (awt-color 'white)
@@ -185,66 +203,67 @@
 (mac dot () `(editor!caret 'getDot))
 
 (def welder-help (editor)
-  (withs (tok     (token-at editor (dot))
-          the-tok (if tok (read-atom tok)))
-    (if (and the-tok (isa the-tok 'sym) (bound the-tok))
-        (welder-help-bound-sym editor the-tok)
-        (welder-help-token editor the-tok))))
+  (let tok (token-at editor (dot))
+    (if (and tok (isa tok 'sym) (bound tok))
+        (welder-help-bound-sym editor tok)
+        (welder-help-token editor tok))))
 
 (def welder-help-bound-sym (editor bound-token)
-  (editor!show-help (+ "<pre>" (aif (helpstr bound-token) it (tostring:pr bound-token)) "</pre>")))
+  (editor!show-help "<pre>#((aif (helpstr bound-token) it bound-token))</pre>"))
 
 (def welder-help-token (editor token)
-  (editor!show-help (+ "<pre>" (string token) "</pre>")))
+  (editor!show-help "<pre>#(token)</pre>"))
 
 (def token-at (editor dot)
   (catch
-    (each (tok start finish) editor!index
-      (if (and (no:is (type tok) 'sym) (< start dot finish))
+    (each (kind tok start finish) editor!index
+      (if (and (no:is kind 'syntax) (< start dot finish))
         (throw tok)))))
 
 (def up-select (editor)
   (let selected  (find-previous-selectable editor!index (dot))
     (editor!select-region (aif selected
-                               (cdr it)
+                               (cddr it)
                                `(,0 ,(text-length editor!doc))))
     (editor!pane 'grabFocus)))
 
 (def find-previous-selectable (source-index current-dot)
-  (with (last-index-item nil previous-index-item nil)
+  (let (last-index-item previous-index-item) nil
     (catch
-      (each index-item source-index
-        (if (> (index-item 1) current-dot)
-               (if (is (last-index-item 1) current-dot)
-                   (throw previous-index-item)
-                   (throw last-index-item))
-            (and (> (index-item 2) current-dot)
-                 (no:is car.index-item 'right-paren)
-                 (no:is car.index-item 'right-bracket))
-              (do (= previous-index-item last-index-item)
-                  (= last-index-item index-item)))))))
-
-(def render-token (tok tok-atom)
-  (tostring
-    (if (is (type tok) 'char)         (write tok)
-        (is (type tok) 'comment)      (disp (rep tok))
-        (is (type tok-atom) 'string)  (disp tok)
-                                      (pr (coerce tok 'string)))))
+       (each (kind tok start finish) source-index
+        (if (> start current-dot)
+            (if (is (last-index-item 2) current-dot)
+                (throw previous-index-item)
+                (throw last-index-item))
+            (and (> finish current-dot)
+                 (or (no:is kind 'syntax)
+                     (no (in tok 'right-paren 'right-bracket 'right-string-delimiter))))
+            (= previous-index-item  last-index-item 
+               last-index-item      (list kind tok start finish)))))))
 
 (def to-html-fragment (text)
   (pr "<pre class='arc'>")
-  (read-arc-tokens (instring text) (fn (return tok start finish)
-    (if (syntax-char-names tok)
-          (pr "<span class=\"syntax\">" (syntax-char-names tok) "</span>")
-        (ws-char-names tok)
-          (pr (ws-char-names tok))
-          (withs (this-tok (read-atom tok) tok-type (type this-tok) bound-type nil)
-            (if (and this-tok (is tok-type 'sym) (no:ssyntax tok) (bound this-tok))
-                (= bound-type (type (eval this-tok))))
-            (pr "<span class=\"" tok-type " " bound-type "\">")
-            (pr-escaped (render-token tok this-tok))
-            (pr "</span>")))
-    (return nil)))
+  (with (render-token (fn (kind tok)
+                          (tostring (if (is kind 'char)
+                                        (write tok)
+                                        (is kind 'comment)
+                                        (disp tok)
+                                        (is kind 'string-fragment)
+                                        (disp tok)
+                                        (pr tok))))
+         tkz          (arc-tokeniser (instring text)))
+    (whilet token (tkz)
+      (let (kind tok start finish) token
+        (if (token? token 'syntax)
+            (pr "<span class=\"syntax\">" (syntax-char-names tok) "</span>")
+            (and (isa tok 'string) (all whitespace? tok))
+            (pr tok)
+            (withs (tok-type (type tok) bound-type nil)
+              (if (and tok (is tok-type 'sym) (no:ssyntax tok) (bound tok))
+                  (= bound-type (type (eval tok))))
+              (pr "<span class=\"" tok-type " " bound-type "\">")
+              (pr-escaped (render-token kind tok))
+              (pr "</span>"))))))
   (pr "</pre>"))
 
 (def to-html-string (text)
@@ -264,16 +283,21 @@
             (find-right-matching 'right-paren text position index)
           (is current-char #\[)
             (find-right-matching 'right-bracket text position index)
+          (is current-char #\")
+            (find-right-matching 'right-string-delimiter text position index)
           (aif (and (> position 0) (text (- position 1)))
             (if (is it #\))
-              (find-left-matching 'left-paren text position index)
-            (is it #\])
-              (find-left-matching 'left-bracket text position index)))))))
+                (find-left-matching [in _ 'left-paren "\#("] text position index)
+                (is it #\")
+                (find-left-matching [is _ 'left-string-delimiter] text position index)
+                (is it #\])
+                (find-left-matching [is _ 'left-bracket] text position index)))))))
 
-(def find-left-matching (match text position index)
+(def find-left-matching (match-fn text position index)
   (catch
-    (each (tok start finish) index
-      (if (and (is tok match)
+    (each (kind tok start finish) index
+      (if (and (match-fn tok)
+               (is kind 'syntax)
                (is finish position))
           (throw start)))))
 
@@ -306,7 +330,7 @@
 
 (def find-right-matching (match text position index)
   (catch
-    (each (tok start finish) index
+    (each (kind tok start finish) index
       (if (and (is tok match)
                (is start position))
           (throw finish)))))
@@ -325,9 +349,9 @@
     (colour-region editor!doc pos2 1 attrs t)))
 
 (def token-attribute (tok)
-  (withs (this-tok (read-atom tok) tok-type (type this-tok))
-    (if (and this-tok (is tok-type 'sym) (no:ssyntax tok) (bound this-tok))
-        (bound-symbol-token-attribute this-tok)
+  (let tok-type (type tok)
+    (if (and tok (is tok-type 'sym) (no:ssyntax tok) (bound tok))
+        (bound-symbol-token-attribute tok)
         tok-type)))
 
 (def bound-symbol-token-attribute (asym)
@@ -336,19 +360,25 @@
 
 (def colourise-interval (index doc begin end)
     (colour-region doc begin (- end begin) 'default t)
-    (each (tok start finish) index
+    (each (kind tok start finish) index
       (if (and (> finish begin) (< start end))
-          (aif (syntax-char-names tok)
+          (aif (and (is kind 'syntax) (syntax-char-names tok))
                  (colour-region doc
                    (if (or (is tok 'right-paren) (is tok 'right-bracket)) (- finish 1) start)
                    (len it)
                    'syntax
                    t)
-               (unmatched tok)
+               (and (is kind 'syntax) (unmatched tok))
                  (colour-region doc
                    start
                    1
                    'unmatched-syntax
+                   t)
+               (is kind 'comment)
+                 (colour-region doc
+                   start
+                   (- finish start)
+                   'comment
                    t)
                (colour-region doc
                  start
@@ -376,14 +406,15 @@
   (follow-updates editor))
 
 (def welder-reindex (editor)
+  (= editor!line-count (count #\newline all-text.editor))
   (= editor!index (index-source:all-text editor)))
 
 (def welder-window-title (editor)
-  (+ (or editor!file "*scratch*") " - " (string (len editor!index)) " tokens - Arc Welder"))
+  "#((or editor!file "*scratch*")) - #(editor!line-count) lines, #((len editor!index)) tokens - Arc Welder")
 
 (def welder-open (editor file)
   (= editor!file file)
-  (prn "loading file " file)
+  (prn "welder: opening " file)
   (editor!pane 'setText (load-file file)))
 
 (def welder-keystroke (editor keystroke)

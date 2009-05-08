@@ -55,6 +55,9 @@ public class NamespaceBuilder extends ContinuationSupport {
       }
     } else {
       shift();
+      if (!(nextArg instanceof Pair)) {
+        throw new ArcError("Expected list argument for destructuring parameter " + nextParameter + ", got " + nextArg);
+      }
       new NamespaceBuilder(thread, lc, this, Pair.cast(nextParameter, this), Pair.cast(nextArg, this), null).start();
       return;
     }
