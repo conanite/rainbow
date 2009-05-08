@@ -29,7 +29,7 @@ public class Symbol extends ArcObject {
   }
 
   public String toString() {
-    return name;
+    return (this == EMPTY_STRING) ? "" : name;
   }
 
   public static Symbol nu(String s) {

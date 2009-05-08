@@ -151,7 +151,7 @@ public class Typing {
         if (original.isNil()) {
           return ArcString.make("");
         }
-        String source = ((Symbol) original).name();
+        String source = original.toString();
         return ArcString.make(source);
       }
     });
@@ -199,8 +199,14 @@ public class Typing {
         if (base == null) {
           base = Rational.TEN;
         }
-        String source = ((ArcString) original).value();
-        if (source.toLowerCase().endsWith("i")) {
+        String source = ((ArcString) original).value().toLowerCase();
+        if (source.equals("+inf.0")) {
+          return Real.positiveInfinity();
+        } else if (source.equals("-inf.0")) {
+          return Real.negativeInfinity();
+        } else if (source.equals("+nan.0")) {
+          return Real.nan();
+        } else if (source.toLowerCase().endsWith("i")) {
           return coerceComplex(source);
         } else if (source.contains(".") || (base.toInt() < 15 && source.matches(".+[eE].+"))) {
           return coerceDouble(source, base.toInt());
