@@ -82,7 +82,7 @@ TOKEN: /* infinities and NaN */
 
 TOKEN : /* identifier */
 {
-  < IDENTIFIER : <INITIAL> ( <SUBSEQUENT> )* >
+  < IDENTIFIER : ( <SUBSEQUENT> )+ >
 | < #INITIAL : <LETTER> | <GREEK> | <SPECIAL_INITIAL> >
 | < #LETTER : ["a"-"z","A"-"Z"] >
 | < #GREEK : ["\u0391"-"\u03A9","\u03B1"-"\u03C9"] >
@@ -107,10 +107,13 @@ TOKEN :
 | < END_STRING : "\"" > : DEFAULT
 }
 
-TOKEN : /* dot - cons separator */
+/* dot - cons separator */
+/*
+TOKEN :
 {
   < DOT : "." >
 }
+*/
 
 TOKEN : /* characters */
 {
@@ -193,12 +196,13 @@ ArcObject list():             {
     ( LOOKAHEAD(2)
       item = expression()     { list.add(item);                                           }
     )*
-    (
+  /*  (
       <DOT> last = expression()
-    )?
+    )? */
   ")"                         {
                                 if (list.size() > 0) {
-                                  return Pair.buildFrom(list, last);
+/*                                  return Pair.buildFrom(list, last); */
+                                  return Pair.parse(list);
                                 } else if (last != ArcObject.NIL) {
                                   generateParseException();
                                 } else {

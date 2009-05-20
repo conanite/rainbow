@@ -10,7 +10,7 @@ public class Truth extends Symbol {
     super("t");
   }
 
-  public ArcObject eval(Environment env) {
+  public ArcObject eval() {
     return this;
   }
 

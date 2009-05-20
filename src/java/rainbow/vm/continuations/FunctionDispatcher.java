@@ -56,7 +56,8 @@ public class FunctionDispatcher extends ContinuationSupport {
   }
 
   private void anarkiCompatibleTypeDispatch(ArcObject fn) {
-    Hash dispatchers = (Hash) thread.environment().lookup(TYPE_DISPATCHER_TABLE);
+    Symbol callTable = TYPE_DISPATCHER_TABLE;
+    Hash dispatchers = callTable.bound() ? (Hash) callTable.value() : null;
     try {
       ArcObject typeFunction = dispatchers.value(fn.type());
       if (typeFunction.isNil() || !(typeFunction instanceof Function)) {

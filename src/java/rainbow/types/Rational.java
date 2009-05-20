@@ -36,7 +36,7 @@ public class Rational extends ArcNumber {
     return numerator + (denominator == 1 ? "" : "/" + denominator);
   }
 
-  public ArcObject eval(Environment env) {
+  public ArcObject eval() {
     return this;
   }
 

@@ -27,7 +27,7 @@ public class Interpreter {
       } else if (expression instanceof BoundSymbol) {
         caller.receive(((BoundSymbol)expression).lookup(lc));
       } else {
-        caller.receive(expression.eval(thread.environment()));
+        caller.receive(expression.eval());
       }
     } catch (ArcError ae) {
       caller.error(ae);

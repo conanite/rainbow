@@ -1,3 +1,9 @@
+(java-import "java.awt.Font")
+(java-import "javax.swing.KeyStroke")
+(java-import "javax.swing.JMenuBar")
+(java-import "java.awt.event.KeyListener")
+(java-import "javax.swing.SwingUtilities")
+
 (set file-chooser-approve*        (java-static-field "javax.swing.JFileChooser" 'APPROVE_OPTION))
 (set font-plain*                  (java-static-field "java.awt.Font" 'PLAIN))
 (set box-layout-vertical*         (java-static-field "javax.swing.BoxLayout" 'Y_AXIS))
@@ -23,7 +29,7 @@
       (it 'addAttribute (style-constant name) (if (is value t) t (awt-color value))))))
 
 (mac courier (font-size)
-  `(java-new "java.awt.Font" "Courier" font-plain* ,font-size))
+  `(Font new "Courier" font-plain* ,font-size))
 
 (mac dim (x y)
   `(java-new "java.awt.Dimension" ,x ,y))
@@ -32,8 +38,7 @@
   (w/uniq (jb)
   `(let ,jb (java-new "javax.swing.JButton" ,text)
     (,jb 'setRequestFocusEnabled nil)
-    (,jb 'addActionListener
-        (java-implement "java.awt.event.ActionListener" t (obj actionPerformed (fn (action-event) ,@action))))
+    (,jb 'addActionListener (fn (action-event) ,@action))
     ,jb)))
 
 (mac key-dispatcher bindings
@@ -42,43 +47,37 @@
           (if ,@((afn (bb1)
                       (if bb1
                         (let (key-char body) (car bb1)
-                          (cons `(is ,gkey ',key-char)
+                          (cons `(is ,gkey ,key-char)
                                  (cons body (self (cdr bb1))))))) (pair bindings))))))
 
 (mac on-key (component var . actions)
   (w/uniq (gev)
-  `(,component 'addKeyListener (java-implement "java.awt.event.KeyListener" nil (obj keyPressed
-    (fn (,gev) (let ,var (convert-key-event ,gev) ,@actions)))))))
+   `(,component 'addKeyListener 
+                (fn (,gev)
+                    (let ,var (convert-key-event ,gev) ,@actions)))))
 
 (mac on-key-press (component . key-bindings)
   (w/uniq (gev)
-  `(,component 'addKeyListener (java-implement "java.awt.event.KeyListener" nil (obj keyPressed
-    (fn (,gev) ((key-dispatcher ,@key-bindings) (convert-key-event ,gev))))))))
+  `(,component 'addKeyListener 
+               (fn (,gev) 
+                   ((key-dispatcher ,@key-bindings) (convert-key-event ,gev))))))
 
 (mac on-char (component fun)
-  `(,component 'addKeyListener (java-implement "java.awt.event.KeyListener" nil
-      (obj keyTyped (fn (event) (,fun event!getKeyChar))))))
+  `(,component 'addKeyListener 
+               (fn (event) (,fun event!getKeyChar))))
 
 (mac on-scroll (component (var) . body)
-  `(,component 'addAdjustmentListener
-    (java-implement "java.awt.event.AdjustmentListener" t (obj
-      adjustmentValueChanged (fn (,var) ,@body)))))
+  `(,component 'addAdjustmentListener (fn (,var) ,@body)))
 
 (mac on-caret-move (component (var) . body)
-  `(,component 'addCaretListener
-    (java-implement "javax.swing.event.CaretListener" t (obj
-      caretUpdate (fn (,var) ,@body)))))
+  `(,component 'addCaretListener (fn (,var) ,@body)))
 
 (mac on-doc-update (doc (var) . body)
-  `(,doc 'addDocumentListener
-    (java-implement "javax.swing.event.DocumentListener" nil (obj
-      insertUpdate  (fn (,var) ,@body)
-      removeUpdate  (fn (,var) ,@body)))))
+  `(,doc 'addDocumentListener (fn (,var) ,@body)))
 
 (mac on-edit (doc (var) . body)
-  `(,doc 'addUndoableEditListener
-    (java-implement "javax.swing.event.UndoableEditListener" t (make-obj
-      (undoableEditHappened (,var) ,@body)))))
+  `(,doc 'addUndoableEditListener (make-obj
+      (undoableEditHappened (,var) ,@body))))
 
 (def handle-keystroke (bindings actions keystroke f)
   "Looks for keystroke in bindings. If found, result is
@@ -121,11 +120,11 @@
     (on-key it!pane k (it!handle-key k))))
 
 (def selected-text (editor else)
-  (or (editor!pane 'getSelectedText)
+  (or editor!pane!getSelectedText
       (else editor)))
 
 (def all-text (editor)
-  (editor!pane 'getText 0 (editor!doc 'getLength)))
+  (editor!pane 'getText 0 editor!doc!getLength))
 
 (def text-length (doc)
   (doc 'getLength))
@@ -146,7 +145,7 @@
 
 (def open-text-area (text)
   (let editor (text-area)
-    editor!setText.text
+    (editor!setText text)
     (editor!getCaret 'setDot  0)
     (editor!getCaret 'moveDot (len text))
     (let f (frame 200 200 600 480 "Arc Welder")
@@ -154,11 +153,7 @@
       f!show)))
 
 (mac later body
-  `(java-static-invoke "javax.swing.SwingUtilities"
-                       'invokeLater
-                       (java-implement "java.lang.Runnable"
-                                       t
-                                       (obj run (fn () ,@body)))))
+  `(SwingUtilities invokeLater (fn () ,@body)))
 
 (def to-swing-action (item label-fn action-fn)
   (java-implement "javax.swing.Action" nil (make-obj
@@ -172,7 +167,7 @@
       (it 'add (to-swing-action item label-fn action-fn)))))
 
 (def swing-menubar menus
-  (alet (java-new "javax.swing.JMenuBar")
+  (alet (JMenuBar new)
     (each menu menus
       (it 'add menu))))
 
@@ -190,14 +185,9 @@
   `(jfilechooser ,chooser ,file showSaveDialog ,@actions))
 
 (def convert-key-event (event)
-  (let ks ((java-static-invoke "javax.swing.KeyStroke"
-                               'getKeyStrokeForEvent
-                               event) 'toString)
-    (coerce (downcase (subst "-"
-                             " "
-                             (subst ""
-                                    "pressed "
-                                    ks))) 'sym)))
+  (let ks ((KeyStroke getKeyStrokeForEvent event) 'toString)
+    (coerce (downcase (subst "-" " " (subst "" "pressed " ks))) 
+            'sym)))
 
 (mac create-action (label help-text . body)
   `(obj label     ,label

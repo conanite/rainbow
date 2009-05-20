@@ -27,11 +27,11 @@ public class Macex extends Builtin {
       return;
     }
     Symbol macroName = (Symbol) macCall;
-    ArcObject macro = thread.environment().lookup(macroName);
-    if (macro == null) {
+    if (!macroName.bound()) {
       caller.receive(expression);
       return;
     }
+    ArcObject macro = macroName.value();
     Function fn = (Function) Tagged.ifTagged(macro, "mac");
     if (fn == null) {
       caller.receive(expression);

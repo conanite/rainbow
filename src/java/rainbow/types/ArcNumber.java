@@ -9,7 +9,7 @@ public abstract class ArcNumber extends ArcObject {
   public static final Symbol INT_TYPE = (Symbol) Symbol.make("int");
   public static final Symbol NUM_TYPE = (Symbol) Symbol.make("num");
 
-  public ArcObject eval(Environment env) {
+  public ArcObject eval() {
     return this;
   }
 
@@ -29,7 +29,7 @@ public abstract class ArcNumber extends ArcObject {
   public ArcObject type() {
     return isInteger() ? INT_TYPE : NUM_TYPE;
   }
-  
+
   public boolean isSame(ArcObject other) {
     return equals(other);
   }

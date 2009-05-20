@@ -1,21 +1,20 @@
 package rainbow.functions;
 
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.TopLevelContinuation;
-import rainbow.vm.continuations.Atomic;
 import rainbow.*;
-import rainbow.types.Pair;
 import rainbow.types.ArcNumber;
 import rainbow.types.ArcObject;
-import rainbow.types.Tagged;
+import rainbow.types.Pair;
+import rainbow.vm.ArcThread;
+import rainbow.vm.Continuation;
+import rainbow.vm.continuations.Atomic;
+import rainbow.vm.continuations.TopLevelContinuation;
 
 public class Threads {
   public static void collect(Environment top) {
     top.add(new Builtin[]{
       new Builtin("new-thread") {
         public void invoke(ArcThread thread, final LexicalClosure lc, Continuation caller, final Pair args) {
-          final ArcThread newThread = new ArcThread(thread.environment());
+          final ArcThread newThread = new ArcThread();
           new Thread() {
             public void run() {
               Function fn = Builtin.cast(args.car(), this);
@@ -59,7 +58,7 @@ public class Threads {
       }
     });
   }
-  
+
   public static class ContinuationWrapper extends Builtin {
     private Continuation continuation;
 

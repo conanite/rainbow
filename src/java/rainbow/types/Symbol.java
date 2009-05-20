@@ -1,7 +1,6 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.Environment;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +9,8 @@ public class Symbol extends ArcObject {
   private static final Map<String, Symbol> map = new HashMap();
   public static final Symbol TYPE = (Symbol) Symbol.make("sym");
   public static final Symbol EMPTY_STRING = (Symbol) Symbol.make("||");
+  public static final Symbol DOT = (Symbol) Symbol.make(".");
+  public static final Symbol BANG = (Symbol) Symbol.make("!");
   private String name;
   private int hash;
   private ArcObject value;
@@ -67,13 +68,8 @@ public class Symbol extends ArcObject {
     return this == object;
   }
 
-  public ArcObject eval(Environment env) {
+  public ArcObject eval() {
     return value();
-//    ArcObject result = env.lookup(this);
-//    if (result == null) {
-//      throw new Unbound(this);
-//    }
-//    return result;
   }
 
   public static boolean is(String s, ArcObject o) {

@@ -55,7 +55,7 @@ public abstract class Java {
             }
             ArcObject strict = args.cdr().car();
             Hash functions = Hash.cast(args.cdr().cdr().car(), this);
-            caller.receive(JavaProxy.create(thread.environment(), Pair.cast(interfaces, this), functions, strict));
+            caller.receive(JavaProxy.create(Pair.cast(interfaces, this), functions, strict));
           }
         }
     });

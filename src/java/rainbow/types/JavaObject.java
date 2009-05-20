@@ -2,6 +2,7 @@ package rainbow.types;
 
 import rainbow.ArcError;
 import rainbow.Environment;
+import rainbow.Function;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -56,7 +57,7 @@ public class JavaObject extends ArcObject {
 
   public static Object staticInvoke(String className, String methodName, Pair args) {
     if (Environment.debugJava) {
-      System.out.println("java:static invoke " + methodName + " on " + className + " with args " + truncateString(args));
+      System.out.println("java: static-invoke " + methodName + " on " + className + " with args " + truncateString(args));
     }
     Class c = toClass(className);
     try {
@@ -71,7 +72,7 @@ public class JavaObject extends ArcObject {
           return field.get(null);
         }
       } catch (Exception e1) {
-        throw new ArcError("Unable to access method or field " + methodName + " on " + className);
+        throw new ArcError("Unable to access method or field " + methodName + " on " + className, e);
       }
     }
   }
@@ -126,15 +127,17 @@ public class JavaObject extends ArcObject {
 
   private static Object invokeMethod(Object target, Class aClass, String methodName, Pair args) {
     Object[] javaArgs = new Object[0];
+    Method method = null;
     try {
-      Method method = findMethod(aClass, methodName, args);
+      method = findMethod(aClass, methodName, args);
       method.setAccessible(true);
       javaArgs = unwrapList(args, method.getParameterTypes());
       return method.invoke(target, javaArgs);
     } catch (IllegalArgumentException e) {
       System.out.println("arc args: " + args);
       System.out.println("java args: " + new ArrayList(Arrays.asList(javaArgs)));
-      System.out.println("method: " + methodName);
+      System.out.println("java arg types: " + javaTypes(javaArgs));
+      System.out.println("method: " + method);
       System.out.println("on class: " + aClass);
       throw e;
     } catch (IllegalAccessException e) {
@@ -142,6 +145,14 @@ public class JavaObject extends ArcObject {
     } catch (InvocationTargetException e) {
       throw new ArcError("Invoking " + methodName + " on " + target + " with args " + args + " : " + e.getCause().getMessage(), e);
     }
+  }
+
+  private static List javaTypes(Object[] javaArgs) {
+    List result = new ArrayList(javaArgs.length);
+    for (Object javaArg : javaArgs) {
+      result.add(javaArg.getClass());
+    }
+    return result;
   }
 
   private static Object[] unwrapList(Pair args, Class[] parameterTypes) {
@@ -162,6 +173,8 @@ public class JavaObject extends ArcObject {
   public static Object unwrap(ArcObject arcObject, Class javaType) {
     if (javaType != Object.class && javaType.isAssignableFrom(arcObject.getClass())) {
       return arcObject;
+    } else if (javaType.isInterface() && (arcObject instanceof Hash || arcObject instanceof Function)) {
+      return JavaProxy.create(Pair.buildFrom(ArcString.make(javaType.getName())), arcObject, NIL).unwrap();
     } else {
       try {
         return convert(arcObject.unwrap(), javaType);
@@ -254,6 +267,8 @@ public class JavaObject extends ArcObject {
     } else if (parameterType == Map.class && arcObject instanceof Hash) {
       return true;
     } else if (!parameterType.isPrimitive() && arcObject.isNil()) {
+      return true;
+    } else if (parameterType.isInterface() && (arcObject instanceof Hash || arcObject instanceof Function)) {
       return true;
     } else if (parameterType.isAssignableFrom(arcObject.unwrap().getClass())) {
       return true;

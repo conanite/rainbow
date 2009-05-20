@@ -1,7 +1,6 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.Environment;
 import rainbow.Nil;
 import rainbow.Truth;
 
@@ -11,7 +10,7 @@ public abstract class ArcObject {
 
   public Hash source;
 
-  public ArcObject eval(Environment env) {
+  public ArcObject eval() {
     return this;
   }
 

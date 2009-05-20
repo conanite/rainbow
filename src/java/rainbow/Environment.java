@@ -3,15 +3,8 @@ package rainbow;
 import rainbow.functions.*;
 import rainbow.types.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-
 public class Environment {
   public static boolean debugJava = false;
-  private java.util.Set defaults;
-  protected Map namespace = new HashMap();
 
   public Environment() { // todo: macex1, pipe-from, complex numbers, threading
     Java.collect(this);
@@ -82,8 +75,6 @@ public class Environment {
     if (!Console.ARC2_COMPATIBILITY) {
       Maths.extra(this);
     }
-
-    defaults = new HashSet(namespace.keySet());
   }
 
   private void addBuiltin(String name, ArcObject o) {
@@ -111,26 +102,6 @@ public class Environment {
 
   public String fullNamespace() {
     return "Namespace\n" + toString();
-  }
-
-  public String toString() {
-    return toString(namespace);
-  }
-
-  protected static String toString(Map objectMap) {
-    StringBuffer sb = new StringBuffer();
-    for (Iterator i = objectMap.keySet().iterator(); i.hasNext();) {
-      Object key = i.next();
-      sb.append(key).append("\t:\t").append(objectMap.get(key)).append("\n");
-    }
-    return sb.toString();
-  }
-
-
-  protected synchronized void collectKeys(java.util.Set s) {
-    java.util.Set top = new HashSet(namespace.keySet());
-    top.removeAll(defaults);
-    s.addAll(top);
   }
 
   public void add(Builtin[] builtins) {

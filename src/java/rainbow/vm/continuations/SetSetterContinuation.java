@@ -19,7 +19,8 @@ public class SetSetterContinuation extends ContinuationSupport {
     if (symbol instanceof BoundSymbol) {
       ((BoundSymbol) symbol).set(lc, o);
     } else {
-      thread.environment().addToNamespace(Symbol.cast(symbol, this), o);
+      Symbol global = Symbol.cast(symbol, this);
+      global.setValue(o);
     }
     caller.receive(o);
   }

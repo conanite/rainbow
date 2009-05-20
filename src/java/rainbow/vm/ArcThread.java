@@ -1,13 +1,12 @@
 package rainbow.vm;
 
-import rainbow.types.ArcObject;
-import rainbow.types.Symbol;
-import rainbow.types.Output;
-import rainbow.types.Input;
 import rainbow.ArcError;
-import rainbow.Environment;
-import rainbow.vm.continuations.FunctionDispatcher;
 import rainbow.functions.IO;
+import rainbow.types.ArcObject;
+import rainbow.types.Input;
+import rainbow.types.Output;
+import rainbow.types.Symbol;
+import rainbow.vm.continuations.FunctionDispatcher;
 
 public class ArcThread extends ArcObject implements Runnable {
   private Symbol TYPE = (Symbol) Symbol.make("thread");
@@ -17,10 +16,8 @@ public class ArcThread extends ArcObject implements Runnable {
   private boolean stopped;
   protected Output stdOut = IO.STD_OUT;
   protected Input stdIn = IO.STD_IN;
-  private Environment environment;
 
-  public ArcThread(Environment environment) {
-    this.environment = environment;
+  public ArcThread() {
   }
 
   public void run() {
@@ -86,13 +83,10 @@ public class ArcThread extends ArcObject implements Runnable {
   }
 
   public Output swapStdOut(Output output) {
+    stdOut.close();
     Output swap = stdOut;
     stdOut = output;
     return swap;
-  }
-
-  public Environment environment() {
-    return environment;
   }
 
   public static ArcThread cast(ArcObject argument, ArcObject caller) {

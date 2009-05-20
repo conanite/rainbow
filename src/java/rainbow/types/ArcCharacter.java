@@ -98,7 +98,7 @@ public class ArcCharacter extends ArcObject {
     return value;
   }
 
-  public ArcObject eval(Environment env) {
+  public ArcObject eval() {
     return this;
   }
 

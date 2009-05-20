@@ -1,7 +1,8 @@
 package rainbow.types;
 
-import rainbow.types.ArcObject;
-import rainbow.*;
+import rainbow.ArcError;
+import rainbow.Function;
+import rainbow.LexicalClosure;
 import rainbow.functions.Builtin;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
@@ -107,6 +108,44 @@ public class Pair extends ArcObject {
     return car == null && cdr == null;
   }
 
+  public static Pair parse(List items) {
+    Pair pair = new Pair();
+    if (items == null || items.size() == 0) {
+      return pair;
+    }
+
+    if (items.get(0) == Symbol.DOT) {
+      return illegalDot(items);
+    }
+
+    pair.car = (ArcObject) items.get(0);
+    pair.cdr = internalParse(items.subList(1, items.size()));
+    return pair;
+  }
+
+  private static ArcObject internalParse(List items) {
+    if (items.size() == 0) {
+      return NIL;
+    }
+
+    if (items.get(0) == Symbol.DOT) {
+      if (items.size() == 2) {
+        return (ArcObject) items.get(1);
+      } else {
+        return illegalDot(items);
+      }
+    }
+
+    Pair pair = new Pair();
+    pair.car = (ArcObject) items.get(0);
+    pair.cdr = internalParse(items.subList(1, items.size()));
+    return pair;
+  }
+
+  private static Pair illegalDot(List items) {
+    throw new ArcError("Error: illegal use of \".\" in " + items);
+  }
+
   public static Pair buildFrom(List items, ArcObject last) {
     Pair pair = new Pair();
     if (items == null) {
@@ -208,7 +247,7 @@ public class Pair extends ArcObject {
   public boolean isSpecial() {
     return car() instanceof Symbol &&
             specials.containsKey(((Symbol) car()).name()) &&
-            cdr() instanceof Pair && 
+            cdr() instanceof Pair &&
             ((Pair)cdr()).size() == 1;
   }
 

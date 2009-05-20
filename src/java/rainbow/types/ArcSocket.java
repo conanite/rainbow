@@ -1,12 +1,10 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.functions.Network;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.FilenameFilter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -26,7 +24,7 @@ public class ArcSocket extends ArcObject {
     try {
       this.ss = new ServerSocket(port);
     } catch (IOException e) {
-      throw new ArcError("open-socket: unable top open listener on port " + port + ": " + e.getMessage(), e);
+      throw new ArcError("open-socket: unable to open listener on port " + port + ": " + e.getMessage(), e);
     }
   }
 

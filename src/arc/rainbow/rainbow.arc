@@ -1,17 +1,14 @@
-(mac doif (cond . body)
-  `(if ,cond (do ,@body)))
-
 (mac dbg-var (var)
   (w/uniq gvar
     `(let ,gvar ,var
        (ero ',var 'is ,gvar)
        ,gvar)))
 
-(mac java-import (class)
-  (let simple-name (last:tokens class #\.)
-    `(mac ,(sym simple-name) (method . args)
-       (if (is method 'new) `(java-new ,,class ,@args)
-                            `(java-static-invoke ,,class ',method ,@args)))))
+(mac java-import (class (o simple-name (last:tokens class #\.)))
+  `(mac ,(sym simple-name) (method . args)
+     (if (is method 'new)       `(java-new ,,class ,@args)
+         (is method 'implement) `(java-implement ,,class ,@args)
+                                `(java-static-invoke ,,class ',method ,@args))))
 
 (mac alet (val . body)
   `(let it ,val
@@ -25,20 +22,16 @@
   (= make-def (fn ((name args . body))
      `(= ,name (fn ,args ,@body))))
   (mac make-obj args
-    "args are of the form (name (args) body),
-     make-obj returns a hash where each name keys
-     a function with the given args and body; functions
-     may invoke each other"
     `(with (,(map car args) nil)
-           ,@(map make-def args)
-           (nobj ,@(map car args)))))
+       ,@(map make-def args)
+       (nobj ,@(map car args)))))
 
 (def index-of (x xs)
   (catch
     ((afn (count xs1)
-      (if (no xs1) (throw -1)
+      (if (no xs1)      (throw -1)
           (caris xs1 x) (throw count)
-          (self (+ 1 count) (cdr xs1)))) 0 xs)))
+                        (self (+ 1 count) (cdr xs1)))) 0 xs)))
 
 (def sym+ args
   (sym (apply + (map [string _] args))))
@@ -77,17 +70,12 @@
 (def j-enumeration (mapper xs)
   (implement "java.util.Enumeration"
     hasMoreElements (fn () xs)
-    nextElement     (fn () (let next (car xs)
-                                (zap cdr xs)
-                                (mapper next)))))
+    nextElement     (fn () (mapper (pop xs)))))
 
-(def to-iterator (xs)
+(def to-iterator (xs (o mapper idfn))
   (implement "java.util.Iterator"
     hasNext (fn () xs)
-    next    (fn () (let next (car xs)
-                             (zap cdr xs)
-                             next))))
-
+    next    (fn () (mapper (pop xs)))))
 
 (mac atdef (name args . body)
   `(def ,name ,args (atomic ,@body)))

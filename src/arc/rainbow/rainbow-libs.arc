@@ -21,6 +21,7 @@
     "lib/tests/parser-test"
     "rainbow/tests/anarki-compatibility-test"
     "rainbow/tests/extra-math-test"
+    "rainbow/tests/chained-ssexpand-test"
     "rainbow/tests/string-interpolation-test"
     "rainbow/tests/java-interface-test"))
 

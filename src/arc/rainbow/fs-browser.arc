@@ -36,9 +36,8 @@
   (withs (f (frame 150 150 800 800 "Foo")
           tree (jtree (tree-node (map [fs-view nil idfn _] (arc-path))))
           sc (scroll-pane tree colour-scheme!background))
-    (on-key tree k
-      (if (is k 'enter)
-          (welder ((tree!getSelectionPath 'getLastPathComponent) 'getValue))))
+    (on-key-press tree 
+      'enter (welder ((tree!getSelectionPath 'getLastPathComponent) 'getValue)))
     (f 'add sc)
     f!pack
     f!show))

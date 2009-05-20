@@ -1,8 +1,11 @@
 (set unmatched (obj
-  unmatched-left-paren        "("
-  unmatched-left-bracket      "["
-  unmatched-right-paren       ")"
-  unmatched-right-bracket     "]"))
+  unmatched-left-paren              "("
+  unmatched-left-bracket            "["
+  unmatched-interpolation-start     "\#("
+  unmatched-left-string-delimiter   "\""
+  unmatched-right-string-delimiter  "\""
+  unmatched-right-paren             ")"
+  unmatched-right-bracket           "]"))
 
 (set syntax-char-names  (obj
   left-paren        "("
@@ -51,10 +54,13 @@
   char              (swing-style 'foreground "#706090")
   comment           (swing-style 'foreground "#909090"  'italic t)))
 
-(set colour-scheme day-colour-scheme)
+(set font-size 12)
+(set colour-scheme night-colour-scheme)
 (set file-chooser (new-file-chooser))
 (set welder-actions* (table))
 (set welder-key-bindings* (table))
+
+(mac dot () `(editor!caret 'getDot))
 
 (mac defweld (name label help-text . body)
   `(= (welder-actions* ',name)
@@ -137,6 +143,14 @@
           matches"
          ((editor!search 'hide)))
 
+(defweld pop-form "Pop form"
+         "Replaces (foo (bar)) with (bar) if the caret is in (bar)"
+         (pop-form editor))
+
+(defweld push-form "Push form"
+         "Replaces (bar) with ( (bar))"
+         (push-form editor))
+
 (defweld undo "Undo"
          "Undo last edit if possible"
          (later (editor!undoer 'undo)))
@@ -150,6 +164,52 @@
          (aif (selected-text editor nilfn)
            (duplicate-selection editor it)
            (duplicate-line editor)))
+
+(defweld bigger-font "Enlarge font"
+         "Increase font size"
+         (zap [+ _ 2] font-size)
+         (configure-bean editor!pane 'font (courier font-size)))
+
+(defweld littler-font "Reduce font"
+         "Reduce font size"
+         (zap [- _ 2] font-size)
+         (configure-bean editor!pane 'font (courier font-size)))
+
+(defweld reset-font "Reset font"
+         "Reset font size to default"
+         (set font-size 12)
+         (configure-bean editor!pane 'font (courier font-size)))
+
+(def find-form-around (index position)
+  (let this-form (find-previous-selectable index position)
+    (while (no:token? this-form 'syntax 'left-paren)
+      (= this-form (find-previous-selectable index (this-form 2))))
+    this-form))
+
+(def push-form (editor)
+  (let this-form     (find-form-around editor!index (dot))
+    (later (editor!doc 'insertString
+                       (this-form 3)
+                       ")"
+                       colour-scheme!default)
+           (editor!doc 'insertString
+                       (this-form 2)
+                       "("
+                       colour-scheme!default)
+           (editor!caret 'setDot (+ 1 (this-form 2))))))
+
+(def pop-form (editor)
+  (withs (this-form     (find-form-around editor!index (dot))
+          text-to-copy  (cut (all-text editor) (this-form 2) (this-form 3))
+          previous-form (find-form-around editor!index (this-form 2)))
+    (later (editor!doc 'remove
+                       (previous-form 2)
+                       (- (previous-form 3) (previous-form 2)))
+           (editor!doc 'insertString
+                       (previous-form 2)
+                       text-to-copy
+                       colour-scheme!default)
+           (editor!caret 'setDot (+ 1 (previous-form 2))))))
 
 (def defkey (key binding)
   (= welder-key-bindings*.key binding))
@@ -169,16 +229,21 @@
 (defkey 'meta-f   'show-search    )
 (defkey 'meta-d   'duplicate      )
 (defkey 'meta-z   'undo           )
-(defkey 'shift-meta-z  'redo      )
+(defkey 'meta-p   'pop-form        )
+(defkey 'shift-meta-p   'push-form )
+(defkey 'shift-meta-z  'redo       )
+(defkey 'shift-meta-equals   'bigger-font     )
+(defkey 'meta-minus   'littler-font     )
+(defkey 'meta-0   'reset-font     )
 
 (def welder-save-editor-content (editor)
   (write-file editor!file all-text.editor))
 
 (def welder-menu (editor)
   (with (label   (fn (item)
-                     (welder-actions*.item 'label))
+                     ((welder-actions* item) 'label))
          action  (fn (item)
-                     ((welder-actions*.item 'action) editor)))
+                     (((welder-actions* item) 'action) editor)))
     (swing-menubar  (swing-menu "File"   label action
                       '(new open close save save-as quit))
                     (swing-menu "Edit"   label action
@@ -195,12 +260,10 @@
   (pr "<table border='1' width='100%'>")
   (ontable k v bindings
     (pr "<tr><td>" k "</td>"
-        "<td>" (welder-actions*.v 'label) "</td>"
-        "<td>" (welder-actions*.v 'help-text) "</td>"
+        "<td>" welder-actions*.v!label     "</td>"
+        "<td>" welder-actions*.v!help-text "</td>"
         "</tr>"))
   (pr "</table>"))
-
-(mac dot () `(editor!caret 'getDot))
 
 (def welder-help (editor)
   (let tok (token-at editor (dot))
@@ -238,7 +301,7 @@
             (and (> finish current-dot)
                  (or (no:is kind 'syntax)
                      (no (in tok 'right-paren 'right-bracket 'right-string-delimiter))))
-            (= previous-index-item  last-index-item 
+            (= previous-index-item  last-index-item
                last-index-item      (list kind tok start finish)))))))
 
 (def to-html-fragment (text)
@@ -303,8 +366,8 @@
 
 (def duplicate-selection (editor text)
   (let ins (dot)
-    (if (< ins (editor!caret 'getMark))
-        (= ins (editor!caret 'getMark)))
+    (if (< ins (editor!caret!getMark))
+        (= ins (editor!caret!getMark)))
     (later (editor!doc 'insertString
                        ins
                        text
@@ -336,14 +399,14 @@
           (throw finish)))))
 
 (def highlight-match (editor position)
-  (aif editor!highlighting (highlight-position editor (car it) (cadr it) nil))
-  (aif (match-pair (all-text editor) position editor!index)
-    (do
-      (if (< it position) (swap it position))
-      (highlight-position editor position (- it 1) t))))
+  (aif editor!highlighting
+       (highlight-position editor (car it) (cadr it) nil))
+  (awhen (match-pair (all-text editor) position editor!index)
+    (if (< it position) (swap it position))
+    (highlight-position editor position (- it 1) t)))
 
 (def highlight-position (editor pos1 pos2 colour)
-  (= editor!highlighting (if colour list.pos1.pos2 nil))
+  (= editor!highlighting (if colour (list pos1 pos2) nil))
   (let attrs (if colour 'paren-match 'syntax)
     (colour-region editor!doc pos1 1 attrs t)
     (colour-region editor!doc pos2 1 attrs t)))
@@ -395,19 +458,20 @@
   (= editor!dirty (msec)))
 
 (def follow-updates (editor)
-  (if (and editor!dirty (> (- (msec) editor!dirty) 500))
+  (if (and editor!dirty (> (- (msec) editor!dirty) 400))
       (do
         (wipe editor!dirty)
         (welder-save-editor-content editor)
-        (welder-reindex editor)
+        (time (welder-reindex editor))
         (later (colourise editor)
                (editor!frame 'setTitle (welder-window-title editor)))))
   (sleep 0.1)
   (follow-updates editor))
 
 (def welder-reindex (editor)
-  (= editor!line-count (count #\newline all-text.editor))
-  (= editor!index (index-source:all-text editor)))
+  (let (idx lc) (index-source:all-text editor)
+    (= editor!line-count lc)
+    (= editor!index idx)))
 
 (def welder-window-title (editor)
   "#((or editor!file "*scratch*")) - #(editor!line-count) lines, #((len editor!index)) tokens - Arc Welder")
@@ -496,9 +560,10 @@
   `(push (fn ,var ,@body) welder-initialisers))
 
 (welder-init (editor)
+  (prn "using font size " font-size)
   (configure-bean editor!pane
     'caretColor colour-scheme!caret
-    'font       (courier 12)
+    'font       (courier font-size)
     'background colour-scheme!background))
 
 (welder-init (editor)
@@ -520,7 +585,7 @@
 (welder-init (editor)
   (let sc (scroll-pane editor!pane colour-scheme!background)
     (editor!frame 'add sc)
-    (on-scroll sc!getVerticalScrollBar (e) (on-update editor))))
+    (on-scroll sc!getVerticalScrollBar (e) (later (colourise editor)))))
 
 (welder-init (editor)
   (= editor!undoer (undo-manager))
@@ -534,18 +599,20 @@
     (= editor!search search)))
 
 (welder-init (editor)
-      (fill-table editor (list
-        'update-thread  (thread (follow-updates editor))
-        'handle-key     (fn (keystroke)
-                            (welder-keystroke editor keystroke))
-        'select-region  (fn ((start finish))
-                            (editor!caret 'setDot (if (isa finish 'fn)
-                                                      (finish start)
-                                                      finish))
-                            (editor!caret 'moveDot start)))))
+  (fill-table editor (list
+    'update-thread  (thread (follow-updates editor))
+    'handle-key     (fn (keystroke)
+                        (welder-keystroke editor keystroke))
+    'select-region  (fn ((start finish))
+                        (editor!caret 'setDot (if (isa finish 'fn)
+                                                  (finish start)
+                                                  finish))
+                        (editor!caret 'moveDot start)))))
 
 (def welder ((o file))
   (let editor (editor-pane)
     (map [_ editor] rev.welder-initialisers)
     (editor!frame 'show)
     (if file (welder-open editor file))))
+
+

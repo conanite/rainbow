@@ -144,7 +144,7 @@ public class Console {
   }
 
   private static ArcObject compileAndEval(Environment environment, ArcObject expression) {
-    ArcThread thread = new ArcThread(environment);
+    ArcThread thread = new ArcThread();
     TopLevelContinuation topLevel = new TopLevelContinuation(thread);
     Interpreter.compileAndEval(thread, null, topLevel, expression);
     thread.run();

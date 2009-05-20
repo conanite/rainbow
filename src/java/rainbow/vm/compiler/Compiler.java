@@ -70,11 +70,11 @@ public class Compiler extends ContinuationSupport {
     }
 
     Symbol sym = (Symbol) first;
-    ArcObject maybeTagged = thread.environment().lookup(sym);
-    if (maybeTagged == null) {
+    if (!sym.bound()) {
       return null;
     }
 
+    ArcObject maybeTagged = sym.value();
     return (Function) Tagged.ifTagged(maybeTagged, "mac");
   }
 

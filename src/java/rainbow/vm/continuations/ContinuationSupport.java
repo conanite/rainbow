@@ -26,13 +26,10 @@ public abstract class ContinuationSupport implements Continuation, Cloneable {
     }
     try {
       onReceive(returned);
-    } catch (ArcError e) {
-      error(e);
-      throw e;
-    } catch (Exception e) {
-      ArcError ae = new ArcError(e);
-      ae.addStackFrame(this, null);
+    } catch (ArcError ae) {
       throw ae;
+    } catch (Exception e) {
+      throw new ArcError(e);
     }
   }
 
@@ -69,4 +66,3 @@ public abstract class ContinuationSupport implements Continuation, Cloneable {
     caller.stop();
   }
 }
-

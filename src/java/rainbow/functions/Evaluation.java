@@ -1,15 +1,16 @@
 package rainbow.functions;
 
-import rainbow.*;
+import rainbow.ArcError;
+import rainbow.Console;
+import rainbow.Function;
+import rainbow.LexicalClosure;
+import rainbow.types.*;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.Interpreter;
 import rainbow.vm.continuations.FunctionDispatcher;
-import rainbow.types.*;
 
-import java.util.List;
-import java.util.LinkedList;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class Evaluation {
   public static boolean isSpecialSyntax(ArcObject expression) {
@@ -36,7 +37,8 @@ public class Evaluation {
     }
 
     private void anarkiCompatibleTypeDispatch(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args, ArcObject fn) {
-      Hash dispatchers = (Hash) thread.environment().lookup(FunctionDispatcher.TYPE_DISPATCHER_TABLE);
+      Symbol callTable = FunctionDispatcher.TYPE_DISPATCHER_TABLE;
+      Hash dispatchers = callTable.bound() ? (Hash) callTable.value() : null;
       try {
         ArcObject targetObject = Tagged.rep(fn);
         Function function = Builtin.cast(dispatchers.value(fn.type()), this);
@@ -76,7 +78,7 @@ public class Evaluation {
       Interpreter.compileAndEval(thread, lc, caller, args.car());
     }
   }
-  
+
   public static class Seval extends Builtin {
     public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
       caller.receive(new Hash());
@@ -131,22 +133,69 @@ public class Evaluation {
       }
     }
 
+//    private static ArcObject expandExpression(String symbol) {
+//      StringTokenizer tokens = new StringTokenizer(symbol, ".!", true);
+//      List list = new LinkedList();
+//      String delim = ".";
+//      String sym = tokens.nextToken();
+//      list.add(possiblyQuote(sym, delim));
+//      while (tokens.hasMoreTokens()) {
+//        delim = tokens.nextToken();
+//        sym = tokens.nextToken();
+//        list.add(possiblyQuote(sym, delim));
+//      }
+//      return Pair.buildFrom(list, NIL);
+//    }
+//
+//    private static ArcObject possiblyQuote(String sym, String delim) {
+//      return ".".equals(delim) ? Symbol.make(sym) : Pair.buildFrom(Symbol.make("quote"), Symbol.make(sym));
+//    }
+
+    private static ArcObject expandToks(Iterator list) {
+      Symbol s = (Symbol) list.next();
+      Symbol sep = null;
+      if (list.hasNext()) {
+        sep = (Symbol) list.next();
+      }
+
+      ArcObject next = sep == Symbol.BANG ? Pair.buildFrom(Symbol.make("quote"), s) : s;
+      if (list.hasNext()) {
+        return Pair.buildFrom(expandToks(list), next);
+      } else if (sep != null) {
+        return Pair.buildFrom(Symbol.make("get"), next);
+      } else {
+        return next;
+      }
+    }
+
     private static ArcObject expandExpression(String symbol) {
       StringTokenizer tokens = new StringTokenizer(symbol, ".!", true);
       List list = new LinkedList();
-      String delim = ".";
-      String sym = tokens.nextToken();
-      list.add(possiblyQuote(sym, delim));
+      boolean wasSep = false;
+
       while (tokens.hasMoreTokens()) {
-        delim = tokens.nextToken();
-        sym = tokens.nextToken();
-        list.add(possiblyQuote(sym, delim));
+        ArcObject sym = Symbol.make(tokens.nextToken());
+        if (isSpecialListSyntax(sym)) {
+          if (wasSep) {
+            throw new ArcError("Bad syntax " + symbol);
+          } else {
+            wasSep = true;
+          }
+        } else {
+          wasSep = false;
+        }
+        list.add(0, sym);
       }
-      return Pair.buildFrom(list, NIL);
+
+      if (wasSep) {
+        list.add(0, Symbol.make("#<eof>"));
+      }
+
+      return expandToks(list.iterator());
     }
 
-    private static ArcObject possiblyQuote(String sym, String delim) {
-      return ".".equals(delim) ? Symbol.make(sym) : Pair.buildFrom(Symbol.make("quote"), Symbol.make(sym));
+    private static boolean isSpecialListSyntax(ArcObject sym) {
+      return sym == Symbol.DOT || sym == Symbol.BANG;
     }
 
     private static ArcObject expandCompose(String symbol) {

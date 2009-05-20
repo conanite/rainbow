@@ -62,7 +62,7 @@ public class ArcString extends ArcObject {
     return sb.toString();
   }
 
-  public ArcObject eval(Environment env) {
+  public ArcObject eval() {
     return this;
   }
 

@@ -5,17 +5,16 @@
     ("Quotient"
       (quotient 15 2)
       7))
-  
+
   (suite "defcall"
     ("defcall on custom type"
       ((fn (a-bobo)
         (a-bobo 3)
       ) (annotate 'bobo 23))
     69))
-  
+
   ("datetbl breaks date into calendar components"
     ((fn (d)
-      (list (d 'year) (d 'month) (d 'day))
-    ) (datetbl 1203450000))
+      (list (d 'year) (d 'month) (d 'day))) (datetbl 1203450000))
     (2008 01 19))))
 

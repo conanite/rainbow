@@ -85,12 +85,13 @@
   (let f (frame 300 150 300 700 "Arc Tetris")
     (tetris-view f tetris-height* tetris-width* universe-cells)
     (on-key-press f
-      up    (rotate-shape)
-      down  (drop-shape)
-      left  (move-shape -1)
-      right (move-shape 1)
-      n     (new-game)
-      p     (zap [no _] paused*))
+      'up    (rotate-shape)
+      'down  (drop-shape)
+      'left  (move-shape -1)
+      'right (move-shape 1)
+      'n     (new-game)
+      'p     (zap [no _] paused*)
+      'q     f!dispose)
     f!pack
     (f 'setSize 300 700)
     f!show
@@ -103,17 +104,17 @@
       (game-loop)))
 
 (atdef full ()
-  (ccc (fn (return)
+  (catch
     (for x 0 (- tetris-width* 1)
       (if (universe (key 0 x))
-        (return t))))))
+        (throw t)))))
 
 (def end-round ()
   (draw-shape)
   (collapse-full-rows)
-  (new-shape)
   (zap [/ _ acceleration*] delay*)
-  (no (full)))
+  (if (no (full) 
+      (new-shape))))
 
 (def bottom () 
   (illegal falling!colour falling!rotation falling!x (+ 1 falling!y)))
@@ -158,14 +159,13 @@
       (set-cell (universe (key (- row 1) col)) row col))))
 
 (def illegal (c rot x y)
-  (ccc (fn (return) 
-           (shape-cells c rot row column 
-             (if (or (> (+ x column 1) tetris-width*)
-                     (> (+ y row 1) tetris-height*)
-                     (< (+ x column) 0)
-                     (universe (key (+ y row) (+ x column))))
-                 (return t)))
-            (return nil))))
+  (catch
+    (shape-cells c rot row column 
+      (if (or (> (+ x column 1) tetris-width*)
+              (> (+ y row 1) tetris-height*)
+              (< (+ x column) 0)
+              (universe (key (+ y row) (+ x column))))
+          (throw t)))))
 
 (def new-shape ()
   (= falling (obj
@@ -173,7 +173,7 @@
     x        (- (/ tetris-width* 2) 2)
     y        0
     rotation 0)))
-    
+
 (atdef draw-shape ((o colour falling!colour))
   (shape-cells falling!colour falling!rotation row col
     (set-cell colour (+ row falling!y) (+ col falling!x))))
