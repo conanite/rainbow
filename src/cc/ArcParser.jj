@@ -107,14 +107,6 @@ TOKEN :
 | < END_STRING : "\"" > : DEFAULT
 }
 
-/* dot - cons separator */
-/*
-TOKEN :
-{
-  < DOT : "." >
-}
-*/
-
 TOKEN : /* characters */
 {
   < CHARACTER            : <SINGLE_CHARACTER> | <TAB_CHARACTER> | <RETURN_CHARACTER> | <SPACE_CHARACTER> | <NEWLINE_CHARACTER> | <NULL_CHARACTER> | <ASCII_CHARACTER> | <UNICODE_CHARACTER> >
@@ -196,9 +188,6 @@ ArcObject list():             {
     ( LOOKAHEAD(2)
       item = expression()     { list.add(item);                                           }
     )*
-  /*  (
-      <DOT> last = expression()
-    )? */
   ")"                         {
                                 if (list.size() > 0) {
 /*                                  return Pair.buildFrom(list, last); */

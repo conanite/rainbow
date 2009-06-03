@@ -1,12 +1,12 @@
 package rainbow;
 
+import rainbow.parser.ArcParser;
+import rainbow.parser.ParseException;
+import rainbow.types.*;
+import rainbow.util.Argv;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Interpreter;
 import rainbow.vm.continuations.TopLevelContinuation;
-import rainbow.types.*;
-import rainbow.parser.ParseException;
-import rainbow.parser.ArcParser;
-import rainbow.util.Argv;
 
 import java.io.*;
 import java.util.*;

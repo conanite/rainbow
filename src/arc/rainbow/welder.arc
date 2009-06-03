@@ -1,3 +1,5 @@
+(require-lib "rainbow/swing")
+
 (set unmatched (obj
   unmatched-left-paren              "("
   unmatched-left-bracket            "["
@@ -34,7 +36,8 @@
   string            (swing-style 'foreground "#C0D0D0")
   int               (swing-style 'foreground "#808040")
   char              (swing-style 'foreground "#706090")
-  comment           (swing-style 'foreground "#604060"  'italic t)))
+  comment           (swing-style 'foreground "#604060"  'italic t)
+  selection         (awt-color   "#4040C0")))
 
 (set day-colour-scheme (obj
   background        (awt-color 'white)
@@ -52,7 +55,8 @@
   string            (swing-style 'foreground "#003030"  'bold t)
   int               (swing-style 'foreground "#808040")
   char              (swing-style 'foreground "#706090")
-  comment           (swing-style 'foreground "#909090"  'italic t)))
+  comment           (swing-style 'foreground "#909090"  'italic t)
+  selection         (awt-color   "#202060")))
 
 (set font-size 12)
 (set colour-scheme night-colour-scheme)
@@ -180,10 +184,45 @@
          (set font-size 12)
          (configure-bean editor!pane 'font (courier font-size)))
 
+(defweld expand-macro "Macex"
+         "Macro-expands the form under the caret"
+         (let this-form (find-form-around editor!index (dot))
+           (show-macro-expansion (cut (all-text editor) (this-form 2) (this-form 3)))))
+
+(defweld insert-closing-paren "Insert Closing Paren"
+  "Inserts a \")\""
+  (insert-closing-delimiter editor ")"))
+
+(defweld insert-closing-dbl-quote "Insert Closing \""
+  "Inserts a \""
+  (insert-closing-delimiter editor "\""))
+
+(defweld kill-form "Kill form"
+  "Kill the form under the caret"
+  (whenlet this-form (find-form-around editor!index (dot))
+    (prn "target form " this-form)
+    (editor!doc 'remove
+                (this-form 2) 
+                (- (this-form 3) (this-form 2)))))
+
+(def insert-closing-delimiter (editor str)
+  (later (editor!doc 'insertString (dot) str colour-scheme!default)
+         (editor!caret 'setDot (- (dot) len.str))))
+
+(def show-macro-expansion (text)
+  (let editor (welder-w/text (tostring (ppr (macex:parse text))))
+    (on-update editor)))
+
 (def find-form-around (index position)
   (let this-form (find-previous-selectable index position)
+
+(prn "find-form-around: initial token is " this-form)
+
     (while (no:token? this-form 'syntax 'left-paren)
       (= this-form (find-previous-selectable index (this-form 2))))
+
+(prn "find-form-around - returning " this-form)
+
     this-form))
 
 (def push-form (editor)
@@ -211,33 +250,38 @@
                        colour-scheme!default)
            (editor!caret 'setDot (+ 1 (previous-form 2))))))
 
-(def defkey (key binding)
-  (= welder-key-bindings*.key binding))
+(def defkey (key binding . others)
+  (= welder-key-bindings*.key binding)
+  (if others (apply defkey others)))
 
-(defkey 'escape   'dismiss        )
-(defkey 'f1       'help           )
-(defkey 'ctrl-k   'keystroke-help )
-(defkey 'ctrl-h   'htmlify        )
-(defkey 'meta-s   'save           )
-(defkey 'f3       'search-next    )
-(defkey 'shift-f3 'search-prev    )
-(defkey 'f4       'close          )
-(defkey 'ctrl-w   'widen          )
-(defkey 'ctrl-e   'eval           )
-(defkey 'meta-o   'open           )
-(defkey 'meta-n   'new            )
-(defkey 'meta-f   'show-search    )
-(defkey 'meta-d   'duplicate      )
-(defkey 'meta-z   'undo           )
-(defkey 'meta-p   'pop-form        )
-(defkey 'shift-meta-p   'push-form )
-(defkey 'shift-meta-z  'redo       )
-(defkey 'shift-meta-equals   'bigger-font     )
-(defkey 'meta-minus   'littler-font     )
-(defkey 'meta-0   'reset-font     )
+(defkey 'shift-9     'insert-closing-paren
+        'shift-quote 'insert-closing-dbl-quote
+        'meta-delete 'kill-form
+        'escape      'dismiss
+        'f1          'help
+        'ctrl-k      'keystroke-help
+        'ctrl-h      'htmlify
+        'meta-s      'save
+        'f3          'search-next
+        'shift-f3    'search-prev
+        'f4          'close
+        'ctrl-w      'widen
+        'ctrl-e      'eval
+        'meta-o      'open
+        'meta-n      'new
+        'meta-f      'show-search
+        'meta-d             'duplicate
+        'meta-z             'undo
+        'meta-p             'pop-form
+        'shift-meta-p       'push-form
+        'shift-meta-z       'redo
+        'shift-meta-equals  'bigger-font
+        'meta-minus         'littler-font
+        'meta-0             'reset-font
+        'f6                 'expand-macro )
 
 (def welder-save-editor-content (editor)
-  (write-file editor!file all-text.editor))
+  (aif editor!file (write-file it all-text.editor)))
 
 (def welder-menu (editor)
   (with (label   (fn (item)
@@ -293,7 +337,7 @@
 (def find-previous-selectable (source-index current-dot)
   (let (last-index-item previous-index-item) nil
     (catch
-       (each (kind tok start finish) source-index
+      (each (kind tok start finish) source-index
         (if (> start current-dot)
             (if (is (last-index-item 2) current-dot)
                 (throw previous-index-item)
@@ -302,7 +346,11 @@
                  (or (no:is kind 'syntax)
                      (no (in tok 'right-paren 'right-bracket 'right-string-delimiter))))
             (= previous-index-item  last-index-item
-               last-index-item      (list kind tok start finish)))))))
+               last-index-item      (list kind tok start finish))))
+
+        (if (and last-index-item (is (last-index-item 2) current-dot))
+            (throw previous-index-item)
+            (throw last-index-item)))))
 
 (def to-html-fragment (text)
   (pr "<pre class='arc'>")
@@ -366,8 +414,8 @@
 
 (def duplicate-selection (editor text)
   (let ins (dot)
-    (if (< ins (editor!caret!getMark))
-        (= ins (editor!caret!getMark)))
+    (if (< ins editor!caret!getMark)
+        (= ins editor!caret!getMark))
     (later (editor!doc 'insertString
                        ins
                        text
@@ -458,13 +506,12 @@
   (= editor!dirty (msec)))
 
 (def follow-updates (editor)
-  (if (and editor!dirty (> (- (msec) editor!dirty) 400))
-      (do
+  (when (and editor!dirty (> (- (msec) editor!dirty) 400))
         (wipe editor!dirty)
         (welder-save-editor-content editor)
         (time (welder-reindex editor))
         (later (colourise editor)
-               (editor!frame 'setTitle (welder-window-title editor)))))
+               (editor!frame 'setTitle (welder-window-title editor))))
   (sleep 0.1)
   (follow-updates editor))
 
@@ -560,11 +607,11 @@
   `(push (fn ,var ,@body) welder-initialisers))
 
 (welder-init (editor)
-  (prn "using font size " font-size)
   (configure-bean editor!pane
-    'caretColor colour-scheme!caret
-    'font       (courier font-size)
-    'background colour-scheme!background))
+    'caretColor      colour-scheme!caret
+    'font            (courier font-size)
+    'selectionColor  colour-scheme!selection
+    'background      colour-scheme!background))
 
 (welder-init (editor)
   (on-caret-move editor!pane (event)
@@ -613,6 +660,12 @@
   (let editor (editor-pane)
     (map [_ editor] rev.welder-initialisers)
     (editor!frame 'show)
-    (if file (welder-open editor file))))
+    (if file (welder-open editor file))
+    editor))
+
+(def welder-w/text (txt)
+  (let editor (welder)
+    (editor!pane 'setText txt)
+    editor))
 
 

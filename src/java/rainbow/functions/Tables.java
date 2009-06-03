@@ -16,8 +16,8 @@ public class Tables {
 
   public static class MapTable extends Builtin {
     public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-      Function f = (Function) args.car();
-      Hash h = (Hash) args.cdr().car();
+      Function f = Builtin.cast(args.car(), "maptable");
+      Hash h = Hash.cast(args.cdr().car(), "maptable");
       h.map(f, thread, lc, caller);
     }
   }
@@ -58,7 +58,11 @@ public class Tables {
       Hash h = (Hash) args.car();
       ArcObject value = args.cdr().car();
       ArcObject key = args.cdr().cdr().car();
-      h.sref(key, value);
+      if (value.isNil()) {
+        h.unref(key);
+      } else {
+        h.sref(key, value);
+      }
       return value;
     }
   }

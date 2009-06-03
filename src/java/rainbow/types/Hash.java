@@ -40,6 +40,10 @@ public class Hash extends ArcObject {
     return Pair.buildFrom(pairs, NIL);
   }
 
+  public void unref(ArcObject key) {
+    map.remove(key);
+  }
+
   public void sref(ArcObject key, ArcObject value) {
     map.put(key, value);
   }
@@ -74,7 +78,7 @@ public class Hash extends ArcObject {
   public void map(Function f, ArcThread thread, LexicalClosure lc, Continuation caller) {
     new TableMapper(thread, lc, caller, f, this).receive(null);
   }
-  
+
   public static Hash cast(ArcObject argument, Object caller) {
     try {
       return (Hash) argument;

@@ -6,7 +6,6 @@
     "srv"
     "app"
     "prompt"
-    "ffi"
     "lib/unit-test"
     "lib/parser"
     "lib/tests/foundation-test"

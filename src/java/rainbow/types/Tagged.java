@@ -1,10 +1,14 @@
 package rainbow.types;
 
 import rainbow.ArcError;
+import rainbow.Function;
+import rainbow.vm.ArcThread;
+import rainbow.vm.continuations.TopLevelContinuation;
 
 public class Tagged extends ArcObject {
   private ArcObject type;
   private ArcObject rep;
+  private static final Symbol TAGGED_WRITE_FN = (Symbol) Symbol.make("tagged-writers");
 
   public Tagged(ArcObject type, ArcObject rep) {
     this.type = type;
@@ -37,14 +41,40 @@ public class Tagged extends ArcObject {
     }
     return null;
   }
-  
+
   public static ArcObject rep(ArcObject o) {
     return (o instanceof Tagged) ? ((Tagged)o).rep : o;
   }
 
   public String toString() {
+    return stringify();
+  }
+
+  public String defaultToString() {
     return "#<tagged " + type + " " + rep + ">";
   }
+
+  private String stringify() {
+    Symbol writer = Tagged.TAGGED_WRITE_FN;
+    if (!writer.bound()) {
+      return defaultToString();
+    }
+
+    Hash dispatchers = (Hash) writer.value();
+    ArcObject fn = dispatchers.value(type);
+    if (fn.isNil()) {
+      return defaultToString();
+    }
+
+    ArcThread thread = new ArcThread();
+    TopLevelContinuation topLevel = new TopLevelContinuation(thread);
+    Function f = (Function) fn;
+    Pair args = Pair.buildFrom(rep);
+    f.invoke(thread, null, topLevel, args);
+    thread.run();
+    return (String) JavaObject.unwrap(thread.finalValue(), String.class);
+  }
+
 
   public static Tagged cast(ArcObject argument, ArcObject caller) {
     try {

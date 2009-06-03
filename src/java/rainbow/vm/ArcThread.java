@@ -83,7 +83,6 @@ public class ArcThread extends ArcObject implements Runnable {
   }
 
   public Output swapStdOut(Output output) {
-    stdOut.close();
     Output swap = stdOut;
     stdOut = output;
     return swap;

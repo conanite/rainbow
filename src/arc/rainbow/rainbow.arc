@@ -1,4 +1,6 @@
-(mac dbg-var (var)
+(set tagged-writers (table))
+
+(mac dbg (var)
   (w/uniq gvar
     `(let ,gvar ,var
        (ero ',var 'is ,gvar)
@@ -97,7 +99,8 @@
     (aif (find-in-path arc-lib)
       (do
         (= *required-libs* (cons arc-lib *required-libs*))
-        (load it)))))
+        (load it))
+      (err (string "Didn't find " arc-lib " in " (tostring:pr:arc-path))))))
 
 (def load-file (fname)
   (w/infile f (if (is (type fname) 'string) fname (coerce fname 'string))

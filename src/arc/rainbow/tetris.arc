@@ -13,7 +13,7 @@
 (mac tetrisop (name args . body)
   (w/uniq (gv)
     `(atdef ,name ,args
-      (if paused* 
+      (if paused*
           t
           (let ,gv nil
             (set cell-updates* (table))
@@ -23,20 +23,21 @@
             (update-updates cell-updates*)
             ,gv)))))
 
-(set tetris-width* 8 tetris-height* 20 acceleration* 1.01)
+(set tetris-width* 8 tetris-height* 20 acceleration* 1.005)
 (set colours nil shape-info (table) universe-cells* (table) shape-rotations (table) game-thread* nil)
 
 (def reset-game ()
   (set delay* 0.5 score* 0 paused* nil)
   (set universe (table) cell-updates* (table))
   (new-shape)
-  (maptable (fn (k v) (repaint-cell k nil)) universe-cells*)
+  (ontable k v universe-cells*
+    (repaint-cell k nil))
   (update-score))
 
-(def key (row col) 
+(def key (row col)
   (tostring (pr row "-" col)))
 
-(def shape-cell-key (colour rotation row col) 
+(def shape-cell-key (colour rotation row col)
   (tostring (pr colour "-" rotation "-" row "-" col)))
 
 (def shape (colour cells)
@@ -48,24 +49,24 @@
         (assert (shape-info (shape-cell-key colour rotation row col)))
         (self (cdr info))))) cells))
 
-(shape 'red    '((0 0 1) (0 1 1) (0 2 1) (0 3 1) 
+(shape 'red    '((0 0 1) (0 1 1) (0 2 1) (0 3 1)
                  (1 1 0) (1 1 1) (1 1 2) (1 1 3)))
-(shape 'gray   '((0 0 1) (0 1 0) (0 1 1) (0 1 2) 
-                 (1 0 1) (1 1 1) (1 1 2) (1 2 1) 
-                 (2 1 0) (2 1 1) (2 1 2) (2 2 1) 
+(shape 'gray   '((0 0 1) (0 1 0) (0 1 1) (0 1 2)
+                 (1 0 1) (1 1 1) (1 1 2) (1 2 1)
+                 (2 1 0) (2 1 1) (2 1 2) (2 2 1)
                  (3 0 1) (3 1 0) (3 1 1) (3 2 1)))
-(shape 'pink   '((0 0 0) (0 1 0) (0 1 1) (0 1 2) 
-                 (1 0 1) (1 0 2) (1 1 1) (1 2 1) 
-                 (2 1 0) (2 1 1) (2 1 2) (2 2 2) 
+(shape 'pink   '((0 0 0) (0 1 0) (0 1 1) (0 1 2)
+                 (1 0 1) (1 0 2) (1 1 1) (1 2 1)
+                 (2 1 0) (2 1 1) (2 1 2) (2 2 2)
                  (3 0 1) (3 1 1) (3 2 0) (3 2 1)))
-(shape 'blue   '((0 0 2) (0 1 0) (0 1 1) (0 1 2) 
-                 (1 0 0) (1 0 1) (1 1 1) (1 2 1) 
-                 (2 1 0) (2 1 1) (2 1 2) (2 2 0) 
+(shape 'blue   '((0 0 2) (0 1 0) (0 1 1) (0 1 2)
+                 (1 0 0) (1 0 1) (1 1 1) (1 2 1)
+                 (2 1 0) (2 1 1) (2 1 2) (2 2 0)
                  (3 0 1) (3 1 1) (3 2 1) (3 2 2)))
 (shape 'yellow '((0 0 0) (0 0 1) (0 1 0) (0 1 1)))
-(shape 'white  '((0 1 1) (0 1 2) (0 2 0) (0 2 1) 
+(shape 'white  '((0 1 1) (0 1 2) (0 2 0) (0 2 1)
                  (1 0 1) (1 1 1) (1 1 2) (1 2 2)))
-(shape 'orange '((0 1 0) (0 1 1) (0 2 1) (0 2 2) 
+(shape 'orange '((0 1 0) (0 1 1) (0 2 1) (0 2 2)
                  (1 0 2) (1 1 1) (1 1 2) (1 2 1)))
 
 (def tetris-view (frame h w universe-cells)
@@ -76,7 +77,9 @@
         (let cell (panel)
           (pr ".")
           (cell 'setBorder (java-new "javax.swing.border.LineBorder" (awt-color 0.1 0.1 0.1) 1))
-          (= (universe-cells (key row col)) (fn (colour) (cell 'setBackground (awt-color colour))))
+          (= (universe-cells (key row col))
+             (fn (colour)
+                 (cell 'setBackground (awt-color colour))))
           (jp 'add cell))))
     (prn)
     (frame 'setContentPane jp)))
@@ -100,7 +103,7 @@
 
 (def game-loop ()
   (sleep delay*)
-  (if (advance-shape) 
+  (if (advance-shape)
       (game-loop)))
 
 (atdef full ()
@@ -113,17 +116,17 @@
   (draw-shape)
   (collapse-full-rows)
   (zap [/ _ acceleration*] delay*)
-  (if (no (full) 
+  (if (no (full)
       (new-shape))))
 
-(def bottom () 
+(def bottom ()
   (illegal falling!colour falling!rotation falling!x (+ 1 falling!y)))
-  
+
 (tetrisop advance-shape ()
   (if (bottom)
       (end-round)
       (++ falling!y)))
-      
+
 (tetrisop drop-shape ()
   ((afn ()
     (if (no (bottom))
@@ -160,7 +163,7 @@
 
 (def illegal (c rot x y)
   (catch
-    (shape-cells c rot row column 
+    (shape-cells c rot row column
       (if (or (> (+ x column 1) tetris-width*)
               (> (+ y row 1) tetris-height*)
               (< (+ x column) 0)
@@ -179,7 +182,8 @@
     (set-cell colour (+ row falling!y) (+ col falling!x))))
 
 (def update-updates (cells-to-update)
-  (maptable (fn (k v) (repaint-cell k v)) cells-to-update))
+  (ontable k v cells-to-update
+    (repaint-cell k v)))
 
 (def repaint-cell (k colour)
   (universe-cells*.k (or colour 'black)))
@@ -196,7 +200,7 @@
   (game-setup universe-cells*)
   (game-help)
   (new-game))
-  
+
 (def new-game ()
   (if game-thread* (kill-thread game-thread*))
   (reset-game)

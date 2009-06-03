@@ -1,4 +1,5 @@
 (require-lib "rainbow/swing")
+
 (java-import "java.awt.image.BufferedImage")
 (java-import "javax.imageio.ImageIO")
 
@@ -18,7 +19,7 @@
   (= scale (/ w scale))
   (let img (new-img w h)
     (with (gc   img!getGraphics
-           sc   (fn (d orig) (trunc:* scale -.d.orig))
+           sc   (fn (d orig) (trunc:* scale (- d orig)))
            seen (table))
       (gc 'setColor bg)
       (gc 'fillRect 0 0 w h)

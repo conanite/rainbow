@@ -1,6 +1,5 @@
 package rainbow.types;
 
-import rainbow.functions.StringIO;
 import rainbow.ArcError;
 
 import java.io.ByteArrayOutputStream;
@@ -23,7 +22,7 @@ public class StringOutputPort extends Output {
   }
 
   public String toString() {
-    return "#<output-port:string>";
+    return "#<string-output-port>";
   }
 
   public static StringOutputPort cast(ArcObject argument, ArcObject caller) {

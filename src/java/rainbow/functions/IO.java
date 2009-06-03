@@ -11,7 +11,7 @@ public class IO {
   public static Output STD_OUT = new Output(System.out) {
     public void close() {
     }
-    
+
     public String toString() {
       return "IO.STD_OUT";
     }
@@ -19,7 +19,7 @@ public class IO {
   public static Output STD_ERR = new Output(System.err) {
     public void close() {
     }
-    
+
     public String toString() {
       return "IO.STD_ERR";
     }
@@ -27,7 +27,7 @@ public class IO {
   public static Input STD_IN = new Input(System.in) {
     public void close() {
     }
-    
+
     public String toString() {
       return "IO.STD_IN";
     }

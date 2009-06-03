@@ -1,15 +1,16 @@
 package rainbow.functions;
 
+import rainbow.ArcError;
 import rainbow.Environment;
 import rainbow.LexicalClosure;
+import rainbow.types.*;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.types.*;
 
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Map;
 
 public abstract class Java {
   public static void collect(Environment top) {
@@ -38,9 +39,13 @@ public abstract class Java {
           }
         }, new Builtin("java-static-field") {
           protected ArcObject invoke(Pair args) {
-            String target = ArcString.cast(args.car(), this).value();
-            String fieldName = Symbol.cast(args.cdr().car(), this).name();
-            return wrap(JavaObject.getStaticFieldValue(target, fieldName));
+            try {
+              String target = ArcString.cast(args.car(), this).value();
+              String fieldName = Symbol.cast(args.cdr().car(), this).name();
+              return wrap(JavaObject.getStaticFieldValue(target, fieldName));
+            } catch (Throwable e) {
+              throw new ArcError("could not static-invoke " + args, e);
+            }
           }
         }, new Builtin("java-debug") {
           protected ArcObject invoke(Pair args) {

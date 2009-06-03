@@ -1,24 +1,32 @@
 (java-import "java.awt.Font")
 (java-import "javax.swing.KeyStroke")
 (java-import "javax.swing.JMenuBar")
+(java-import "javax.swing.JLabel")
 (java-import "java.awt.event.KeyListener")
 (java-import "javax.swing.SwingUtilities")
+(java-import "javax.swing.SwingConstants")
+(java-import "javax.swing.JFileChooser")
+(java-import "javax.swing.BoxLayout")
+(java-import "javax.swing.ScrollPaneConstants")
 
-(set file-chooser-approve*        (java-static-field "javax.swing.JFileChooser" 'APPROVE_OPTION))
-(set font-plain*                  (java-static-field "java.awt.Font" 'PLAIN))
-(set box-layout-vertical*         (java-static-field "javax.swing.BoxLayout" 'Y_AXIS))
-(set horizontal_scrollbar_always* (java-static-field "javax.swing.ScrollPaneConstants" 'HORIZONTAL_SCROLLBAR_ALWAYS))
+(= file-chooser-approve*        (JFileChooser APPROVE_OPTION)
+   font-plain*                  (Font PLAIN)
+   box-layout-vertical*         (BoxLayout Y_AXIS)
+   horizontal_scrollbar_always* (ScrollPaneConstants HORIZONTAL_SCROLLBAR_ALWAYS))
 
 (defmemo awt-color (r (o g) (o b))
+  (on-err (fn (ex) (prn (details ex) " creating awt-color " r " " g " " b))
+          (fn () (awt-color-2 r g b))))
+
+(defmemo awt-color-2 (r (o g) (o b))
   (if (is (type r) 'sym)      (java-static-field "java.awt.Color" r)
       (is (type r) 'string)   (apply awt-color (from-css-colour r))
                               (java-new "java.awt.Color" r g b)))
 
 (defmemo from-css-colour (c)
-  (let cc (coerce c 'cons)
-    (list (/ (coerce (string (list (c 1) (c 2))) 'int 16) 256.0)
-          (/ (coerce (string (list (c 3) (c 4))) 'int 16) 256.0)
-          (/ (coerce (string (list (c 5) (c 6))) 'int 16) 256.0))))
+  (let xfy (fn (ndx) 
+               (/ (coerce (cut c ndx (+ ndx 2)) 'int 16) 256.0))
+    (list (xfy 1) (xfy 3) (xfy 5))))
 
 (defmemo style-constant (name)
   (java-static-field "javax.swing.text.StyleConstants" (upcase-initial name)))
@@ -41,6 +49,8 @@
     (,jb 'addActionListener (fn (action-event) ,@action))
     ,jb)))
 
+(def jlabel () (JLabel new))
+
 (mac key-dispatcher bindings
    (w/uniq gkey
      `(fn (,gkey)
@@ -52,32 +62,33 @@
 
 (mac on-key (component var . actions)
   (w/uniq (gev)
-   `(,component 'addKeyListener 
-                (fn (,gev)
-                    (let ,var (convert-key-event ,gev) ,@actions)))))
+    `(,component 'addKeyListener
+                 (fn (,gev)
+                     (let ,var (convert-key-event ,gev) ,@actions)))))
 
 (mac on-key-press (component . key-bindings)
   (w/uniq (gev)
-  `(,component 'addKeyListener 
-               (fn (,gev) 
-                   ((key-dispatcher ,@key-bindings) (convert-key-event ,gev))))))
+    `(,component 'addKeyListener
+                 (fn (,gev)
+                     ((key-dispatcher ,@key-bindings) (convert-key-event ,gev))))))
 
 (mac on-char (component fun)
-  `(,component 'addKeyListener 
-               (fn (event) (,fun event!getKeyChar))))
+  `(,component 'addKeyListener
+               (obj keyTyped
+                    (fn (event) (,fun event!getKeyChar)))))
 
-(mac on-scroll (component (var) . body)
-  `(,component 'addAdjustmentListener (fn (,var) ,@body)))
+(mac trivial-listener (name method)
+  `(mac ,name (component (var) . body)
+    `(,component ',',method (fn (,var) ,@body))))
 
-(mac on-caret-move (component (var) . body)
-  `(,component 'addCaretListener (fn (,var) ,@body)))
+(trivial-listener on-scroll     addAdjustmentListener)
+(trivial-listener on-caret-move addCaretListener)
+(trivial-listener on-edit       addUndoableEditListener)
 
 (mac on-doc-update (doc (var) . body)
-  `(,doc 'addDocumentListener (fn (,var) ,@body)))
-
-(mac on-edit (doc (var) . body)
-  `(,doc 'addUndoableEditListener (make-obj
-      (undoableEditHappened (,var) ,@body))))
+  `(,doc 'addDocumentListener (obj
+      insertUpdate  (fn (,var) ,@body)
+      removeUpdate  (fn (,var) ,@body))))
 
 (def handle-keystroke (bindings actions keystroke f)
   "Looks for keystroke in bindings. If found, result is
@@ -133,19 +144,18 @@
   (alet (java-new "javax.swing.JScrollPane" component)
     (it!getViewport 'setBackground bgcolor)))
 
+(java-import "javax.swing.Box")
+
 (def box (orientation . content)
-  (alet (java-static-invoke "javax.swing.Box"
-                            (if (is orientation 'horizontal)
-                                'createHorizontalBox
-                                'createVerticalBox))
-    ((afn (components)
-      (if components (do
-        (it 'add (car components))
-        (self (cdr components))))) content)))
+  (alet (if (is orientation 'horizontal)
+            (Box createHorizontalBox)
+            (Box createVerticalBox))
+    (while content
+      (it 'add (pop content)))))
 
 (def open-text-area (text)
   (let editor (text-area)
-    (editor!setText text)
+    (editor 'setText text)
     (editor!getCaret 'setDot  0)
     (editor!getCaret 'moveDot (len text))
     (let f (frame 200 200 600 480 "Arc Welder")
@@ -186,7 +196,7 @@
 
 (def convert-key-event (event)
   (let ks ((KeyStroke getKeyStrokeForEvent event) 'toString)
-    (coerce (downcase (subst "-" " " (subst "" "pressed " ks))) 
+    (coerce (downcase (subst "-" " " (subst "" "pressed " ks)))
             'sym)))
 
 (mac create-action (label help-text . body)

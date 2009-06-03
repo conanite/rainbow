@@ -1,6 +1,7 @@
 package rainbow.types;
 
 import rainbow.ArcError;
+import rainbow.Environment;
 import rainbow.Function;
 import rainbow.functions.Java;
 import rainbow.vm.ArcThread;
@@ -9,6 +10,8 @@ import rainbow.vm.continuations.TopLevelContinuation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class JavaProxy implements InvocationHandler {
   private Hash functions;
@@ -23,6 +26,25 @@ public class JavaProxy implements InvocationHandler {
   }
 
   public Object invoke(Object target, Method method, Object[] arguments) throws Throwable {
+    if (Environment.debugJava) {
+      if (arguments != null) {
+        System.out.println("JavaProxy: invoking " + method + " with " + new ArrayList(Arrays.asList(arguments)));
+      } else {
+        System.out.println("JavaProxy: invoking " + method + " with no args");
+      }
+    }
+    try {
+      Object o = invoke2(target, method, arguments);
+      if (Environment.debugJava) {
+        System.out.println("return value for " + method + " is " + o);
+      }
+      return o;
+    } catch (Throwable throwable) {
+      throw new ArcError("Failed to invoke " + method, throwable);
+    }
+  }
+
+  public Object invoke2(Object target, Method method, Object[] arguments) throws Throwable {
     ArcThread thread = new ArcThread();
     TopLevelContinuation topLevel = new TopLevelContinuation(thread);
     ArcObject methodImplementation = functions.value(Symbol.make(method.getName()));
@@ -31,6 +53,9 @@ public class JavaProxy implements InvocationHandler {
     }
 
     if (methodImplementation.isNil()) {
+      if (Environment.debugJava) {
+        System.out.println("no implementation found for " + method);
+      }
       if (method.getName().equals("toString")) {
         return "Arc implementation of " + interfaces + " : " + functions.toString();
       } else {
