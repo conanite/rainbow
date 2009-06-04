@@ -81,4 +81,8 @@ public class Real extends ArcNumber {
     }
     return (this == other) || (other instanceof Real && value == ((Real) other).value);
   }
+
+  public ArcObject round() {
+    return Rational.make(Math.round(value));
+  }
 }

@@ -4,10 +4,7 @@ import rainbow.ArcError;
 import rainbow.Environment;
 import rainbow.Function;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.*;
 
 public class JavaObject extends ArcObject {
@@ -197,6 +194,10 @@ public class JavaObject extends ArcObject {
       return o != Boolean.FALSE;
     } else if (javaType == Void.class) {
       return o == Boolean.FALSE ? null : o;
+    } else if (javaType.isArray() && o instanceof Collection) {
+      Collection c = (Collection) o;
+      Object a = Array.newInstance(javaType.getComponentType(), c.size());
+      return ((Collection) o).toArray((Object[])a);
     } else {
       return o;
     }
@@ -270,6 +271,8 @@ public class JavaObject extends ArcObject {
       return true;
     } else if (parameterType.isInterface() && (arcObject instanceof Hash || arcObject instanceof Function)) {
       return true;
+    } else if (parameterType.isArray()) {
+      return arcObject instanceof Pair;
     } else if (parameterType.isAssignableFrom(arcObject.unwrap().getClass())) {
       return true;
     }

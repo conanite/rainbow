@@ -79,7 +79,7 @@ public class IO {
         }
       }, new Builtin("sread") {
         public ArcObject invoke(Pair args) {
-          return Input.cast(args.car(), this).readObject(NIL);
+          return Input.cast(args.car(), this).readObject(args.cdr().car());
         }
       }, new Builtin("writeb") {
         public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {

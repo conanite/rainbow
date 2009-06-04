@@ -1,9 +1,6 @@
 package rainbow.types;
 
-import rainbow.Environment;
 import rainbow.ArcError;
-import rainbow.functions.Builtin;
-import com.sun.org.apache.xml.internal.utils.XMLString;
 
 public abstract class ArcNumber extends ArcObject {
   public static final Symbol INT_TYPE = (Symbol) Symbol.make("int");
@@ -41,4 +38,6 @@ public abstract class ArcNumber extends ArcObject {
       throw new ArcError("Wrong argument type: " + caller + " expected a number, got " + argument);
     }
   }
+
+  public abstract ArcObject round();
 }

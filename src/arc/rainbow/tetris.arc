@@ -1,8 +1,10 @@
+(require-lib "rainbow/swing")
+
 (mac set-cell (colour row col)
   (w/uniq (gk)
     `(let ,gk (key ,row ,col)
       (= (universe ,gk) ,colour)
-      (= (cell-updates* ,gk) ,colour))))
+      (= (cell-updates* ,gk) (or ,colour 'none)))))
 
 (mac shape-cells (colour-var rotation row-var col-var . body)
   `(for ,row-var 0 3
@@ -16,19 +18,25 @@
       (if paused*
           t
           (let ,gv nil
-            (set cell-updates* (table))
+            (assign cell-updates* (table))
             (draw-shape nil)
-            (set ,gv (do ,@body ))
+            (assign ,gv (do ,@body ))
             (draw-shape)
             (update-updates cell-updates*)
             ,gv)))))
 
-(set tetris-width* 8 tetris-height* 20 acceleration* 1.005)
-(set colours nil shape-info (table) universe-cells* (table) shape-rotations (table) game-thread* nil)
+(assign tetris-width*   8 
+        tetris-height*  20 
+        acceleration*   1.005
+        colours         nil 
+        shape-info      (table) 
+        universe-cells* (table)
+        shape-rotations (table) 
+        game-thread*    nil)
 
 (def reset-game ()
-  (set delay* 0.5 score* 0 paused* nil)
-  (set universe (table) cell-updates* (table))
+  (assign delay* 0.5 score* 0 paused* nil)
+  (assign universe (table) cell-updates* (table))
   (new-shape)
   (ontable k v universe-cells*
     (repaint-cell k nil))
@@ -46,7 +54,7 @@
     (if info
       (let (rotation row col) (car info)
         (= shape-rotations.colour rotation)
-        (assert (shape-info (shape-cell-key colour rotation row col)))
+        (set (shape-info (shape-cell-key colour rotation row col)))
         (self (cdr info))))) cells))
 
 (shape 'red    '((0 0 1) (0 1 1) (0 2 1) (0 3 1)
@@ -94,12 +102,16 @@
       'right (move-shape 1)
       'n     (new-game)
       'p     (zap [no _] paused*)
-      'q     f!dispose)
+      'q     (end-tetris f))
     f!pack
     (f 'setSize 300 700)
     f!show
     (def update-score (score)
       (f 'setTitle (+ "Arc Tetris : " (coerce score 'string))))))
+
+(def end-tetris (frame)
+  frame!dispose
+  (if game-thread* (kill-thread game-thread*)))
 
 (def game-loop ()
   (sleep delay*)
@@ -183,7 +195,7 @@
 
 (def update-updates (cells-to-update)
   (ontable k v cells-to-update
-    (repaint-cell k v)))
+    (repaint-cell k (if (is v 'none) nil v))))
 
 (def repaint-cell (k colour)
   (universe-cells*.k (or colour 'black)))
@@ -204,5 +216,5 @@
 (def new-game ()
   (if game-thread* (kill-thread game-thread*))
   (reset-game)
-  (set game-thread* (thread (game-loop)))
+  (assign game-thread* (thread (game-loop)))
   "started")

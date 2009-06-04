@@ -1,7 +1,6 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.Environment;
 
 public class Rational extends ArcNumber {
   private long numerator;
@@ -114,6 +113,14 @@ public class Rational extends ArcNumber {
       return (Rational) argument;
     } catch (ClassCastException e) {
       throw new ArcError("Wrong argument type: " + caller + " expected a Rational, got " + argument);
+    }
+  }
+
+  public ArcObject round() {
+    if (denominator == 1L) {
+      return this;
+    } else {
+      return Rational.make(Math.round(((double)numerator) / ((double)denominator)));
     }
   }
 }

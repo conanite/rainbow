@@ -8,7 +8,7 @@
         node-name
         (last:tokens node-name #\/)))))
 
-(set pb-cache (table))
+(assign pb-cache (table))
 
 (def make-tree-node (root isleaf kidfn)
   (or= pb-cache.root
@@ -40,18 +40,15 @@
   (withs (root-node (make-root-node)
           listeners nil)
     (TreeModel implement t (make-obj
-      (equals                  (other)      nil)
-      (getRoot                 ()           root-node)
-      (getChild                (node index) (rep.node!nth index))
-      (getChildCount           (node)       (rep.node!count))
-      (isLeaf                  (node)       (rep.node!leaf))
-      (valueForPathChanged     (tree-path node)
-        (prn 'valueForPathChanged " " tree-path " node: " rep.node) )
-      (getIndexOfChild         (parent child)
-        (prn "looking for index of " (rep.child!name) " under " (rep.parent!name))
-        (rep.parent!child-index rep.child))
-      (addTreeModelListener    (listener)   (push listener listeners))
-      (removeTreeModelListener (listener)   (zap [rem listener _] listeners))))))
+      (equals                  (other)          nil)
+      (getRoot                 ()               root-node)
+      (getChild                (node index)     (rep.node!nth index))
+      (getChildCount           (node)           (rep.node!count))
+      (isLeaf                  (node)           (rep.node!leaf))
+      (valueForPathChanged     (tree-path node) nil)
+      (getIndexOfChild         (parent child)   (rep.parent!child-index rep.child))
+      (addTreeModelListener    (listener)       (push listener listeners))
+      (removeTreeModelListener (listener)       (zap [rem listener _] listeners))))))
 
 (def refresh-path-browser (tree)
   (with (expanded-paths (tree 'getExpandedDescendants (tree 'getPathForRow 0))
@@ -61,18 +58,29 @@
     (ontable path node pb-cache (rep.node!invalidate))
     (while expanded-paths!hasMoreElements
       (tree 'expandPath expanded-paths!nextElement))
+
+    (prn "selection paths : ")
+    (each sp selection-paths (prn sp!getClass))
+
     (tree 'addSelectionPaths selection-paths)))
 
+(def delete-file (tree)
+  (let node (rep tree!getSelectionPath!getLastPathComponent)
+    (when (and node (no:is node!name "(arc-path)" ))
+      (prn "deleting " (node!name))
+      (rmfile (node!name))
+      (refresh-path-browser tree))))
+
 (def path-browser ()
-  (withs (f (frame 150 150 800 800 "arc-path browser")
-          tree (java-new "javax.swing.JTree")
+  (withs (f (frame 20 100 320 800 "arc-path browser")
+          tree     (java-new "javax.swing.JTree")
           renderer (bean "javax.swing.JLabel")
           model    (pb-tree-model)
-          sc (scroll-pane tree colour-scheme!background))
+          sc       (scroll-pane tree colour-scheme!background))
     (tree 'setModel model)
     (on-key-press tree
       'enter (welder (((rep tree!getSelectionPath!getLastPathComponent) 'name)))
+      'delete (delete-file tree)
       'f5    (refresh-path-browser tree))
     (f 'add sc)
-    f!pack
     f!show))

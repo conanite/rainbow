@@ -1,4 +1,4 @@
-(mac move (place op lower upper)
+(mac move-cursor (place op lower upper)
   (w/uniq gv
    `(let ,gv (,op ,place 1)
       (= ,place (if (< ,gv ,lower) ,lower
@@ -24,11 +24,11 @@
         (or (< x 0) (> x max-x)
             (< y 0) (> y max-y)))
       (propagate (from seen)
-        (unless (or (oob from) 
+        (unless (or (oob from)
                     (seen from))
-          (assert (seen from))
+          (set (seen from))
           (when (no (mf from))
-            (assert (cleared from))
+            (set (cleared from))
             (if (is (surrounded from) 0)
               (each n (neighbours from)
                 (propagate n seen))))))
@@ -38,12 +38,12 @@
                            started nil
                            stopped nil)
                         (while (< (len mf) 10)
-                          (assert (mf `(,(rand (+ max-x))
+                          (set (mf `(,(rand (+ max-x))
                                         ,(rand (+ max-y)))))))
       (bomb?      (p)   (mf p))
       (marked?    (p)   (marked p))
       (ended      ()    (if stopped stopped (msec)))
-      (secs       ()    (if started 
+      (secs       ()    (if started
                             (trunc (/ (- (ended) started) 1000.0))
                             0))
       (marks      ()    (len marked))
@@ -58,26 +58,26 @@
       (done?      ()    (or (won?) (lost?)))
       (won?       ()    (is (+ (len cleared) (len mf))
                             (apply * (dimension))))
-      (lost?      ()    (catch 
-                          (ontable p bomb mf 
+      (lost?      ()    (catch
+                          (ontable p bomb mf
                             (when (and bomb (cleared p))
                               (throw t)))
                           nil))
-      (up         ()    (move cursor-y - 0 max-y))
-      (down       ()    (move cursor-y + 0 max-y))
-      (left       ()    (move cursor-x - 0 max-x))
-      (right      ()    (move cursor-x + 0 max-x))
+      (up         ()    (move-cursor cursor-y - 0 max-y))
+      (down       ()    (move-cursor cursor-y + 0 max-y))
+      (left       ()    (move-cursor cursor-x - 0 max-x))
+      (right      ()    (move-cursor cursor-x + 0 max-x))
       (mark       ()    (unless (clear? (here))
                           (= (marked (here))
                              (no (marked (here))))))
-      (clear1     (p)   (if (mf p)     (assert (cleared p))
+      (clear1     (p)   (if (mf p)     (set (cleared p))
                             (clear? p) (each n (neighbours p)
-                                         (unless (or (clear? n) 
+                                         (unless (or (clear? n)
                                                      (marked? n))
                                            (clear1 n)))
                                        (propagate p (table))))
       (clear      ()    (clear1 (here))
-                        (if (no started) 
+                        (if (no started)
                             (= started (msec))))
       (invoke     (op)  (when (or (no (done?)) (is op 'reset))
                           ((this op))
@@ -87,7 +87,7 @@
 (def redraw (mf)
   (ontable k v mf!cells
     (v (if (mf!clear? k)  (if (mf!bomb? k)
-                              'exploded 
+                              'exploded
                               'exposed)
            (mf!marked? k) 'marked
                           'hidden)
@@ -95,7 +95,7 @@
        (mf!surrounded k))))
 
 (def update-info (mf info)
-  (info 'setText 
+  (info 'setText
         (string (if (mf!won?)  "finished, congrats :)"
                     (mf!lost?) "oops ..."
                                (mf!marks))
@@ -109,7 +109,7 @@
     (let info (mf-view f mf)
       (thread (update-info mf info)))
     (on-key-press f
-      'q        (do f!dispose (assert mf!dead))
+      'q        (do f!dispose (set mf!dead))
       'n        (mf!invoke 'reset)
       'b        (mf!invoke 'mark)
       'space    (mf!invoke 'clear)
@@ -124,7 +124,7 @@
 
 (java-import "javax.swing.border.LineBorder")
 
-(set mine-colours '((1.0 1.0 1.0)
+(assign mine-colours '((1.0 1.0 1.0)
                     (0.5 0.4 0.4)
                     (0.5 0.5 0.1)
                     (0.1 0.1 0.5)
@@ -157,8 +157,8 @@
                                  ""))
                    (configure-bean cell
                      'opaque t
-                     'border (LineBorder new (if focus 
-                                                 (awt-color 'yellow) 
+                     'border (LineBorder new (if focus
+                                                 (awt-color 'yellow)
                                                  (awt-color 0.1 0.1 0.1)) 1)
                      'background (awt-color (case status
                                                   exposed  'white

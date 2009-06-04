@@ -2,9 +2,9 @@ package rainbow.functions;
 
 import rainbow.*;
 import rainbow.parser.ParseException;
+import rainbow.types.*;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.types.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -165,8 +165,7 @@ public class Typing {
 
     coercion.put("num-int", new Coercer() {
       public ArcObject coerce(ArcObject original, ArcNumber base) {
-        ArcNumber source = (ArcNumber) original;
-        return Real.make(source.toInt());
+        return ((ArcNumber) original).round();
       }
     });
 
@@ -194,7 +193,7 @@ public class Typing {
       }
     });
 
-    coercion.put("string-int", new Coercer() {
+    coercion.put("string-num", new Coercer() {
       public ArcObject coerce(ArcObject original, ArcNumber base) {
         if (base == null) {
           base = Rational.TEN;
@@ -212,6 +211,24 @@ public class Typing {
           return coerceDouble(source, base.toInt());
         } else if (source.contains("/")) {
           return coerceFraction(source, base.toInt());
+        } else {
+          return coerceInt(source, base.toInt());
+        }
+      }
+    });
+
+    coercion.put("string-int", new Coercer() {
+      public ArcObject coerce(ArcObject original, ArcNumber base) {
+        if (base == null) {
+          base = Rational.TEN;
+        }
+        String source = ((ArcString) original).value().toLowerCase();
+        if (source.equals("+inf.0") || source.equals("-inf.0") || source.equals("+nan.0") || source.toLowerCase().endsWith("i")) {
+          throw new CantCoerce();
+        } else if (source.contains(".") || (base.toInt() < 15 && source.matches(".+[eE].+"))) {
+          return ((Real) coerceDouble(source, base.toInt())).round();
+        } else if (source.contains("/")) {
+          return ((Rational) coerceFraction(source, base.toInt())).round();
         } else {
           return coerceInt(source, base.toInt());
         }
@@ -257,6 +274,9 @@ public class Typing {
 
   private static ArcObject coerceFraction(String source, long base) {
     String[] parts = source.split("/");
+    if (parts.length > 2) {
+      throw new CantCoerce();
+    }
     long num = Long.parseLong(parts[0], (int) base);
     long div = Long.parseLong(parts[1], (int) base);
     return Rational.make(num, div);

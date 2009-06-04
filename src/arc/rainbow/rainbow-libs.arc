@@ -1,11 +1,10 @@
 (map require-lib
-  '("pprint"
-    "code"
-    "files"
-    "html"
-    "srv"
-    "app"
-    "prompt"
+  '("core/pprint"
+    "core/code"
+    "core/html"
+    "core/srv"
+    "core/app"
+    "core/prompt"
     "lib/unit-test"
     "lib/parser"
     "lib/tests/foundation-test"
@@ -25,31 +24,24 @@
     "rainbow/tests/java-interface-test"))
 
 (def file-join parts
-     " Joins `parts' into a path string. "
   (apply + parts))
-;     (apply + ((afn (pth) (if pth (cons (car pth) (if (cdr pth) (cons "/" (self:cdr pth)))))) parts)))
 
 (def qualified-path (path)
-  " Returns the fully-qualified path of a possibly relative `path'. "
   ((java-new "java.io.File" path) 'getAbsolutePath))
 
 (prn "self-test:")
 (run-all-tests)
 
 (def welder ()
-  (require-lib "rainbow/swing")
   (require-lib "rainbow/welder")
   (welder))
 
 (def path-browser ()
-   (require-lib "rainbow/swing")
-   (require-lib "rainbow/welder")
-   (require-lib "rainbow/fs-browser")
-   (path-browser))
+  (require-lib "rainbow/fs-browser")
+  (path-browser))
 
 (def tetris ()
-   (require-lib "rainbow/swing")
-   (require-lib "rainbow/tetris")
-   (tetris))
+  (require-lib "rainbow/tetris")
+  (tetris))
 
 

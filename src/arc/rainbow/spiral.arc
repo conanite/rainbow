@@ -5,7 +5,7 @@
 (mac spiral-params (req . body)
   `(with (x      (num-param ,req "x"    0)
           y      (num-param ,req "y"    0)
-          x0     (num-param ,req "x0"   0) 
+          x0     (num-param ,req "x0"   0)
           y0     (num-param ,req "y0"   0)
           w      (num-param ,req "w"    512)
           h      (num-param ,req "h"    384)
@@ -24,7 +24,7 @@
 (mac spiralpage (left body right)
   `(tag html
      (spiral-head)
-     (tag body 
+     (tag body
        (tag table
          (tag tr
            (tag (td valign "top") ,left)
@@ -64,9 +64,9 @@
                    (clickable span "origin_right_button" "right"))
               (row (pr "y origin")
                    (text-input oy)
-                   (clickable span "origin_up_button" "up") 
+                   (clickable span "origin_up_button" "up")
                    (clickable span "origin_down_button" "down"))
-              (row (pr "neighbours") 
+              (row (pr "neighbours")
                    (text-input nc)
                    (nbsp)
                    (nbsp))
@@ -87,13 +87,13 @@
 
 (def interleave (sep ls)
   (if ls
-      (cons (car ls) 
+      (cons (car ls)
             (if (cadr ls)
                 (cons sep (interleave sep (cdr ls)))))))
 
 (def qsify args
   (let pairify (fn (x)
-                   (if (atom x) 
+                   (if (atom x)
                        `(',x "=" ,x)
                        `(',(car x) "=" ,(cadr x))))
     (if args
@@ -105,7 +105,7 @@
   `(tostring:pr ,@(apply qsify args)))
 
 (defop-raw i (str req)
-  (w/stdout str 
+  (w/stdout str
     (aif (fns* (sym (arg req "fnid")))
          (it str req)
          (pr dead-msg*))))
@@ -121,7 +121,7 @@
 
 (def spiral-img (id x y w h ox oy zoom)
   (empty-elem-tag img
-    id     id 
+    id     id
     alt    (string (make-complex x y))
     src    (string "/i?fnid=" (fnid:img-generator x y w h ox oy zoom))
     border "0"))
@@ -133,10 +133,10 @@
     (tag (a href (string "javascript:$s.moveTo(" x ", " y ");"))
          (spiral-img (string "img_" x-offset "_" y-offset) x y 100 75 ox oy zoom))))
 
-;(set nb-array '(-81 -9 -3 -1 0 1 3 9 81))
-(set nb-array '(-64 -8 -1 0 1 8 64))
-;(set nb-array '(-10 -1 0 1 10))
-;(set nb-array '(-1 0 1))
+;(assign nb-array '(-81 -9 -3 -1 0 1 3 9 81))
+(assign nb-array '(-64 -8 -1 0 1 8 64))
+;(assign nb-array '(-10 -1 0 1 10))
+;(assign nb-array '(-1 0 1))
 
 (def neighbours (req)
   (tag (table cellspacing 1 cellpadding 0)
@@ -151,7 +151,7 @@
 (def join-str (token args)
      (apply + (interleave token args)))
 
-(def qs (req) 
+(def qs (req)
   (join-str "&" (map [+ (car _) "=" (cadr _)] (req 'args))))
 
 (def small (z)
@@ -161,13 +161,13 @@
 (def plot (x y w h ox oy zoom)
   (with (c (make-complex x y)
          p (plotter `(,w ,h) `(,ox ,oy) zoom (awt-color 0 0 0) (awt-color 1 1 1))
-         z 0+0i 
+         z 0+0i
          n 0
          repeats 0)
     (while (and (small z) (< n 10000) (< repeats 1000))
       (++ n)
-      (set z (+ c (* z z)))
-      (if (apply p!plot (complex-parts z)) (++ repeats) 
+      (assign z (+ c (* z z)))
+      (if (apply p!plot (complex-parts z)) (++ repeats)
                                            (= repeats 0)))
     p))
 
@@ -183,11 +183,11 @@
     (p!write (outfile "foo.png"))
     (p!write os)))
 
-(defop spiral req 
+(defop spiral req
   (spiral-params req
-    (spiralpage (do (spiral-form x y x0 y0 zoom ox oy nc frames) 
+    (spiralpage (do (spiral-form x y x0 y0 zoom ox oy nc frames)
                     (spiral-help)
-                    (empty-elem-tag img 
+                    (empty-elem-tag img
                       id     "main_img"
                       src    (string "/i?fnid=" (fnid:img-generator x y w h ox oy zoom)))
                     (tag script (pr "$s.install();$s.recentering();"))
@@ -213,9 +213,9 @@
                 (animation x y x0 y0 zoom ox oy nc frames)
                 (tag script (pr "$s.install();$s.animate();")))))
 
-(def start-spiral-app () 
-  (set threadlimit* 500 threadlife* 60)
-  (set asv-thread (thread (asv))))
+(def start-spiral-app ()
+  (assign threadlimit* 500 threadlife* 60)
+  (assign asv-thread (thread (asv))))
 
 ; http://localhost:8080/spiral?x=-0.465&y=-0.543&ox=-1.04&oy=-0.74&nc=0.0008&zoom=1.2
 ; http://localhost:8080/spiral?x=-0.154&y=-0.644&ox=-0.733984375&oy=-0.759375&zoom=1&nc=0.006

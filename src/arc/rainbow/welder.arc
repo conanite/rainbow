@@ -1,6 +1,6 @@
 (require-lib "rainbow/swing")
 
-(set unmatched (obj
+(assign unmatched (obj
   unmatched-left-paren              "("
   unmatched-left-bracket            "["
   unmatched-interpolation-start     "\#("
@@ -9,7 +9,7 @@
   unmatched-right-paren             ")"
   unmatched-right-bracket           "]"))
 
-(set syntax-char-names  (obj
+(assign syntax-char-names  (obj
   left-paren        "("
   left-bracket      "["
   right-paren       ")"
@@ -21,7 +21,7 @@
   unquote           ","
   unquote-splicing  ",@"))
 
-(set night-colour-scheme (obj
+(assign night-colour-scheme (obj
   background        (awt-color 'black)
   caret             (awt-color 'white)
   default           (swing-style 'foreground 'gray      'background 'black)
@@ -39,7 +39,7 @@
   comment           (swing-style 'foreground "#604060"  'italic t)
   selection         (awt-color   "#4040C0")))
 
-(set day-colour-scheme (obj
+(assign day-colour-scheme (obj
   background        (awt-color 'white)
   caret             (awt-color 'black)
   default           (swing-style 'foreground "#444444"  'background 'white)
@@ -58,11 +58,11 @@
   comment           (swing-style 'foreground "#909090"  'italic t)
   selection         (awt-color   "#202060")))
 
-(set font-size 12)
-(set colour-scheme night-colour-scheme)
-(set file-chooser (new-file-chooser))
-(set welder-actions* (table))
-(set welder-key-bindings* (table))
+(assign font-size 14)
+(assign colour-scheme night-colour-scheme)
+(assign file-chooser (new-file-chooser))
+(assign welder-actions* (table))
+(assign welder-key-bindings* (table))
 
 (mac dot () `(editor!caret 'getDot))
 
@@ -181,7 +181,7 @@
 
 (defweld reset-font "Reset font"
          "Reset font size to default"
-         (set font-size 12)
+         (assign font-size 12)
          (configure-bean editor!pane 'font (courier font-size)))
 
 (defweld expand-macro "Macex"
@@ -202,7 +202,7 @@
   (whenlet this-form (find-form-around editor!index (dot))
     (prn "target form " this-form)
     (editor!doc 'remove
-                (this-form 2) 
+                (this-form 2)
                 (- (this-form 3) (this-form 2)))))
 
 (def insert-closing-delimiter (editor str)
@@ -215,14 +215,8 @@
 
 (def find-form-around (index position)
   (let this-form (find-previous-selectable index position)
-
-(prn "find-form-around: initial token is " this-form)
-
     (while (no:token? this-form 'syntax 'left-paren)
       (= this-form (find-previous-selectable index (this-form 2))))
-
-(prn "find-form-around - returning " this-form)
-
     this-form))
 
 (def push-form (editor)
@@ -500,7 +494,8 @@
 (def colourise (editor)
   (with (pane editor!pane doc editor!doc (vis-start vis-finish) (visible-text editor!pane))
     (colourise-interval editor!index doc vis-start vis-finish)
-    (highlight-match editor (dot))))
+    (highlight-match editor (dot))
+    (editor!search!hilite)))
 
 (def on-update (editor)
   (= editor!dirty (msec)))
@@ -543,41 +538,45 @@
          replace)))
 
 (def allmatches (pat seq)
-  (rev (accum matches
+  (accum matches
     (for i 0 (- (len seq) (len pat))
-      (when (headmatch pat seq i) (matches i))))))
+      (when (headmatch pat seq i) (matches i)))))
 
 (def make-search-field (editor)
   (withs (tf    (text-field)
           sf    (box 'horizontal tf)
-          (hits hl-x hl-len search-term) nil
-          (search unhilite show hide move next prev) nil)
+          (hit hits hl-x hl-len search-term) nil
+          (search hilite unhilite show hide move next prev) nil)
     (def search  (term)
                  (= hits (allmatches term (all-text editor)))
                  (= search-term term)
+                 (wipe hit)
                  (next 0))
-    (def unhilite ()
-                 (if hl-x
-                     (do
-                       (colourise-interval editor!index
-                                           editor!doc
-                                           hl-x (+ hl-x hl-len))
-                       (wipe hl-x hl-len))))
     (def show    ()
                  sf!show
                  (sf!getParent 'revalidate)
                  tf!grabFocus)
-    (def move    (hit-fn)
-                 (unhilite)
-                 (if hits
-                     (let hit (hit-fn)
-                       (= hl-x hit hl-len (len search-term))
-                       (editor!caret 'setDot hit)
-                       (colour-region editor!doc
+    (def unhilite ()
+                 (when hl-x
+                   (colourise-interval editor!index
+                                       editor!doc
+                                       hl-x (+ hl-x hl-len))
+                   (wipe hl-x hl-len)))
+    (def hilite  ()
+                 (if hit
+                     (colour-region editor!doc
                           hit
                           (len search-term)
                           'search-highlight
-                          nil))
+                          nil)))
+    (def move    (hit-fn)
+                 (unhilite)
+                 (if hits
+                     (do 
+                       (= hit (hit-fn))
+                       (= hl-x hit hl-len (len search-term))
+                       (editor!caret 'setDot hit)
+                       (hilite))
                      (prn "no hits for " search-term)))
     (def next    ((o offset-from-dot 1))
                  (move [or (find [< (+ offset-from-dot (dot) -1) _] hits)
@@ -587,6 +586,7 @@
                             (or (find [> (dot) _] rhits)
                                 (car rhits))]))
     (def hide    ()
+                 (wipe hit)
                  (unhilite)
                  sf!hide
                  (sf!getParent 'revalidate))
@@ -599,9 +599,9 @@
     (on-doc-update tf!getDocument (c)
       (search tf!getText))
     (sf 'hide)
-    (nobj sf show hide next prev)))
+    (nobj sf show hide next prev hilite)))
 
-(set welder-initialisers nil)
+(assign welder-initialisers nil)
 
 (mac welder-init (var . body)
   `(push (fn ,var ,@body) welder-initialisers))
@@ -622,7 +622,7 @@
     (on-update editor)))
 
 (welder-init (editor)
-  (let f (frame 150 150 800 800 "Arc Welder")
+  (let f (frame 360 100 1200 800 "Arc Welder")
     (= editor!frame f)
     (= editor!show-help
        (help-window f))

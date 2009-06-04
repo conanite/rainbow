@@ -43,7 +43,7 @@ public class Environment {
     addBuiltin("is", new Predicates.Is());
 
     /* special */
-    addBuiltin("set", new Specials.Set());
+    addBuiltin("assign", new Specials.Set());
     addBuiltin("quote", new Specials.Quote());
     addBuiltin("quasiquote", new Specials.QuasiQuote());
     addBuiltin("if", new Specials.If());

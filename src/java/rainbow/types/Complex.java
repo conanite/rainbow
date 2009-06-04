@@ -52,6 +52,11 @@ public class Complex extends ArcNumber {
     }
   }
 
+  @Override
+  public ArcObject round() {
+    throw new ArcError("Can't convert " + this + " to integer");
+  }
+
   public ArcNumber imaginaryPart() {
     return new Real(imaginary);
   }

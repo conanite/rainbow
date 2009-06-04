@@ -15,8 +15,8 @@
     (prn "max " maxtime)
     (/ totaltime times 1.0)))
 
-(set a (load-file "~/projects/rainbow/src/arc/rainbow/welder.arc"))
-(bm 20 (fn () (index-source a)))
+;(assign a (load-file "~/projects/rainbow/src/arc/rainbow/welder.arc"))
+;(bm 20 (fn () (index-source a)))
 ;(bm 10 [prime-bench 20000])
 
 ; prime-bench:
