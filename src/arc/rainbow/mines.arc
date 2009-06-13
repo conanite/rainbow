@@ -104,7 +104,7 @@
   (unless mf!dead
     (update-info mf info)))
 
-(def game-setup (mf)
+(def mines-setup (mf)
   (let f (frame 400 400 400 400 "arc mine-field")
     (let info (mf-view f mf)
       (thread (update-info mf info)))
@@ -140,11 +140,6 @@
          (w h) (mf!dimension)
          cells (table))
     (= mf!cells cells)
-    (configure-bean info
-      'opaque t
-      'horizontalAlignment (SwingConstants LEFT)
-      'maximumSize (dim 1000000 25)
-      'minimumSize (dim 1000000 25))
     (jp 'setLayout (java-new "java.awt.GridLayout" h w))
     (for row 0 (- h 1)
       (for col 0 (- w 1)
@@ -153,10 +148,11 @@
              (fn (status focus count)
                  (with (fg   (mine-colours (or count 0))
                         text (if (and count (is status 'exposed))
-                                 (string count)
+                                 "<html><b>#(count)</b></html>"
                                  ""))
                    (configure-bean cell
                      'opaque t
+                     'horizontalAlignment (SwingConstants CENTER)
                      'border (LineBorder new (if focus
                                                  (awt-color 'yellow)
                                                  (awt-color 0.1 0.1 0.1)) 1)
@@ -168,10 +164,11 @@
                      'foreground (apply awt-color fg)
                      'text text))))
           (jp 'add cell))))
-    (f 'setContentPane (box 'vertical info jp))
+    (f!getContentPane 'add info)
+    (f!getContentPane 'add jp)
     info))
 
-(def minefield ()
-  (game-setup (new-mine-field))
+(def mines ()
+  (mines-setup (new-mine-field))
   nil)
 

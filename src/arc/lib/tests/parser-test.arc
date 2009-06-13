@@ -28,7 +28,7 @@
     (parse "(foo bar) ; the foo bar\n; more commentary")               
     (foo bar))
   ("parse quote non-atom"
-    (parse "'(foo bar)")               
+    (parse "'(foo bar)")
     '(foo bar))
   ("parse whitespace before closing paren"
     (parse "(foo bar )")               

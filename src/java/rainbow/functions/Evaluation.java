@@ -1,7 +1,6 @@
 package rainbow.functions;
 
 import rainbow.ArcError;
-import rainbow.Console;
 import rainbow.Function;
 import rainbow.LexicalClosure;
 import rainbow.types.*;
@@ -10,7 +9,10 @@ import rainbow.vm.Continuation;
 import rainbow.vm.Interpreter;
 import rainbow.vm.continuations.FunctionDispatcher;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 public class Evaluation {
   public static boolean isSpecialSyntax(ArcObject expression) {
@@ -27,12 +29,8 @@ public class Evaluation {
       args = constructApplyArgs((Pair) args.cdr());
       if (fn instanceof Function) {
         ((Function) fn).invoke(thread, lc, caller, args);
-      } else if (Console.ARC2_COMPATIBILITY) {
-        arc2CompatibleTypeDispatch(thread, lc, caller, args, fn);
-      } else if (Console.ANARKI_COMPATIBILITY) {
-        anarkiCompatibleTypeDispatch(thread, lc, caller, args, fn);
       } else {
-        throw new ArcError("Expected a function : got " + fn + " with args " + args);
+        anarkiCompatibleTypeDispatch(thread, lc, caller, args, fn);
       }
     }
 
@@ -52,18 +50,6 @@ public class Evaluation {
       }
     }
 
-    private void arc2CompatibleTypeDispatch(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args, ArcObject fn) {
-      if (fn instanceof Pair) {
-        Pair.REF.invoke(thread, lc, caller, new Pair(fn, args));
-      } else if (fn instanceof ArcString) {
-        ArcString.REF.invoke(thread, lc, caller, new Pair(fn, args));
-      } else if (fn instanceof Hash) {
-        Hash.REF.invoke(thread, lc, caller, new Pair(fn, args));
-      } else {
-        throw new ArcError("Expected a function, cons, hash, or string : got " + fn + " with args " + args);
-      }
-    }
-
     private Pair constructApplyArgs(Pair args) {
       if (args.cdr().isNil()) {
         return Pair.cast(args.car(), this);
@@ -76,12 +62,6 @@ public class Evaluation {
   public static class Eval extends Builtin {
     public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
       Interpreter.compileAndEval(thread, lc, caller, args.car());
-    }
-  }
-
-  public static class Seval extends Builtin {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-      caller.receive(new Hash());
     }
   }
 

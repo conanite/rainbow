@@ -6,21 +6,13 @@ import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.Interpreter;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 public class FunctionDispatcher extends ContinuationSupport {
-  public static final boolean ALLOW_MACRO_EXPANSION = false;
   public static final Symbol TYPE_DISPATCHER_TABLE = (Symbol) Symbol.make("call*");
 
-  private static final Object EXPECT_FUNCTION = new Object();
-  private static final Object EXPECT_ARGUMENT = new Object();
-
   private ArcObject args;
-  private Object state = EXPECT_FUNCTION;
+  private boolean expectingArg;
   private Function f;
-  private List evaluatedArgs;
+  private Pair evaluatedArgs;
   private ArcObject functionName;
 
   public FunctionDispatcher(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression) {
@@ -34,95 +26,49 @@ public class FunctionDispatcher extends ContinuationSupport {
   }
 
   public void onReceive(ArcObject obj) {
-    if (state == EXPECT_FUNCTION) {
-      digestFunction(obj);
-    } else if (state == EXPECT_ARGUMENT) {
-      digestArgument(obj);
-    }
-  }
-
-  private void digestFunction(ArcObject fn) {
-    if (fn instanceof SpecialForm) {
-      ((SpecialForm) fn).invoke(thread, lc, caller, (Pair) args);
-    } else if (fn instanceof Function) {
-      evaluate((Function) fn);
-    } else if (Console.ARC2_COMPATIBILITY) {
-      arc2CompatibleTypeDispatch(fn);
-    } else if (Console.ANARKI_COMPATIBILITY) {
-      anarkiCompatibleTypeDispatch(fn);
+    if (expectingArg) {
+      evaluatedArgs = Pair.append(evaluatedArgs, obj);
+      startEvaluation();
     } else {
-      throw new ArcError("Expected a function : got " + fn + " with args " + args);
-    }
-  }
-
-  private void anarkiCompatibleTypeDispatch(ArcObject fn) {
-    Symbol callTable = TYPE_DISPATCHER_TABLE;
-    Hash dispatchers = callTable.bound() ? (Hash) callTable.value() : null;
-    try {
-      ArcObject typeFunction = dispatchers.value(fn.type());
-      if (typeFunction.isNil() || !(typeFunction instanceof Function)) {
-        throw new ArcError("Function dispatch on inappropriate object: " + fn);
-      }
-      typeDispatch((Function) typeFunction, Tagged.rep(fn));
-    } catch (NullPointerException e) {
-      if (dispatchers == null) {
-        throw new ArcError("call* table not found in environment: if you are not using anarki please specify --strict-arc on the command-line");
+      if (obj instanceof SpecialForm) {
+        ((SpecialForm) obj).invoke(thread, lc, caller, (Pair) args);
+      } else if (obj instanceof Function) {
+        evaluate((Function) obj);
       } else {
-        throw e;
+        evaluatedArgs = new Pair(Tagged.rep(obj), ArcObject.NIL);
+        evaluate((Function) ((Hash) TYPE_DISPATCHER_TABLE.value()).value(obj.type()));
       }
     }
-  }
-
-  private void arc2CompatibleTypeDispatch(ArcObject fn) {
-    if (fn instanceof Pair) {
-      typeDispatch(Pair.REF, fn);
-    } else if (fn instanceof ArcString) {
-      typeDispatch(ArcString.REF, fn);
-    } else if (fn instanceof Hash) {
-      typeDispatch(Hash.REF, fn);
-    } else {
-      throw new ArcError("Expected a function, cons, hash, or string : got " + fn + " with args " + args);
-    }
-  }
-
-  private void typeDispatch(Function function, ArcObject target) {
-    evaluatedArgs = new ArrayList();
-    evaluatedArgs.add(target);
-    evaluate(function);
   }
 
   private void evaluate(Function f) {
     if (args.isNil()) {
       f.invoke(thread, lc, caller, (Pair) args);
     } else {
-      state = EXPECT_ARGUMENT;
+      expectingArg = true;
       this.f = f;
-      evaluatedArgs = evaluatedArgs == null ? new ArrayList(((Pair) args).size()) : evaluatedArgs;
-      startEvaluation();
+      continueEvaluation();
     }
   }
 
   private void startEvaluation() {
     if (args.isNil()) {
-      f.invoke(thread, lc, caller, Pair.buildFrom(evaluatedArgs, ArcObject.NIL));
+      f.invoke(thread, lc, caller, evaluatedArgs);
     } else {
-      ArcObject expression = args.car();
-      args = args.cdr();
-      Interpreter.interpret(thread, lc, this, expression);
+      continueEvaluation();
     }
   }
 
-  public void digestArgument(ArcObject o) {
-    evaluatedArgs.add(o);
-    startEvaluation();
+  private void continueEvaluation() {
+    ArcObject expression = args.car();
+    args = args.cdr();
+    Interpreter.interpret(thread, lc, this, expression);
   }
 
   public Continuation cloneFor(ArcThread thread) {
     FunctionDispatcher ae = (FunctionDispatcher) super.cloneFor(thread);
     ae.args = this.args.copy();
-    if (evaluatedArgs != null) {
-      ae.evaluatedArgs = new LinkedList(this.evaluatedArgs);
-    }
+    ae.evaluatedArgs = this.evaluatedArgs == null ? null : this.evaluatedArgs.copy();
     return ae;
   }
 

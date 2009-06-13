@@ -4,7 +4,7 @@
 
 (= tagged-writers!tree-node (fn (node)
   (let node-name (node!name)
-    (if (find node-name (arc-path))
+    (if (find node-name ())
         node-name
         (last:tokens node-name #\/)))))
 
@@ -32,9 +32,9 @@
                       nilfn)))
 
 (def make-root-node ()
-  (make-tree-node "(arc-path)"
+  (make-tree-node "."
                   nil
-                  (fn () (map make-node (arc-path)))))
+                  (fn () (map make-node (dir ".")))))
 
 (def pb-tree-model ()
   (withs (root-node (make-root-node)
@@ -58,15 +58,11 @@
     (ontable path node pb-cache (rep.node!invalidate))
     (while expanded-paths!hasMoreElements
       (tree 'expandPath expanded-paths!nextElement))
-
-    (prn "selection paths : ")
-    (each sp selection-paths (prn sp!getClass))
-
     (tree 'addSelectionPaths selection-paths)))
 
 (def delete-file (tree)
   (let node (rep tree!getSelectionPath!getLastPathComponent)
-    (when (and node (no:is node!name "(arc-path)" ))
+    (when (and node (no:is node!name "(arc-path)"))
       (prn "deleting " (node!name))
       (rmfile (node!name))
       (refresh-path-browser tree))))

@@ -49,20 +49,7 @@ public class Typing {
   }
 
   private static void ref(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-    ArcObject target = args.car();
-    Function refFn = null;
-    if (target instanceof Pair) {
-      refFn = Pair.REF;
-    } else if (target instanceof ArcString) {
-      refFn = ArcString.REF;
-    } else if (target instanceof Hash) {
-      refFn = Hash.REF;
-    }
-    if (refFn != null) {
-      refFn.invoke(thread, lc, caller, args);
-    } else {
-      throw new ArcError("ref: expects string or hash or cons");
-    }
+    args.car().refFn().invoke(thread, lc, caller, args);
   }
 
   private static Map<String, Coercer> coercion = new HashMap();

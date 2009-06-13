@@ -6,6 +6,7 @@ import rainbow.LexicalClosure;
 import rainbow.functions.Builtin;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
+import rainbow.vm.continuations.FunctionDispatcher;
 
 import java.util.*;
 
@@ -58,6 +59,41 @@ public class Pair extends ArcObject {
     return cdr == null ? NIL : cdr;
   }
 
+  public Function refFn() {
+    return Pair.REF;
+  }
+
+  public void mustBeNil() throws NotNil {
+    if (car != null) {
+      throw new NotNil();
+    }
+  }
+
+  public boolean isNotPair() {
+    return isNil();
+  }
+
+  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
+    if (car == null) {
+      caller.receive(this);
+    } else {
+      thread.continueWith(new FunctionDispatcher(thread, lc, caller, this));
+    }
+  }
+
+  public ArcObject scar(ArcObject newCar) {
+    return this.car = newCar;
+  }
+
+  public ArcObject sref(Pair args) {
+    Rational index = Rational.cast(args.cdr().car(), this);
+    long n = index.toInt();
+    if (n >= size()) {
+      throw new ArcError("sref: cannot set index " + index + " of list with " + size() + " elements");
+    }
+    return nth(n).scar(args.car());
+  }
+
   public boolean isCar(Symbol s) {
     return s == car;
   }
@@ -94,10 +130,6 @@ public class Pair extends ArcObject {
 
   private String toString(ArcObject object) {
     return (car instanceof Builtin ? car.getClass().getSimpleName() : object.toString());
-  }
-
-  public void setCar(ArcObject item) {
-    this.car = item;
   }
 
   public void setCdr(ArcObject cdr) {
@@ -146,20 +178,20 @@ public class Pair extends ArcObject {
     throw new ArcError("Error: illegal use of \".\" in " + items);
   }
 
+  private static ArcObject buildFrom(List items, ArcObject last, int n) {
+    if (n == items.size()) {
+      return last;
+    } else {
+      return new Pair((ArcObject) items.get(n), buildFrom(items, last, n+1));
+    }
+  }
+
   public static Pair buildFrom(List items, ArcObject last) {
-    Pair pair = new Pair();
     if (items == null) {
-      return pair;
+      return new Pair();
     }
-    if (items.size() != 0) {
-      pair.car = (ArcObject) items.get(0);
-      if (items.size() == 1) {
-        pair.cdr = last;
-      } else {
-        pair.cdr = buildFrom(items.subList(1, items.size()), last);
-      }
-    }
-    return pair;
+
+    return (Pair)buildFrom(items, last, 0);
   }
 
   public static Pair buildFrom(List items) {
@@ -172,6 +204,10 @@ public class Pair extends ArcObject {
 
   public ArcObject type() {
     return isNil() ? NIL.type() : TYPE;
+  }
+
+  public long len() {
+    return size();
   }
 
   public int size() {
@@ -296,5 +332,24 @@ public class Pair extends ArcObject {
     } catch (ClassCastException e) {
       throw new ArcError("Wrong argument type: " + caller + " expected a cons, got " + argument);
     }
+  }
+
+  public void mustBePair() throws NotPair {
+  }
+
+  public static Pair append(Pair pair, ArcObject value) {
+    if (pair == null) {
+      return new Pair(value, NIL);
+    } else {
+      Pair test = pair;
+      while (!test.cdr.isNil()) {
+        test = (Pair) test.cdr;
+      }
+      test.cdr = new Pair(value, NIL);
+    }
+    return pair;
+  }
+
+  public static class NotPair extends Throwable {
   }
 }

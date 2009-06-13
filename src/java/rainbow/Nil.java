@@ -3,16 +3,17 @@ package rainbow;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
 
 import java.util.Collection;
 
-public final class Nil extends Pair {
+public class Nil extends Pair {
   public static final Symbol TYPE = Symbol.TYPE;
   public static final Nil NIL = new Nil();
 
   private Nil() {
+  }
+
+  public void mustBeNil() throws NotNil {
   }
 
   public boolean isNil() {
@@ -60,7 +61,7 @@ public final class Nil extends Pair {
   }
 
   public boolean equals(Object other) {
-    return this == other || (other instanceof ArcObject && ((ArcObject)other).isNil());
+    return this == other || ((ArcObject)other).isNil();
   }
 
   public Object unwrap() {

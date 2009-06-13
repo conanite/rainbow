@@ -25,13 +25,13 @@
             (update-updates cell-updates*)
             ,gv)))))
 
-(assign tetris-width*   8 
-        tetris-height*  20 
+(assign tetris-width*   8
+        tetris-height*  20
         acceleration*   1.005
-        colours         nil 
-        shape-info      (table) 
+        colours         nil
+        shape-info      (table)
         universe-cells* (table)
-        shape-rotations (table) 
+        shape-rotations (table)
         game-thread*    nil)
 
 (def reset-game ()
@@ -92,7 +92,7 @@
     (prn)
     (frame 'setContentPane jp)))
 
-(def game-setup (universe-cells)
+(def tetris-setup (universe-cells)
   (let f (frame 300 150 300 700 "Arc Tetris")
     (tetris-view f tetris-height* tetris-width* universe-cells)
     (on-key-press f
@@ -184,7 +184,7 @@
 
 (def new-shape ()
   (= falling (obj
-    colour   (random-elt colours)
+    colour   (rand-elt colours)
     x        (- (/ tetris-width* 2) 2)
     y        0
     rotation 0)))
@@ -209,7 +209,7 @@
   (prn "new game   : n"))
 
 (def tetris ()
-  (game-setup universe-cells*)
+  (tetris-setup universe-cells*)
   (game-help)
   (new-game))
 

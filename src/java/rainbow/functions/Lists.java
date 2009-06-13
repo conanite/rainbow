@@ -1,23 +1,27 @@
 package rainbow.functions;
 
-import rainbow.*;
+import rainbow.ArcError;
 import rainbow.types.*;
 
 public abstract class Lists {
   public static class Car extends Builtin {
     public ArcObject invoke(Pair args) {
-      checkMaxArgCount(args, getClass(), 1);
-      Pair arg = Pair.cast(args.car(), this);
-      if (arg.isNil()) {
-        return NIL;
+      try {
+        args.cdr().mustBeNil();
+      } catch (NotNil notNil) {
+        throw new ArcError("car: expects only one argument: got " + args);
       }
-      return arg.car();
+      return args.car().car();
     }
   }
 
   public static class Cdr extends Builtin {
     public ArcObject invoke(Pair args) {
-      checkMaxArgCount(args, getClass(), 1);
+      try {
+        args.cdr().mustBeNil();
+      } catch (NotNil notNil) {
+        throw new ArcError("cdr: expects only one argument: got " + args);
+      }
       return args.car().cdr();
     }
   }
@@ -25,10 +29,7 @@ public abstract class Lists {
   public static class Cons extends Builtin {
     public ArcObject invoke(Pair args) {
       checkExactArgsCount(args, 2, getClass());
-      Pair pair = new Pair();
-      pair.setCar(args.car());
-      pair.setCdr(args.cdr().car());
-      return pair;
+      return new Pair(args.car(), args.cdr().car());
     }
   }
 
@@ -49,20 +50,7 @@ public abstract class Lists {
 
   public static class Scar extends Builtin {
     public ArcObject invoke(Pair args) {
-      ArcObject object = args.car();
-      ArcObject newValue = args.cdr().car();
-      if (object instanceof ArcString) {
-        scarString((ArcString)object, (ArcCharacter) newValue);
-      } else if (object instanceof Pair) {
-        ((Pair) object).setCar(newValue);
-      }
-      return newValue;
-    }
-
-    private void scarString(ArcString arcString, ArcCharacter newValue) {
-      StringBuilder sb = new StringBuilder(newValue.stringValue());
-      sb.append(arcString.value().substring(1));
-      arcString.setValue(sb.toString());
+      return args.car().scar(args.cdr().car());
     }
   }
 
@@ -78,27 +66,7 @@ public abstract class Lists {
   public static class Len extends Builtin {
     public ArcObject invoke(Pair args) {
       checkMaxArgCount(args, getClass(), 1);
-      ArcObject arg = args.car();
-      if (arg instanceof ArcString) {
-        return lengthOf((ArcString)arg);
-      } else if (arg instanceof Pair) {
-        return lengthOf((Pair) arg);
-      } else if (arg instanceof Hash) {
-        return lengthOf((Hash)arg);
-      }
-      throw new ArcError("len: expects one string, list or hash argument, got " + args);
-    }
-
-    private ArcObject lengthOf(Hash hash) {
-      return new Rational(hash.size(), 1);
-    }
-
-    private ArcObject lengthOf(Pair list) {
-      return new Rational(list.size(), 1);
-    }
-
-    private ArcObject lengthOf(ArcString arcString) {
-      return new Rational(arcString.value().length(), 1);
+      return new Rational(args.car().len(), 1);
     }
   }
 }

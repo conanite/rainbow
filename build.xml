@@ -1,4 +1,4 @@
-<project name="rainbow" default="run">
+<project name="rainbow" default="jar">
   <description>Rainbow - Arc in Java</description>
 
   <property name="src" value="src/java"/>
@@ -7,25 +7,21 @@
   <property name="sh-src" value="src/sh"/>
   <property name="test-src" value="src/test"/>
 
-  <property name="lib" value="lib"/>
-  <property name="javacc" value="${lib}/javacc.jar"/>
+  <property name="javacc" value="lib/javacc.jar"/>
 
   <property name="build" value="build/"/>
-  <property name="dist" value="${build}/dist/rainbow"/>
   <property name="classes" value="${build}/classes"/>
-  <property name="test-classes" value="${build}/test-classes"/>
-  <property name="jarfile" value="${dist}/rainbow.jar"/>
-  <property name="src-jarfile" value="${build}/rainbow-src.zip"/>
-  <property name="bin-zipfile" value="${build}/rainbow-bin.zip"/>
+  <property name="jarfile" value="${arc-src}/rainbow.jar"/>
 
   <target name="clean">
     <delete dir="${build}"/>
+    <delete file="${jarfile}"/>
   </target>
 
   <target name="compile-parser">
     <mkdir dir="${src}/rainbow/parser"/>
-    <javacc target="${compiler-src}/ArcParser.jj" javacchome="${lib}" outputdirectory="${src}/rainbow/parser"/>
-    <javacc target="${compiler-src}/ComplexParser.jj" javacchome="${lib}" outputdirectory="${src}/rainbow/parser"/>
+    <javacc target="${compiler-src}/ArcParser.jj" javacchome="lib" outputdirectory="${src}/rainbow/parser"/>
+    <javacc target="${compiler-src}/ComplexParser.jj" javacchome="lib" outputdirectory="${src}/rainbow/parser"/>
   </target>
 
   <target name="compile" depends="compile-parser">
@@ -39,52 +35,12 @@
     </copy>
   </target>
 
-  <target name="run" depends="compile">
-    <java classname="rainbow.Console" classpath="${classes}"/>
-  </target>
-
   <target name="jar" depends="compile">
-    <mkdir dir="${dist}"/>
     <jar file="${jarfile}" basedir="${classes}" manifest="src/MANIFEST.MF">
       <fileset dir="${classes}"/>
       <fileset dir=".">
         <include name="LICENSE.txt"/>
       </fileset>
     </jar>
-    <zip file="${src-jarfile}">
-      <fileset dir="..">
-        <include name="rainbow/src/**"/>
-        <include name="rainbow/${lib}/**"/>
-        <include name="rainbow/LICENSE.txt"/>
-        <include name="rainbow/rainbow.*"/>
-        <include name="rainbow/build.xml"/>
-      </fileset>
-    </zip>
-
-    <copy todir="${dist}">
-      <fileset dir="src">
-        <include name="arc/**"/>
-      </fileset>
-    </copy>
-    <copy todir="${dist}">
-      <fileset dir="${sh-src}">
-        <include name="*"/>
-      </fileset>
-    </copy>
-
-    <zip file="${bin-zipfile}">
-      <fileset dir="${build}/dist">
-        <include name="rainbow/**"/>
-      </fileset>
-    </zip>
-  </target>
-
-  <target name="install" depends="jar">
-    <copy todir="${arc_home}/lib/rainbow">
-      <fileset dir="${arc-src}">
-        <include name="**"/>
-      </fileset>
-    </copy>
-    <copy todir="${arc_home}" file="${jarfile}"/>
   </target>
 </project>

@@ -1,10 +1,10 @@
 (map require-lib
-  '("core/pprint"
-    "core/code"
-    "core/html"
-    "core/srv"
-    "core/app"
-    "core/prompt"
+  '("pprint"
+    "code"
+    "html"
+    "srv"
+    "app"
+    "prompt"
     "lib/unit-test"
     "lib/parser"
     "lib/tests/foundation-test"
@@ -43,5 +43,9 @@
 (def tetris ()
   (require-lib "rainbow/tetris")
   (tetris))
+
+(def mines ()
+  (require-lib "rainbow/mines")
+  (mines))
 
 

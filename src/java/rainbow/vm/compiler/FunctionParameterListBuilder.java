@@ -18,6 +18,7 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
   private Map[] lexicalBindings;
   List result = new LinkedList();
   private ArcObject optionalParamName;
+  ArcObject complexParams = ArcObject.NIL;
 
   public FunctionParameterListBuilder(ArcThread thread, LexicalClosure lc, FunctionBodyBuilder caller, ArcObject parameters, Map[] lexicalBindings) {
     super(thread, lc, caller);
@@ -29,10 +30,9 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
   public void start() {
     if (parameters.isNotPair()) {
       if (result.size() == 0) {
-        caller.receive(parameters);
+        returnParams(parameters);
       } else {
-        Pair compiledParams = Pair.buildFrom(result, parameters);
-        caller.receive(compiledParams);
+        returnParams(Pair.buildFrom(result, parameters));
       }
       return;
     }
@@ -42,6 +42,7 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
     if (!(first instanceof Pair)) {
       continueWith(first);
     } else {
+      complexParams = ArcObject.T;
       Pair maybeOptional = (Pair) first;
       if (NamespaceBuilder.optional(maybeOptional)) {
         optionalParamName = maybeOptional.cdr().car();
@@ -50,6 +51,10 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
         continueWith(first);
       }
     }
+  }
+
+  private void returnParams(ArcObject params) {
+    caller.receive(new Pair(complexParams, params));
   }
 
   private void continueWith(ArcObject first) {

@@ -224,6 +224,3 @@
 ; http://localhost:8080/animate?x=0.254&y=0.003&x0=0.264&y0=0.003&ox=0.2&oy=-0.03&nc=0.003&zoom=0.589824&frames=200
 ; http://localhost:8080/spiral?x=0.25048&y=0&x0=0.263&y0=0.003&ox=0.20576&oy=-0.218928&nc=0.00001&zoom=0.589824&frames=200
 ; http://localhost:8080/animate?x=0.25048&y=-0.00081&x0=0.25048&y0=0.00081&ox=0.20576&oy=-0.218928&nc=0.00001&zoom=0.589824&frames=200
-
-
-

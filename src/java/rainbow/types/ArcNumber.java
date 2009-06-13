@@ -6,10 +6,6 @@ public abstract class ArcNumber extends ArcObject {
   public static final Symbol INT_TYPE = (Symbol) Symbol.make("int");
   public static final Symbol NUM_TYPE = (Symbol) Symbol.make("num");
 
-  public ArcObject eval() {
-    return this;
-  }
-
   public abstract boolean isInteger();
 
   public abstract double toDouble();
@@ -17,6 +13,8 @@ public abstract class ArcNumber extends ArcObject {
   public abstract long toInt();
 
   public abstract ArcNumber negate();
+
+  public abstract ArcObject round();
 
   public int compareTo(ArcObject right) {
     double comparison = ((ArcNumber) right).toDouble() - this.toDouble();
@@ -38,6 +36,4 @@ public abstract class ArcNumber extends ArcObject {
       throw new ArcError("Wrong argument type: " + caller + " expected a number, got " + argument);
     }
   }
-
-  public abstract ArcObject round();
 }

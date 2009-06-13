@@ -68,13 +68,7 @@ public class Environment {
     addBuiltin("open-socket", new Network.OpenSocket());
     addBuiltin("socket-accept", new Network.SocketAccept());
 
-    if (Console.ANARKI_COMPATIBILITY) {
-      addBuiltin("seval", new Evaluation.Seval());
-    }
-
-    if (!Console.ARC2_COMPATIBILITY) {
-      Maths.extra(this);
-    }
+    Maths.extra(this);
   }
 
   private void addBuiltin(String name, ArcObject o) {

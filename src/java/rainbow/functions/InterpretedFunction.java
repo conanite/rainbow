@@ -1,28 +1,36 @@
 package rainbow.functions;
 
-import rainbow.*;
+import rainbow.ArcError;
+import rainbow.Function;
+import rainbow.LexicalClosure;
+import rainbow.types.ArcObject;
+import rainbow.types.Pair;
+import rainbow.types.Symbol;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.FunctionEvaluator;
 import rainbow.vm.continuations.NamespaceBuilder;
-import rainbow.types.ArcObject;
-import rainbow.types.Pair;
-import rainbow.types.Symbol;
 
-import java.util.List;
-import java.util.LinkedList;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class InterpretedFunction extends ArcObject implements Function {
   private ArcObject parameterList;
   private Map lexicalBindings;
   ArcObject[] body;
+  boolean complexParams;
 
-  public InterpretedFunction(ArcObject parameterList, Map lexicalBindings, Pair body) {
+  public InterpretedFunction(ArcObject parameterList, Map lexicalBindings, Pair body, ArcObject complexParams) {
     this.parameterList = parameterList;
     this.lexicalBindings = lexicalBindings;
     this.body = body.toArray();
+    this.complexParams = !complexParams.isNil();
+  }
+
+  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
+    caller.receive(new Threads.Closure(this, lc));
   }
 
   public int compareTo(ArcObject right) {
@@ -43,11 +51,14 @@ public class InterpretedFunction extends ArcObject implements Function {
   }
 
   public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-    if (body.length == 0) {
-      caller.receive(NIL);
+    if (parameterList.isNil()) {
+      FunctionEvaluator.evaluate(thread, lc, caller, this);
+    } else if (complexParams) {
+      new NamespaceBuilder(thread, new LexicalClosure(lexicalBindings.size(), lc), caller, parameterList, args, this);
     } else {
-      LexicalClosure childClosure = parameterList.isNil() ? lc : new LexicalClosure(lexicalBindings, lc); // todo this doesn't make any sense: why does childClosure extend the caller's closure?
-      NamespaceBuilder.build(thread, childClosure, caller, parameterList, args, this);
+      lc = new LexicalClosure(lexicalBindings.size(), lc);
+      NamespaceBuilder.simple(lc, parameterList, args);
+      FunctionEvaluator.evaluate(thread, lc, caller, this);
     }
   }
 
@@ -57,5 +68,9 @@ public class InterpretedFunction extends ArcObject implements Function {
 
   public boolean last(int index) {
     return index >= body.length;
+  }
+
+  public int length() {
+    return body.length;
   }
 }

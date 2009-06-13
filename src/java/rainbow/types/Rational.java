@@ -35,10 +35,6 @@ public class Rational extends ArcNumber {
     return numerator + (denominator == 1 ? "" : "/" + denominator);
   }
 
-  public ArcObject eval() {
-    return this;
-  }
-
   public boolean isInteger() {
     return denominator == 1;
   }

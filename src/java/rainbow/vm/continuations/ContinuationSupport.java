@@ -21,15 +21,14 @@ public abstract class ContinuationSupport implements Continuation, Cloneable {
   }
 
   public final void receive(ArcObject returned) {
-    if (stopped) {
-      return;
-    }
-    try {
-      onReceive(returned);
-    } catch (ArcError ae) {
-      throw ae;
-    } catch (Exception e) {
-      throw new ArcError(e);
+    if (!stopped) {
+      try {
+        onReceive(returned);
+      } catch (ArcError ae) {
+        throw ae;
+      } catch (Exception e) {
+        throw new ArcError(e);
+      }
     }
   }
 

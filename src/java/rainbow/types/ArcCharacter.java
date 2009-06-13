@@ -1,7 +1,6 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.Environment;
 
 public class ArcCharacter extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("char");
@@ -96,10 +95,6 @@ public class ArcCharacter extends ArcObject {
 
   public char value() {
     return value;
-  }
-
-  public ArcObject eval() {
-    return this;
   }
 
   public String stringValue() {

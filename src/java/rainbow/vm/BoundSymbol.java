@@ -1,8 +1,8 @@
 package rainbow.vm;
 
+import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.LexicalClosure;
 
 public class BoundSymbol extends ArcObject {
   public static final Symbol TYPE = (Symbol) Symbol.make("bound-symbol");
@@ -15,19 +15,19 @@ public class BoundSymbol extends ArcObject {
     this.index = index;
     this.name = name;
   }
-  
-  public ArcObject lookup(LexicalClosure lc) {
-    return lc.nth(nesting).at(index);
+
+  public void setSymbolValue(LexicalClosure lc, ArcObject value) {
+    lc.nth(nesting).set(index, value);
+  }
+
+  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
+    caller.receive(lc.nth(nesting).at(index));
   }
 
   public ArcObject type() {
     return TYPE;
   }
 
-  public void set(LexicalClosure lc, ArcObject o) {
-    lc.nth(nesting).set(index, o);
-  }
-  
   public String toString() {
     return name.name();
   }

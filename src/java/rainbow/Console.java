@@ -32,13 +32,13 @@ public class Console {
     }
 
     Environment environment = new Environment();
-    environment.addToNamespace((Symbol) Symbol.make("*argv*"), Pair.buildFrom(programArgs));
-    environment.addToNamespace((Symbol) Symbol.make("*env*"), getEnvironment());
+    ((Symbol) Symbol.make("*argv*")).setValue(Pair.buildFrom(programArgs));
+    ((Symbol) Symbol.make("*env*")).setValue(getEnvironment());
 
     if (!argv.present("--no-libs")) {
       loadFile(environment, path, "rainbow/init");
-      loadFile(environment, path, "core/arc");
-      loadFile(environment, path, "core/strings");
+      loadFile(environment, path, "arc");
+      loadFile(environment, path, "strings");
       loadFile(environment, path, "lib/bag-of-tricks");
       loadFile(environment, path, "rainbow/rainbow");
       loadFile(environment, path, "rainbow/rainbow-libs");

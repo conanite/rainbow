@@ -1,7 +1,6 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.Environment;
 import rainbow.Function;
 import rainbow.LexicalClosure;
 import rainbow.functions.Builtin;
@@ -33,7 +32,7 @@ public class ArcString extends ArcObject {
 
   private String value;
 
-  public ArcString(String value) {
+  private ArcString(String value) {
     this.value = value;
   }
 
@@ -62,12 +61,31 @@ public class ArcString extends ArcObject {
     return sb.toString();
   }
 
-  public ArcObject eval() {
-    return this;
-  }
-
   public int compareTo(ArcObject right) {
     return value.compareTo(((ArcString) right).value);
+  }
+
+  public long len() {
+    return value.length();
+  }
+
+  public Function refFn() {
+    return ArcString.REF;
+  }
+
+  public ArcObject scar(ArcObject character) {
+    ArcCharacter newCar = ArcCharacter.cast(character, this);
+    StringBuilder sb = new StringBuilder(newCar.stringValue());
+    sb.append(value().substring(1));
+    setValue(sb.toString());
+    return character;
+  }
+
+  public ArcObject sref(Pair args) {
+    ArcCharacter value = ArcCharacter.cast(args.car(), ArcCharacter.class);
+    Rational index = Rational.cast(args.cdr().car(), this);
+    sref(index, value);
+    return value;
   }
 
   public ArcObject type() {

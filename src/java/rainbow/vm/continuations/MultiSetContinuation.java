@@ -8,12 +8,13 @@ import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
 public class MultiSetContinuation extends ContinuationSupport {
-  private static final Macex MACEX = new Macex();
+  public static final Macex MACEX = new Macex();
   private Pair args;
 
   public MultiSetContinuation(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
     super(thread, lc, caller);
     this.args = args;
+    start();
   }
 
   public void start() {

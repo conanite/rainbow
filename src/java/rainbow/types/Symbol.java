@@ -1,6 +1,9 @@
 package rainbow.types;
 
 import rainbow.ArcError;
+import rainbow.LexicalClosure;
+import rainbow.vm.ArcThread;
+import rainbow.vm.Continuation;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -68,12 +71,20 @@ public class Symbol extends ArcObject {
     return this == object;
   }
 
+  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
+    caller.receive(value());
+  }
+
   public ArcObject eval() {
     return value();
   }
 
   public static boolean is(String s, ArcObject o) {
     return (o instanceof Symbol) && ((Symbol)o).name().equals(s);
+  }
+
+  public void setSymbolValue(LexicalClosure lc, ArcObject value) {
+    this.value = value;
   }
 
   public void setValue(ArcObject value) {

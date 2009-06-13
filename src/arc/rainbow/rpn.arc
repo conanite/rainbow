@@ -12,7 +12,6 @@
 
 (def rpn-eval (text) (car:rpn-interpret nil (tokens text)))
 
-; (rpn-eval "42 4 2 - +")
 
 
 (def distance (coordinates)

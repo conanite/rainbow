@@ -40,6 +40,26 @@ public class Hash extends ArcObject {
     return Pair.buildFrom(pairs, NIL);
   }
 
+  public long len() {
+    return size();
+  }
+
+  public Function refFn() {
+    return Hash.REF;
+  }
+
+  public ArcObject sref(Pair args) {
+    ArcObject value = args.car();
+    ArcObject key = args.cdr().car();
+    if (value.isNil()) {
+      unref(key);
+    } else {
+      sref(key, value);
+    }
+    return value;
+  }
+
+
   public void unref(ArcObject key) {
     map.remove(key);
   }

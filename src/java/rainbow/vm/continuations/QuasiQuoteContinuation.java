@@ -26,6 +26,7 @@ public class QuasiQuoteContinuation extends ContinuationSupport {
     super(thread, lc, caller);
     this.expression = expression;
     this.nesting = nesting;
+    start();
   }
 
   public void start() {
@@ -52,7 +53,7 @@ public class QuasiQuoteContinuation extends ContinuationSupport {
           Interpreter.interpret(thread, lc, this, current.cdr().car());
         } else {
           Rebuilder rb = new Rebuilder(this, QuasiQuoteCompiler.UNQUOTE);
-          new QuasiQuoteContinuation(thread, lc, rb, current.cdr().car(), nesting - 1).start();
+          new QuasiQuoteContinuation(thread, lc, rb, current.cdr().car(), nesting - 1);
         }
       } else if (isUnQuoteSplicing(current)) {
         if (nesting == 1) {
@@ -63,9 +64,9 @@ public class QuasiQuoteContinuation extends ContinuationSupport {
         }
       } else if (isQuasiQuote(current)) {
         Rebuilder rb = new Rebuilder(this, QuasiQuoteCompiler.QUASIQUOTE);
-        new QuasiQuoteContinuation(thread, lc, rb, current.cdr().car(), nesting + 1).start();
+        new QuasiQuoteContinuation(thread, lc, rb, current.cdr().car(), nesting + 1);
       } else if (isPair(current)) {
-        new QuasiQuoteContinuation(thread, lc, this, current, nesting).start();
+        new QuasiQuoteContinuation(thread, lc, this, current, nesting);
       } else {
         append(current);
         repeat();

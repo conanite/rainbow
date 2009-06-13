@@ -14,7 +14,6 @@ public class FunctionEvaluator extends ContinuationSupport {
   public FunctionEvaluator(ArcThread thread, LexicalClosure lc, Continuation caller, InterpretedFunction f) {
     super(thread, lc, caller);
     this.f = f;
-    index = 0;
   }
 
   public void onReceive(ArcObject o) {
@@ -27,10 +26,15 @@ public class FunctionEvaluator extends ContinuationSupport {
   }
 
   public static void evaluate(ArcThread thread, LexicalClosure lc, Continuation caller, InterpretedFunction f) {
-    if (f.last(0)) {
-      Interpreter.interpret(thread, lc, caller, f.nth(0));
-    } else {
-      new FunctionEvaluator(thread, lc, caller, f).receive(ArcObject.NIL);
+    switch (f.length()) {
+      case 0:
+        caller.receive(ArcObject.NIL);
+        break;
+      case 1:
+        Interpreter.interpret(thread, lc, caller, f.nth(0));
+        break;
+      default:
+        new FunctionEvaluator(thread, lc, caller, f).receive(ArcObject.NIL);
     }
   }
 }

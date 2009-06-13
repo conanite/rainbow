@@ -21,14 +21,13 @@ public class ArcThread extends ArcObject implements Runnable {
   }
 
   public void run() {
-    while (task != null && !stopped) {
+    while (!stopped) {
       task.process();
     }
     stopped = true;
   }
 
   public void stop() {
-    continueWith(null);
     stopped = true;
   }
 

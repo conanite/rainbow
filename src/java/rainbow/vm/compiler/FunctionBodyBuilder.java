@@ -7,14 +7,11 @@ import rainbow.types.Pair;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.ContinuationSupport;
-import rainbow.vm.compiler.FunctionParameterListBuilder;
-import rainbow.vm.compiler.MacExpander;
-import rainbow.vm.compiler.PairExpander;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 public class FunctionBodyBuilder extends ContinuationSupport {
   private static final Object EXPAND_BODY = new Object();
@@ -26,6 +23,7 @@ public class FunctionBodyBuilder extends ContinuationSupport {
   private ArcObject parameterList;
   private Map[] lexicalBindings;
   private Map myParams;
+  private ArcObject complexParams;
 
   public FunctionBodyBuilder(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args, Map[] lexicalBindings) {
     super(thread, lc, caller);
@@ -50,11 +48,12 @@ public class FunctionBodyBuilder extends ContinuationSupport {
   protected void onReceive(ArcObject returned) {
     if (state == EXPAND_BODY) {
       state = BUILD_BODY;
-      this.parameterList = returned;
+      this.parameterList = returned.cdr();
+      this.complexParams = returned.car();
       Continuation macex = new MacExpander(thread, lc, this, false);
       new PairExpander(thread, lc, macex, body, lexicalBindings).start();
     } else {
-      caller.receive(buildFunctionBody(parameterList, myParams, (Pair) returned));
+      caller.receive(buildFunctionBody(parameterList, myParams, (Pair) returned, complexParams));
     }
   }
 
@@ -71,8 +70,8 @@ public class FunctionBodyBuilder extends ContinuationSupport {
     e.result = new LinkedList(result);
     return e;
   }
-  
-  private ArcObject buildFunctionBody(ArcObject compiledParameters, Map lexicalBindings, Pair expandedBody) {
-    return new InterpretedFunction(compiledParameters, lexicalBindings, expandedBody);
+
+  private ArcObject buildFunctionBody(ArcObject compiledParameters, Map lexicalBindings, Pair expandedBody, ArcObject complexParams) {
+    return new InterpretedFunction(compiledParameters, lexicalBindings, expandedBody, complexParams);
   }
 }

@@ -1,4 +1,6 @@
 (require-lib "rainbow/swing")
+(require-lib "lib/parser")
+(require-lib "lib/source")
 
 (assign unmatched (obj
   unmatched-left-paren              "("
@@ -85,6 +87,7 @@
 (defweld close "Close"
          "Close this welder window"
          (editor!frame 'dispose)
+         (wipe (open-welders editor!wname))
          (kill-thread editor!update-thread))
 
 (defweld save "Save"
@@ -205,6 +208,21 @@
                 (this-form 2)
                 (- (this-form 3) (this-form 2)))))
 
+(defweld go-to-source "Go To Source"
+  "Go to the source definition of the symbol under caret"
+  (ensure-source-index)
+  (let this-tok (find-previous-selectable editor!index (dot))
+    (whenlet defn (and (token? this-tok 'sym)
+                       (car (all-defs cadr.this-tok)))
+      (prn this-tok " is defined in " defn)
+      (let w (welder (car defn))
+        (w!caret 'setDot cadr.defn)))))
+
+(def ensure-source-index ()
+  (when (or (~bound 'all-defs) (no all-defs))
+    (assign all-defs (table))
+    (index-defs (all-sources ".") all-defs)))
+
 (def insert-closing-delimiter (editor str)
   (later (editor!doc 'insertString (dot) str colour-scheme!default)
          (editor!caret 'setDot (- (dot) len.str))))
@@ -252,7 +270,7 @@
         'shift-quote 'insert-closing-dbl-quote
         'meta-delete 'kill-form
         'escape      'dismiss
-        'f1          'help
+        'f1          'go-to-source
         'ctrl-k      'keystroke-help
         'ctrl-h      'htmlify
         'meta-s      'save
@@ -572,7 +590,7 @@
     (def move    (hit-fn)
                  (unhilite)
                  (if hits
-                     (do 
+                     (do
                        (= hit (hit-fn))
                        (= hl-x hit hl-len (len search-term))
                        (editor!caret 'setDot hit)
@@ -619,7 +637,7 @@
 
 (welder-init (editor)
   (on-doc-update editor!doc  (event)
-    (on-update editor)))
+    (on-update editor event)))
 
 (welder-init (editor)
   (let f (frame 360 100 1200 800 "Arc Welder")
@@ -656,16 +674,25 @@
                                                   finish))
                         (editor!caret 'moveDot start)))))
 
-(def welder ((o file))
-  (let editor (editor-pane)
-    (map [_ editor] rev.welder-initialisers)
-    (editor!frame 'show)
-    (if file (welder-open editor file))
-    editor))
+(assign open-welders (table))
+
+(def welder ((o file) (o txt))
+  (let wname (if file file
+                 txt  "*scratch(#((len open-welders)))*"
+                      "*scratch*")
+    (aif open-welders.wname
+         (do it!frame!toFront
+             it)
+         (let editor (editor-pane)
+           (= open-welders.wname editor)
+           (= editor!wname wname)
+           (map [_ editor] rev.welder-initialisers)
+           (editor!frame 'show)
+           (if file (welder-open editor file)
+               txt  (editor!pane 'setText txt))
+           editor))))
 
 (def welder-w/text (txt)
-  (let editor (welder)
-    (editor!pane 'setText txt)
-    editor))
+  (welder nil txt))
 
 

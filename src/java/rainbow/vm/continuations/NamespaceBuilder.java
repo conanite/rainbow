@@ -16,19 +16,12 @@ public class NamespaceBuilder extends ContinuationSupport {
   private Pair args;
   private InterpretedFunction f;
 
-  private NamespaceBuilder(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject parameters, Pair arguments, InterpretedFunction f) {
+  public NamespaceBuilder(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject parameters, Pair arguments, InterpretedFunction f) {
     super(thread, lc, caller);
     this.parameters = parameters;
     this.args = arguments;
     this.f = f;
-  }
-
-  public static void build(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject parameters, Pair arguments, InterpretedFunction f) {
-    if (parameters.isNil()) {
-      FunctionEvaluator.evaluate(thread, lc, caller, f);
-    } else {
-      new NamespaceBuilder(thread, lc, caller, parameters, arguments, f).start();
-    }
+    start();
   }
 
   public void start() {
@@ -55,10 +48,12 @@ public class NamespaceBuilder extends ContinuationSupport {
       }
     } else {
       shift();
-      if (!(nextArg instanceof Pair)) {
+      try {
+        nextArg.mustBePair();
+      } catch (Pair.NotPair e) {
         throw new ArcError("Expected list argument for destructuring parameter " + nextParameter + ", got " + nextArg);
       }
-      new NamespaceBuilder(thread, lc, this, Pair.cast(nextParameter, this), Pair.cast(nextArg, this), null).start();
+      new NamespaceBuilder(thread, lc, this, Pair.cast(nextParameter, this), Pair.cast(nextArg, this), null);
       return;
     }
 
@@ -105,5 +100,18 @@ public class NamespaceBuilder extends ContinuationSupport {
     e.parameters = this.parameters.copy();
     e.args = this.args.copy();
     return e;
+  }
+
+  public static void simple(LexicalClosure lc, ArcObject parameterList, ArcObject args) {
+    while (!parameterList.isNil()) {
+      if (parameterList instanceof Symbol) {
+        lc.add(args);
+        return;
+      } else {
+        lc.add(args.car());
+        args = args.cdr();
+        parameterList = parameterList.cdr();
+      }
+    }
   }
 }

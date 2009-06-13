@@ -38,10 +38,6 @@ public class Truth extends Symbol {
     return this == object;
   }
 
-  public static boolean isIn(ArcObject arcObject) {
-    return !arcObject.isNil();
-  }
-
   public Object unwrap() {
     return Boolean.TRUE;
   }

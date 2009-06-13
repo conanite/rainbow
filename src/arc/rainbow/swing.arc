@@ -15,10 +15,6 @@
    horizontal_scrollbar_always* (ScrollPaneConstants HORIZONTAL_SCROLLBAR_ALWAYS))
 
 (defmemo awt-color (r (o g) (o b))
-  (on-err (fn (ex) (prn (details ex) " creating awt-color " r " " g " " b))
-          (fn () (awt-color-2 r g b))))
-
-(defmemo awt-color-2 (r (o g) (o b))
   (if (is (type r) 'sym)      (java-static-field "java.awt.Color" r)
       (is (type r) 'string)   (apply awt-color (from-css-colour r))
                               (java-new "java.awt.Color" r g b)))
@@ -98,10 +94,13 @@
     (f (actions.it 'action))))
 
 (def frame (left top width height title)
-  (bean "javax.swing.JFrame"
-    'bounds       (list left top width height)
-    'title        title
-    'contentPane  (box 'vertical)))
+  (alet (bean "javax.swing.JFrame"
+          'bounds       (list left top width height)
+          'title        title)
+    (it!getContentPane 'setLayout 
+                       (BoxLayout new 
+                                  it!getContentPane 
+                                  (BoxLayout Y_AXIS)))))
 
 (def panel () (bean "javax.swing.JPanel"))
 

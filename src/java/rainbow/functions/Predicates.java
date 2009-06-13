@@ -58,11 +58,10 @@ public abstract class Predicates {
 
   public static class Is extends Builtin {
     public ArcObject invoke(Pair args) {
-      checkMinArgCount(args, getClass(), 1);
-      return checkIs(args.car(), (Pair) args.cdr());
+      return checkIs(args.car(), args.cdr());
     }
 
-    private ArcObject checkIs(ArcObject test, Pair args) {
+    private ArcObject checkIs(ArcObject test, ArcObject args) {
       if (args.isNil()) {
         return T;
       }
@@ -71,7 +70,7 @@ public abstract class Predicates {
         return NIL;
       }
 
-      return checkIs(test, (Pair) args.cdr());
+      return checkIs(test, args.cdr());
     }
 
   }

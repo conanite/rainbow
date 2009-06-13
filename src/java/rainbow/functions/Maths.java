@@ -121,8 +121,7 @@ public abstract class Maths {
   }
 
   public static void extra(Environment bindings) {
-    bindings.addToNamespace((Symbol) Symbol.make("¹"), new Real(Math.PI));
-    bindings.addToNamespace((Symbol) Symbol.make("pi"), new Real(Math.PI));
+    ((Symbol) Symbol.make("pi")).setValue(new Real(Math.PI));
 
     bindings.add(new Builtin[] {
       new Builtin("sin") {
@@ -199,7 +198,7 @@ public abstract class Maths {
   }
 
   private static ArcString concat(Pair args) {
-    return new ArcString(concatStrings(args));
+    return ArcString.make(concatStrings(args));
   }
 
   private static String concatStrings(Pair args) {

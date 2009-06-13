@@ -40,17 +40,9 @@
 (mac atdef (name args . body)
   `(def ,name ,args (atomic ,@body)))
 
-(if (bound '*env*)    (def arc-path ()
-                        (tokens (or (*env* "ARC_PATH") ".") #\:))
-    (bound 'ARC_PATH) (def arc-path () ARC_PATH)
-                      (def arc-path () (list ".")))
-
 (def find-in-path (file)
-  (catch
-    (each p (arc-path)
-      (let f (+ p "/" file ".arc")
-        (if (file-exists f) (throw f))))
-    nil))
+  (alet (+ file ".arc")
+    (if (file-exists it) it)))
 
 (assign *required-libs* ())
 
@@ -58,9 +50,9 @@
   (if (no (find arc-lib *required-libs*))
     (aif (find-in-path arc-lib)
       (do
-        (= *required-libs* (cons arc-lib *required-libs*))
+        (push arc-lib *required-libs*)
         (load it))
-      (err (string "Didn't find " arc-lib " in " (tostring:pr:arc-path))))))
+      (err (string "Didn't find " arc-lib)))))
 
 (def load-file (fname)
   (w/infile f (if (is (type fname) 'string) fname (coerce fname 'string))
@@ -76,7 +68,3 @@
 (def eval-these (exprs)
   (if (acons exprs)
       (do (eval (car exprs)) (eval-these (cdr exprs)))))
-
-; borrowed from anarki
-(def random-elt (seq)
-  (seq (rand (len seq))))

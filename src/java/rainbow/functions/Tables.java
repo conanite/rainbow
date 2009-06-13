@@ -1,9 +1,10 @@
 package rainbow.functions;
 
-import rainbow.ArcError;
 import rainbow.Function;
 import rainbow.LexicalClosure;
-import rainbow.types.*;
+import rainbow.types.ArcObject;
+import rainbow.types.Hash;
+import rainbow.types.Pair;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
@@ -24,46 +25,7 @@ public class Tables {
 
   public static class Sref extends Builtin {
     public ArcObject invoke(Pair args) {
-      if (args.car() instanceof Hash) {
-        return srefHash(args);
-      } else if (args.car() instanceof ArcString) {
-        return srefString(args);
-      } else if (args.car() instanceof Pair) {
-        return srefList(args);
-      }
-      throw new ArcError("sref: expects first argument to be a string or a hash or a list: got " + args);
-    }
-
-    private ArcObject srefList(Pair args) {
-      Pair target = (Pair) args.car();
-      ArcObject newValue = args.cdr().car();
-      Rational index = Rational.cast(args.cdr().cdr().car(), this);
-      if (index.toInt() >= target.size()) {
-        throw new ArcError("sref: cannot set index " + index + " of list with " + target.size() + " elements");
-      }
-      target = target.nth(index.toInt());
-      target.setCar(newValue);
-      return newValue;
-    }
-
-    private ArcObject srefString(Pair args) {
-      ArcString string = (ArcString) args.car();
-      ArcCharacter value = ArcCharacter.cast(args.cdr().car(), ArcCharacter.class);
-      Rational index = Rational.cast(args.cdr().cdr().car(), this);
-      string.sref(index, value);
-      return value;
-    }
-
-    private ArcObject srefHash(Pair args) {
-      Hash h = (Hash) args.car();
-      ArcObject value = args.cdr().car();
-      ArcObject key = args.cdr().cdr().car();
-      if (value.isNil()) {
-        h.unref(key);
-      } else {
-        h.sref(key, value);
-      }
-      return value;
+      return args.car().sref(Pair.cast(args.cdr(), this));
     }
   }
 }
