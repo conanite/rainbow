@@ -195,7 +195,7 @@ ArcObject list():             {
                                 } else if (last != ArcObject.NIL) {
                                   generateParseException();
                                 } else {
-                                  return new Pair();
+                                  return ArcObject.EMPTY_LIST;
                                 }
                               }
 }

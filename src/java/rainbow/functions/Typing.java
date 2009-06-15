@@ -34,22 +34,12 @@ public class Typing {
         public ArcObject invoke(Pair args) {
           return coerce(args);
         }
+      }, new Builtin("ref") {
+        public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+          args.car().refFn().invoke(thread, lc, caller, args);
+        }
       }
     });
-
-    if (Console.ANARKI_COMPATIBILITY) {
-      top.add(new Builtin[] {
-        new Builtin("ref") {
-          public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-            ref(thread, lc, caller, args);
-          }
-        }
-      });
-    }
-  }
-
-  private static void ref(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-    args.car().refFn().invoke(thread, lc, caller, args);
   }
 
   private static Map<String, Coercer> coercion = new HashMap();

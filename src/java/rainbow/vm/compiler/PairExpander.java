@@ -3,7 +3,6 @@ package rainbow.vm.compiler;
 import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
-import rainbow.types.Symbol;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.ContinuationSupport;
@@ -28,21 +27,16 @@ public class PairExpander extends ContinuationSupport {
     if (!body.isNil() && body instanceof Pair) {
       ArcObject next = body.car();
       body = body.cdr();
-      compile(next);
+      Compiler.compile(thread, lc, this, next, lexicalBindings);
     } else {
       atLast = true;
-      compile(body);
+      Compiler.compile(thread, lc, this, body, lexicalBindings);
     }
-  }
-
-  private void compile(ArcObject next) {
-    Compiler.compile(thread, lc, this, next, lexicalBindings);
   }
 
   protected void onReceive(ArcObject returned) {
     if (atLast) {
-      Pair expandedBody = Pair.buildFrom(result, returned);
-      caller.receive(expandedBody);
+      caller.receive(Pair.buildFrom(result, returned));
     } else {
       result.add(returned);
       start();

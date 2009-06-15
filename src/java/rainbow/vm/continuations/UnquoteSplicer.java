@@ -1,12 +1,11 @@
 package rainbow.vm.continuations;
 
+import rainbow.types.ArcObject;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.types.ArcObject;
-import rainbow.types.Pair;
 
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
 
 public class UnquoteSplicer extends ContinuationSupport {
   private List<ArcObject> result;
@@ -17,7 +16,7 @@ public class UnquoteSplicer extends ContinuationSupport {
   }
 
   public void onReceive(ArcObject o) {
-    ((Pair)o).copyTo(result);
+    o.copyTo(result);
     caller.receive(null);
   }
 

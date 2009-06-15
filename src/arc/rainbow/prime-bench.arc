@@ -7,8 +7,10 @@
 (def prime? (n) (ccc (fn (cc) (test-primeness n cc))))
 
 (def primes-under (max)
-  (loop (= pc 2) (< pc max) (++ pc)
-    (if (prime? pc) (pr "."))))
+  (let count 0
+    (loop (= pc 2) (< pc max) (++ pc)
+      (if (prime? pc) (++ count)))
+    count))
 
 (def prime-bench (n) (time (primes-under n)))
 

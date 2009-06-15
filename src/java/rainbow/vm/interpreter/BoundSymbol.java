@@ -1,6 +1,8 @@
-package rainbow.vm;
+package rainbow.vm.interpreter;
 
 import rainbow.LexicalClosure;
+import rainbow.vm.ArcThread;
+import rainbow.vm.Continuation;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 

@@ -3,9 +3,8 @@ package rainbow.functions;
 import rainbow.Console;
 import rainbow.Environment;
 import rainbow.types.ArcObject;
-import rainbow.types.Pair;
-import rainbow.types.Tagged;
 import rainbow.types.ArcThreadLocal;
+import rainbow.types.Pair;
 
 public abstract class ThreadLocals {
   public static void collect(Environment environment) {

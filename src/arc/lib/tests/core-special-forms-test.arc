@@ -233,9 +233,8 @@
 
       ("sets several values at once"
         ( (fn ()
-                (assign act-of-god (annotate 'mac (fn () 'earthquake)))
-                (assign volcano 2.4 (act-of-god) 10.3 tsunami 15.3 avalanche 4.1)
-                `(,tsunami ,volcano ,avalanche ,earthquake)))
+              (assign volcano 2.4 (act-of-god) 10.3 tsunami 15.3 avalanche 4.1)
+              `(,tsunami ,volcano ,avalanche ,earthquake)))
         (15.3 2.4 4.1 10.3))
     )
   )))

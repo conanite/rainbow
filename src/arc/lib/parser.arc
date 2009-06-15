@@ -42,9 +42,7 @@
                           (fn () (list 'int (coerce token 'num) start tokend)))
                   (list 'sym (if (is token "||") '|| (sym token))
                                          start
-                                         tokend)
-
-))))))
+                                         tokend)))))))
 
 (def char-terminator (ch)
   (or syntax-chars.ch whitespace?.ch (in ch #\" #\, #\#)))

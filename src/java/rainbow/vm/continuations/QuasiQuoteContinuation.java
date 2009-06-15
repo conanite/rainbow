@@ -5,7 +5,6 @@ import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.vm.Interpreter;
 import rainbow.vm.compiler.QuasiQuoteCompiler;
 import rainbow.vm.compiler.Rebuilder;
 
@@ -34,7 +33,7 @@ public class QuasiQuoteContinuation extends ContinuationSupport {
       caller.receive(expression);
     } else if (isUnQuote(expression)) {
       current = expression;
-      Interpreter.interpret(thread, lc, caller, expression.cdr().car());
+      expression.cdr().car().interpret(thread, lc, caller);
     } else if (!isPair(expression)) {
       caller.receive(expression);
     } else {
@@ -50,14 +49,14 @@ public class QuasiQuoteContinuation extends ContinuationSupport {
       expression = expression.cdr();
       if (isUnQuote(current)) {
         if (nesting == 1) {
-          Interpreter.interpret(thread, lc, this, current.cdr().car());
+          current.cdr().car().interpret(thread, lc, this);
         } else {
           Rebuilder rb = new Rebuilder(this, QuasiQuoteCompiler.UNQUOTE);
           new QuasiQuoteContinuation(thread, lc, rb, current.cdr().car(), nesting - 1);
         }
       } else if (isUnQuoteSplicing(current)) {
         if (nesting == 1) {
-          Interpreter.interpret(thread, lc, new UnquoteSplicer(this, result), current.cdr().car());
+          current.cdr().car().interpret(thread, lc, new UnquoteSplicer(this, result));
         } else {
           append(current);
           repeat();

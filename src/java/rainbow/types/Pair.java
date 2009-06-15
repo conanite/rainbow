@@ -6,7 +6,6 @@ import rainbow.LexicalClosure;
 import rainbow.functions.Builtin;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.vm.continuations.FunctionDispatcher;
 
 import java.util.*;
 
@@ -52,11 +51,11 @@ public class Pair extends ArcObject {
   }
 
   public ArcObject car() {
-    return car == null ? NIL : car;
+    return car;
   }
 
   public ArcObject cdr() {
-    return cdr == null ? NIL : cdr;
+    return cdr;
   }
 
   public Function refFn() {
@@ -70,15 +69,11 @@ public class Pair extends ArcObject {
   }
 
   public boolean isNotPair() {
-    return isNil();
+    return false;
   }
 
   public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
-    if (car == null) {
-      caller.receive(this);
-    } else {
-      thread.continueWith(new FunctionDispatcher(thread, lc, caller, this));
-    }
+    throw new ArcError("can't interpret a cons cell!!! " + this);
   }
 
   public ArcObject scar(ArcObject newCar) {
@@ -137,22 +132,19 @@ public class Pair extends ArcObject {
   }
 
   public boolean isNil() {
-    return car == null && cdr == null;
+    return false;
   }
 
   public static Pair parse(List items) {
-    Pair pair = new Pair();
     if (items == null || items.size() == 0) {
-      return pair;
+      return NIL;
     }
 
     if (items.get(0) == Symbol.DOT) {
       return illegalDot(items);
     }
 
-    pair.car = (ArcObject) items.get(0);
-    pair.cdr = internalParse(items.subList(1, items.size()));
-    return pair;
+    return new Pair((ArcObject) items.get(0), internalParse(items.subList(1, items.size())));
   }
 
   private static ArcObject internalParse(List items) {
@@ -168,10 +160,7 @@ public class Pair extends ArcObject {
       }
     }
 
-    Pair pair = new Pair();
-    pair.car = (ArcObject) items.get(0);
-    pair.cdr = internalParse(items.subList(1, items.size()));
-    return pair;
+    return new Pair((ArcObject) items.get(0), internalParse(items.subList(1, items.size())));
   }
 
   private static Pair illegalDot(List items) {
@@ -188,7 +177,7 @@ public class Pair extends ArcObject {
 
   public static Pair buildFrom(List items, ArcObject last) {
     if (items == null) {
-      return new Pair();
+      return EMPTY_LIST;
     }
 
     return (Pair)buildFrom(items, last, 0);
@@ -203,7 +192,7 @@ public class Pair extends ArcObject {
   }
 
   public ArcObject type() {
-    return isNil() ? NIL.type() : TYPE;
+    return TYPE;
   }
 
   public long len() {
@@ -215,13 +204,13 @@ public class Pair extends ArcObject {
       return 0;
     } else {
       int result = 1;
-      Pair rest = (Pair) cdr;
+      ArcObject rest = cdr;
       while (!rest.isNil()) {
-        result++;
-        if (!(rest.cdr() instanceof Pair)) {
+        if (rest.isNotPair()) {
           throw new ArcError("cannot take size: not a proper list: " + this);
         }
-        rest = (Pair) rest.cdr();
+        result++;
+        rest = rest.cdr();
       }
       return result;
     }
@@ -232,16 +221,13 @@ public class Pair extends ArcObject {
   }
 
   public Collection copyTo(Collection c) {
-    if (isNil()) {
-      return c;
-    }
     c.add(car());
     if (cdr().isNil()) {
       return c;
     } else if (!(cdr() instanceof Pair)) {
       throw new ArcError("Not a list: " + this);
     }
-    ((Pair)cdr()).copyTo(c);
+    cdr().copyTo(c);
     return c;
   }
 
@@ -322,7 +308,9 @@ public class Pair extends ArcObject {
   private void toArray(ArcObject[] result, int i) {
     if (i < result.length) {
       result[i] = car;
-      ((Pair)cdr).toArray(result, i + 1);
+      if (!cdr.isNil()) {
+        ((Pair)cdr).toArray(result, i + 1);
+      }
     }
   }
 
@@ -334,7 +322,7 @@ public class Pair extends ArcObject {
     }
   }
 
-  public void mustBePair() throws NotPair {
+  public void mustBePairOrNil() throws NotPair {
   }
 
   public static Pair append(Pair pair, ArcObject value) {
@@ -348,6 +336,10 @@ public class Pair extends ArcObject {
       test.cdr = new Pair(value, NIL);
     }
     return pair;
+  }
+
+  public ArcObject rev() {
+    return null;
   }
 
   public static class NotPair extends Throwable {

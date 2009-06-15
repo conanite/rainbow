@@ -2,7 +2,6 @@ package rainbow.vm.continuations;
 
 import rainbow.vm.Continuation;
 import rainbow.vm.ArcThread;
-import rainbow.vm.Interpreter;
 import rainbow.LexicalClosure;
 import rainbow.functions.InterpretedFunction;
 import rainbow.types.ArcObject;
@@ -18,7 +17,8 @@ public class FunctionEvaluator extends ContinuationSupport {
 
   public void onReceive(ArcObject o) {
     ArcObject expression = f.nth(index++);
-    Interpreter.interpret(thread, lc, f.last(index) ? caller : this, expression);
+    Continuation caller1 = f.last(index) ? caller : this;
+    expression.interpret(thread, lc, caller1);
   }
 
   protected ArcObject getCurrentTarget() {
@@ -31,7 +31,7 @@ public class FunctionEvaluator extends ContinuationSupport {
         caller.receive(ArcObject.NIL);
         break;
       case 1:
-        Interpreter.interpret(thread, lc, caller, f.nth(0));
+        f.nth(0).interpret(thread, lc, caller);
         break;
       default:
         new FunctionEvaluator(thread, lc, caller, f).receive(ArcObject.NIL);

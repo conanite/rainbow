@@ -14,12 +14,10 @@ import java.util.List;
 import java.util.Map;
 
 public class FunctionBodyBuilder extends ContinuationSupport {
-  private static final Object EXPAND_BODY = new Object();
-  private static final Object BUILD_BODY = new Object();
   private ArcObject parameters;
   private Pair body;
   private List result = new LinkedList();
-  private Object state = EXPAND_BODY;
+  private boolean expectingBody;
   private ArcObject parameterList;
   private Map[] lexicalBindings;
   private Map myParams;
@@ -46,14 +44,13 @@ public class FunctionBodyBuilder extends ContinuationSupport {
   }
 
   protected void onReceive(ArcObject returned) {
-    if (state == EXPAND_BODY) {
-      state = BUILD_BODY;
-      this.parameterList = returned.cdr();
-      this.complexParams = returned.car();
-      Continuation macex = new MacExpander(thread, lc, this, false);
-      new PairExpander(thread, lc, macex, body, lexicalBindings).start();
-    } else {
+    if (expectingBody) {
       caller.receive(buildFunctionBody(parameterList, myParams, (Pair) returned, complexParams));
+    } else {
+      expectingBody = true;
+      this.complexParams = returned.car();
+      this.parameterList = returned.cdr();
+      new PairExpander(thread, lc, this, body, lexicalBindings).start();
     }
   }
 
@@ -71,7 +68,13 @@ public class FunctionBodyBuilder extends ContinuationSupport {
     return e;
   }
 
-  private ArcObject buildFunctionBody(ArcObject compiledParameters, Map lexicalBindings, Pair expandedBody, ArcObject complexParams) {
-    return new InterpretedFunction(compiledParameters, lexicalBindings, expandedBody, complexParams);
+  private ArcObject buildFunctionBody(ArcObject parameterList, Map lexicalBindings, Pair expandedBody, ArcObject complexParams) {
+    if (this.parameterList.isNil()) {
+      return new InterpretedFunction.ZeroArgs(lexicalBindings, expandedBody);
+    } else if (!complexParams.isNil()) {
+      return new InterpretedFunction.ComplexArgs(parameterList, lexicalBindings, expandedBody);
+    } else {
+      return new InterpretedFunction.SimpleArgs(parameterList, lexicalBindings, expandedBody);
+    }
   }
 }

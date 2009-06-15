@@ -3,17 +3,38 @@ package rainbow;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
+import rainbow.vm.ArcThread;
+import rainbow.vm.Continuation;
 
 import java.util.Collection;
 
 public class Nil extends Pair {
   public static final Symbol TYPE = Symbol.TYPE;
-  public static final Nil NIL = new Nil();
+  public static final Nil NIL = new Nil("nil");
+  public static final Nil EMPTY_LIST = new Nil("()");
 
-  private Nil() {
+  private String rep;
+
+  private Nil(String rep) {
+    this.rep = rep;
   }
 
-  public void mustBeNil() throws NotNil {
+  public void mustBePairOrNil() throws NotPair {
+  }
+
+  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
+    caller.receive(this);
+  }
+
+  public long len() {
+    return 0;
+  }
+
+  public boolean isNotPair() {
+    return true;
+  }
+
+  public void mustBeNil() {
   }
 
   public boolean isNil() {
@@ -21,7 +42,7 @@ public class Nil extends Pair {
   }
 
   public String toString() {
-    return "nil";
+    return rep;
   }
 
   public ArcObject car() {
@@ -53,7 +74,7 @@ public class Nil extends Pair {
   }
 
   public ArcObject type() {
-    return Symbol.TYPE;
+    return TYPE;
   }
 
   public int hashCode() {

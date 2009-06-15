@@ -1,5 +1,8 @@
 
 (def bm (times fun (o verbose nil))
+  (pr "warm-up ")
+  (repeat 3 (do (fun) (pr ".")))
+  (prn)
   (with (mintime 2000000000 maxtime 0 totaltime 0 now nil)
     (for i 0 (- times 1)
       (= now (msec))
@@ -17,7 +20,7 @@
 
 ;(assign a (load-file "~/projects/rainbow/src/arc/rainbow/welder.arc"))
 ;(bm 20 (fn () (index-source a)))
-;(bm 10 [prime-bench 20000])
+; (bm 10 (fn () (prime-bench 200000)))
 
 ; prime-bench:
 ; avg 3616.5

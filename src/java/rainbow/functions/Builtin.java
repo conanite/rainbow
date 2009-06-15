@@ -38,7 +38,7 @@ public abstract class Builtin extends ArcObject implements Function {
   }
 
   public static void checkMaxArgCount(Pair args, Class functionClass, int maxArgs) {
-    if (args.size() > maxArgs) {
+    if (args.len() > maxArgs) {
       System.out.println(functionClass + " got args " + args + " was expecting at most " + maxArgs);
       throw new ArcError(functionClass.getSimpleName().toLowerCase() + " expects at most " + maxArgs + " arguments: given " + args);
     }
@@ -51,7 +51,7 @@ public abstract class Builtin extends ArcObject implements Function {
   }
 
   public static void checkExactArgsCount(Pair args, int argCount, Class functionClass) {
-    if (args.size() != argCount) {
+    if (args.len() != argCount) {
       throw new ArcError(functionClass.getSimpleName().toLowerCase() + " expects " + argCount + " arguments: given " + args);
     }
   }

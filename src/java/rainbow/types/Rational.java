@@ -9,6 +9,11 @@ public class Rational extends ArcNumber {
   public static final Rational ONE = make(1);
   public static final Rational TEN = make(10);
 
+  public Rational(long numerator) {
+    this.numerator = numerator;
+    this.denominator = 1L;
+  }
+
   public Rational(long numerator, long denominator) {
     if (denominator == 0 && numerator != 0) {
       throw new ArcError("/: division by zero");
@@ -24,7 +29,7 @@ public class Rational extends ArcNumber {
   }
 
   public static Rational make(long result) {
-    return make(result, 1);
+    return new Rational(result);
   }
 
   public static Rational make(long a, long b) {

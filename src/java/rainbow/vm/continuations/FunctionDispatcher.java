@@ -4,7 +4,6 @@ import rainbow.*;
 import rainbow.types.*;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.vm.Interpreter;
 
 public class FunctionDispatcher extends ContinuationSupport {
   public static final Symbol TYPE_DISPATCHER_TABLE = (Symbol) Symbol.make("call*");
@@ -13,7 +12,7 @@ public class FunctionDispatcher extends ContinuationSupport {
   private boolean expectingArg;
   private Function f;
   private Pair evaluatedArgs;
-  private ArcObject functionName;
+  public ArcObject functionName;
 
   public FunctionDispatcher(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression) {
     super(thread, lc, caller);
@@ -22,22 +21,18 @@ public class FunctionDispatcher extends ContinuationSupport {
   }
 
   public void process() {
-    Interpreter.interpret(thread, lc, this, functionName);
+    functionName.interpret(thread, lc, this);
   }
 
   public void onReceive(ArcObject obj) {
     if (expectingArg) {
       evaluatedArgs = Pair.append(evaluatedArgs, obj);
       startEvaluation();
+    } else if (obj instanceof Function) {
+      evaluate((Function) obj);
     } else {
-      if (obj instanceof SpecialForm) {
-        ((SpecialForm) obj).invoke(thread, lc, caller, (Pair) args);
-      } else if (obj instanceof Function) {
-        evaluate((Function) obj);
-      } else {
-        evaluatedArgs = new Pair(Tagged.rep(obj), ArcObject.NIL);
-        evaluate((Function) ((Hash) TYPE_DISPATCHER_TABLE.value()).value(obj.type()));
-      }
+      evaluatedArgs = new Pair(Tagged.rep(obj), ArcObject.NIL);
+      evaluate((Function) ((Hash) TYPE_DISPATCHER_TABLE.value()).value(obj.type()));
     }
   }
 
@@ -62,7 +57,7 @@ public class FunctionDispatcher extends ContinuationSupport {
   private void continueEvaluation() {
     ArcObject expression = args.car();
     args = args.cdr();
-    Interpreter.interpret(thread, lc, this, expression);
+    expression.interpret(thread, lc, this);
   }
 
   public Continuation cloneFor(ArcThread thread) {

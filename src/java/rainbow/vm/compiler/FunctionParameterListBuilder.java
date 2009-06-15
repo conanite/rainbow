@@ -63,8 +63,7 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
   }
 
   protected void onReceive(ArcObject compiledOptionalExpression) {
-    Pair expr = Pair.buildFrom(O, optionalParamName, compiledOptionalExpression);
-    continueWith(expr);
+    continueWith(Pair.buildFrom(O, optionalParamName, compiledOptionalExpression));
   }
 
   private static void index(ArcObject parameterList, Map map, int[] i, boolean optionable) {

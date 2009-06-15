@@ -3,7 +3,6 @@ package rainbow.vm.continuations;
 import rainbow.ArcError;
 import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
-import rainbow.types.Pair;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.StackFrameElement;
@@ -25,9 +24,9 @@ public abstract class ContinuationSupport implements Continuation, Cloneable {
       try {
         onReceive(returned);
       } catch (ArcError ae) {
-        throw ae;
+        error(ae);
       } catch (Exception e) {
-        throw new ArcError(e);
+        error(new ArcError(e));
       }
     }
   }
@@ -39,7 +38,7 @@ public abstract class ContinuationSupport implements Continuation, Cloneable {
     if (invocation == null) {
       throw new NullPointerException("invocation must not be null in " + getClass());
     }
-    error.addStackFrame(new StackFrameElement(this, Pair.buildFrom(invocation)));
+    error.addStackFrame(new StackFrameElement(this, invocation));
     caller.error(error);
   }
 

@@ -5,7 +5,7 @@ import rainbow.parser.ParseException;
 import rainbow.types.*;
 import rainbow.util.Argv;
 import rainbow.vm.ArcThread;
-import rainbow.vm.Interpreter;
+import rainbow.vm.continuations.EvaluatorContinuation;
 import rainbow.vm.continuations.TopLevelContinuation;
 
 import java.io.*;
@@ -148,7 +148,7 @@ public class Console {
   private static ArcObject compileAndEval(Environment environment, ArcObject expression) {
     ArcThread thread = new ArcThread();
     TopLevelContinuation topLevel = new TopLevelContinuation(thread);
-    Interpreter.compileAndEval(thread, null, topLevel, expression);
+    EvaluatorContinuation.compileAndEval(thread, null, topLevel, expression);
     thread.run();
     return thread.finalValue();
   }

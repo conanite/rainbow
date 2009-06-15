@@ -66,7 +66,7 @@ public abstract class Lists {
   public static class Len extends Builtin {
     public ArcObject invoke(Pair args) {
       checkMaxArgCount(args, getClass(), 1);
-      return new Rational(args.car().len(), 1);
+      return new Rational(args.car().len());
     }
   }
 }

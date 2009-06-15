@@ -1,8 +1,8 @@
 package rainbow.functions;
 
 import rainbow.types.ArcObject;
-import rainbow.types.Pair;
 import rainbow.types.Symbol;
+import rainbow.types.Pair;
 
 public class Uniq extends Builtin {
   private static long count = 0;

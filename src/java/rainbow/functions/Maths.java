@@ -17,7 +17,7 @@ public abstract class Maths {
         public ArcObject invoke(Pair args) {
           checkMaxArgCount(args, getClass(), 1);
           double value = ((ArcNumber) args.car()).toDouble();
-          return new Rational((long) Math.floor(value), 1);
+          return new Rational((long) Math.floor(value));
         }
       }, new Builtin("expt") {
         public ArcObject invoke(Pair args) {
@@ -44,7 +44,7 @@ public abstract class Maths {
             if (!r.isInteger()) {
               throw new ArcError("rand: requires one exact integer argument, got " + args);
             }
-            return new Rational(Math.abs(random.nextLong() % r.toInt()), 1);
+            return new Rational(Math.abs(random.nextLong() % r.toInt()));
           }
         }
       }, new Builtin("sqrt") {

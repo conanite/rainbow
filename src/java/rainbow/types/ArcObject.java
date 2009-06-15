@@ -5,11 +5,12 @@ import rainbow.types.Pair.NotPair;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
+import java.util.Collection;
+
 public abstract class ArcObject {
   public static final Nil NIL = Nil.NIL;
+  public static final Nil EMPTY_LIST = Nil.EMPTY_LIST;
   public static final Truth T = Truth.T;
-
-  public Hash source;
 
   public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
     caller.receive(this);
@@ -65,15 +66,8 @@ public abstract class ArcObject {
     return this == other;
   }
 
-  public void source(Hash source) {
-    this.source = source;
-  }
-
-  public Hash source() {
-    if (source == null) {
-      source = new Hash();
-    }
-    return source;
+  public Collection copyTo(Collection c) {
+    return c;
   }
 
   public boolean isNotPair() {
@@ -84,7 +78,7 @@ public abstract class ArcObject {
     throw new ArcError("ref: expects string or hash or cons");
   }
 
-  public void mustBePair() throws NotPair {
+  public void mustBePairOrNil() throws NotPair {
     throw new Pair.NotPair();
   }
 

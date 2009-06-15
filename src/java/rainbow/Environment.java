@@ -42,12 +42,6 @@ public class Environment {
     addBuiltin("exact", new Predicates.Exact());
     addBuiltin("is", new Predicates.Is());
 
-    /* special */
-    addBuiltin("assign", new Specials.Set());
-    addBuiltin("quote", new Specials.Quote());
-    addBuiltin("quasiquote", new Specials.QuasiQuote());
-    addBuiltin("if", new Specials.If());
-
     /* evaluation */
     addBuiltin("apply", new Evaluation.Apply());
     addBuiltin("eval", new Evaluation.Eval());

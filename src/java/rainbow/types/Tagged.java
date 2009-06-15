@@ -69,8 +69,7 @@ public class Tagged extends ArcObject {
     ArcThread thread = new ArcThread();
     TopLevelContinuation topLevel = new TopLevelContinuation(thread);
     Function f = (Function) fn;
-    Pair args = Pair.buildFrom(rep);
-    f.invoke(thread, null, topLevel, args);
+    f.invoke(thread, null, topLevel, Pair.buildFrom(rep));
     thread.run();
     return (String) JavaObject.unwrap(thread.finalValue(), String.class);
   }

@@ -8,7 +8,6 @@ import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.vm.Interpreter;
 
 public class NamespaceBuilder extends ContinuationSupport {
   private static final Symbol o = (Symbol) Symbol.make("o");
@@ -43,13 +42,13 @@ public class NamespaceBuilder extends ContinuationSupport {
       if (!args.isNil()) {
         lc.add(nextArg);
       } else {
-        Interpreter.interpret(thread, lc, this, optional.cdr().car());
+        optional.cdr().car().interpret(thread, lc, this);
         return;
       }
     } else {
       shift();
       try {
-        nextArg.mustBePair();
+        nextArg.mustBePairOrNil();
       } catch (Pair.NotPair e) {
         throw new ArcError("Expected list argument for destructuring parameter " + nextParameter + ", got " + nextArg);
       }

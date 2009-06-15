@@ -72,7 +72,11 @@ public class Symbol extends ArcObject {
   }
 
   public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
-    caller.receive(value());
+    try {
+      caller.receive(value());
+    } catch (Unbound e) {
+      caller.error(e);
+    }
   }
 
   public ArcObject eval() {

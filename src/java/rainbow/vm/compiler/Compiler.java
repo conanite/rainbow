@@ -8,9 +8,11 @@ import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.types.Tagged;
 import rainbow.vm.ArcThread;
-import rainbow.vm.BoundSymbol;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.ContinuationSupport;
+import rainbow.vm.interpreter.BoundSymbol;
+import rainbow.vm.interpreter.Invocation;
+import rainbow.vm.interpreter.Quotation;
 
 import java.util.Map;
 
@@ -22,6 +24,7 @@ public class Compiler extends ContinuationSupport {
     super(thread, lc, caller);
     this.expression = expression;
     this.lexicalBindings = lexicalBindings;
+    start();
   }
 
   public static void compile(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression, Map[] lexicalBindings) {
@@ -30,7 +33,7 @@ public class Compiler extends ContinuationSupport {
     } else if (Evaluation.isSpecialSyntax(expression)) {
       compile(thread, lc, caller, Evaluation.ssExpand(expression), lexicalBindings);
     } else if (expression instanceof Pair) {
-      new Compiler(thread, lc, caller, (Pair) expression, lexicalBindings).start();
+      new Compiler(thread, lc, caller, (Pair) expression, lexicalBindings);
     } else if (expression instanceof Symbol) {
       for (int i = 0; i < lexicalBindings.length; i++) {
         if (lexicalBindings[i].containsKey(expression)) {
@@ -51,12 +54,16 @@ public class Compiler extends ContinuationSupport {
     } else {
       ArcObject fun = expression.car();
       if (Symbol.is("quote", fun)) {
-        caller.receive(expression);
+        caller.receive(new Quotation(expression.cdr().car()));
       } else if (fun == QuasiQuoteCompiler.QUASIQUOTE) {
-        Rebuilder rebuilder = new Rebuilder(caller, QuasiQuoteCompiler.QUASIQUOTE);
-        QuasiQuoteCompiler.compile(thread, lc, rebuilder, expression.cdr().car(), lexicalBindings);
+        QuasiQuoteBuilder qqb = new QuasiQuoteBuilder(caller);
+        QuasiQuoteCompiler.compile(thread, lc, qqb, expression.cdr().car(), lexicalBindings);
       } else if (Symbol.is("fn", fun)) {
         new FunctionBodyBuilder(thread, lc, caller, (Pair) expression.cdr(), lexicalBindings).start();
+      } else if (Symbol.is("if", fun)) {
+        new IfBuilder(thread, lc, caller, expression.cdr(), lexicalBindings);
+      } else if (Symbol.is("assign", fun)) {
+        new AssignmentBuilder(thread, lc, caller, expression.cdr(), lexicalBindings);
       } else {
         new PairExpander(thread, lc, new MacExpander(thread, lc, this, false), expression, lexicalBindings).start();
       }
@@ -80,7 +87,11 @@ public class Compiler extends ContinuationSupport {
 
   protected void onReceive(ArcObject returned) {
     if (expression.equals(returned)) {
-      caller.receive(expression);
+      if (expression.isNotPair()) {
+        caller.receive(expression);
+      } else {
+        caller.receive(new Invocation(expression));
+      }
     } else {
       compile(thread, lc, caller, returned, lexicalBindings);
     }

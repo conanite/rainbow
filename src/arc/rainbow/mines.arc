@@ -1,3 +1,5 @@
+(require-lib "rainbow/swing")
+
 (mac move-cursor (place op lower upper)
   (w/uniq gv
    `(let ,gv (,op ,place 1)
