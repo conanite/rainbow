@@ -9,7 +9,7 @@ import rainbow.vm.Continuation;
 
 import java.util.*;
 
-public class Pair extends ArcObject {
+public class Pair extends ArcObject implements Function {
   public static final Symbol TYPE = (Symbol) Symbol.make("cons");
 
   public static final Function REF = new Function() {
@@ -56,6 +56,10 @@ public class Pair extends ArcObject {
 
   public ArcObject cdr() {
     return cdr;
+  }
+
+  public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    REF.invoke(thread, lc, caller, new Pair(this, args));
   }
 
   public Function refFn() {

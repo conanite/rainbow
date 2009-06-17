@@ -72,6 +72,10 @@ public class ArcCharacter extends ArcObject {
     return Integer.parseInt(representation.substring(2), 8);
   }
 
+  public boolean literal() {
+    return true;
+  }
+
   public String toString() {
     return "#\\" + value;
   }

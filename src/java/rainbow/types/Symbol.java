@@ -79,10 +79,6 @@ public class Symbol extends ArcObject {
     }
   }
 
-  public ArcObject eval() {
-    return value();
-  }
-
   public static boolean is(String s, ArcObject o) {
     return (o instanceof Symbol) && ((Symbol)o).name().equals(s);
   }

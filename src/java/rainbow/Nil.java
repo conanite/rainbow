@@ -22,6 +22,10 @@ public class Nil extends Pair {
   public void mustBePairOrNil() throws NotPair {
   }
 
+  public boolean literal() {
+    return true;
+  }
+
   public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
     caller.receive(this);
   }

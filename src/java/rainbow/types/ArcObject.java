@@ -7,10 +7,19 @@ import rainbow.vm.Continuation;
 
 import java.util.Collection;
 
-public abstract class ArcObject {
+public abstract class ArcObject implements Function {
+  public static final Symbol TYPE_DISPATCHER_TABLE = (Symbol) Symbol.make("call*");
   public static final Nil NIL = Nil.NIL;
   public static final Nil EMPTY_LIST = Nil.EMPTY_LIST;
   public static final Truth T = Truth.T;
+
+  public boolean literal() {
+    return false;
+  }
+
+  public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    ((Hash) TYPE_DISPATCHER_TABLE.value()).value(type()).invoke(thread, lc, caller, new Pair(this, args));
+  }
 
   public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
     caller.receive(this);
@@ -26,10 +35,6 @@ public abstract class ArcObject {
 
   public ArcObject sref(Pair args) {
     throw new ArcError("Can't sref " + this.type());
-  }
-
-  public ArcObject eval() {
-    return this;
   }
 
   public boolean isNil() {

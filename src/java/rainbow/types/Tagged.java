@@ -2,7 +2,9 @@ package rainbow.types;
 
 import rainbow.ArcError;
 import rainbow.Function;
+import rainbow.LexicalClosure;
 import rainbow.vm.ArcThread;
+import rainbow.vm.Continuation;
 import rainbow.vm.continuations.TopLevelContinuation;
 
 public class Tagged extends ArcObject {
@@ -13,6 +15,10 @@ public class Tagged extends ArcObject {
   public Tagged(ArcObject type, ArcObject rep) {
     this.type = type;
     this.rep = rep;
+  }
+
+  public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    ((Hash) TYPE_DISPATCHER_TABLE.value()).value(type).invoke(thread, lc, caller, new Pair(rep, args));
   }
 
   public ArcObject getType() {

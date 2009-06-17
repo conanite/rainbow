@@ -6,11 +6,11 @@ import rainbow.types.ArcObject;
 import rainbow.types.Input;
 import rainbow.types.Output;
 import rainbow.types.Symbol;
-import rainbow.vm.continuations.FunctionDispatcher;
+import rainbow.vm.continuations.InvocationContinuation;
 
 public class ArcThread extends ArcObject implements Runnable {
   private Symbol TYPE = (Symbol) Symbol.make("thread");
-  private FunctionDispatcher task;
+  private InvocationContinuation task;
   private ArcObject result;
   private ArcError error;
   private boolean stopped;
@@ -22,7 +22,7 @@ public class ArcThread extends ArcObject implements Runnable {
 
   public void run() {
     while (!stopped) {
-      task.process();
+      task.start();
     }
     stopped = true;
   }
@@ -43,7 +43,7 @@ public class ArcThread extends ArcObject implements Runnable {
     return TYPE;
   }
 
-  public void continueWith(FunctionDispatcher nextTask) {
+  public void continueWith(InvocationContinuation nextTask) {
     if (stopped) {
       return;
     }

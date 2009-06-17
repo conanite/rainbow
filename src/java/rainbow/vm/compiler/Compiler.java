@@ -82,7 +82,7 @@ public class Compiler extends ContinuationSupport {
     }
 
     ArcObject maybeTagged = sym.value();
-    return (Function) Tagged.ifTagged(maybeTagged, "mac");
+    return Tagged.ifTagged(maybeTagged, "mac");
   }
 
   protected void onReceive(ArcObject returned) {
@@ -90,7 +90,9 @@ public class Compiler extends ContinuationSupport {
       if (expression.isNotPair()) {
         caller.receive(expression);
       } else {
-        caller.receive(new Invocation(expression));
+        Invocation invocation = new Invocation();
+        invocation.buildFrom(expression);
+        caller.receive(invocation);
       }
     } else {
       compile(thread, lc, caller, returned, lexicalBindings);

@@ -2,7 +2,8 @@ package rainbow.types;
 
 import rainbow.ArcError;
 import rainbow.Environment;
-import rainbow.Function;
+import rainbow.functions.InterpretedFunction;
+import rainbow.functions.Threads;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -170,7 +171,7 @@ public class JavaObject extends ArcObject {
   public static Object unwrap(ArcObject arcObject, Class javaType) {
     if (javaType != Object.class && javaType.isAssignableFrom(arcObject.getClass())) {
       return arcObject;
-    } else if (javaType.isInterface() && (arcObject instanceof Hash || arcObject instanceof Function)) {
+    } else if (autoProxyable(arcObject, javaType)) {
       return JavaProxy.create(Pair.buildFrom(ArcString.make(javaType.getName())), arcObject, NIL).unwrap();
     } else {
       try {
@@ -179,6 +180,10 @@ public class JavaObject extends ArcObject {
         throw new ArcError("Can't convert " + typeOf(arcObject) + " - " + arcObject + " ( a " + arcObject.type() + ") to " + javaType, e);
       }
     }
+  }
+
+  private static boolean autoProxyable(ArcObject arcObject, Class javaType) {
+    return javaType.isInterface() && (arcObject instanceof Hash || arcObject instanceof InterpretedFunction || arcObject instanceof Threads.Closure);
   }
 
   private static Object convert(Object o, Class javaType) {
@@ -208,7 +213,7 @@ public class JavaObject extends ArcObject {
   private static Method findMethod(Class c, String methodName, Pair args) {
     Method m = findMethodIfPresent(c, methodName, args);
     if (m == null) {
-      throw new ArcError("no method " + methodName + " found on " + c + " to accept " + args);
+      throw new ArcError("no method " + methodName + " found on " + c + " to accept " + args + " (types: " + types(args) + " )");
     } else {
       return m;
     }
@@ -269,7 +274,7 @@ public class JavaObject extends ArcObject {
       return true;
     } else if (!parameterType.isPrimitive() && arcObject.isNil()) {
       return true;
-    } else if (parameterType.isInterface() && (arcObject instanceof Hash || arcObject instanceof Function)) {
+    } else if (parameterType.isInterface() && (arcObject instanceof Hash || arcObject instanceof InterpretedFunction || arcObject instanceof Threads.Closure)) {
       return true;
     } else if (parameterType.isArray()) {
       return arcObject instanceof Pair;

@@ -66,7 +66,7 @@ public class JavaProxy implements InvocationHandler {
         }
       }
     }
-    Function f = (Function) methodImplementation;
+    Function f = methodImplementation;
     Pair args = (Pair) Java.wrap(arguments);
     f.invoke(thread, null, topLevel, args);
     thread.run();

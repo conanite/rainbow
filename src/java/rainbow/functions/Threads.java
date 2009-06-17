@@ -72,7 +72,7 @@ public class Threads {
     }
   }
 
-  public static class Closure extends ArcObject implements Function {
+  public static class Closure extends ArcObject {
     private Function expression;
     private LexicalClosure lc;
 

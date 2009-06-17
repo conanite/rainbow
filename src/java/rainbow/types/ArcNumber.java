@@ -16,6 +16,10 @@ public abstract class ArcNumber extends ArcObject {
 
   public abstract ArcObject round();
 
+  public boolean literal() {
+    return true;
+  }
+
   public int compareTo(ArcObject right) {
     double comparison = ((ArcNumber) right).toDouble() - this.toDouble();
     return comparison < 0 ? 1 : comparison == 0 ? 0 : -1;

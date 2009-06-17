@@ -7,7 +7,7 @@ import rainbow.functions.Builtin;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
-public class ArcString extends ArcObject {
+public class ArcString extends ArcObject implements Function {
   public static final Symbol TYPE = (Symbol) Symbol.make("string");
 
   public static final Function REF = new Function() {
@@ -34,6 +34,14 @@ public class ArcString extends ArcObject {
 
   private ArcString(String value) {
     this.value = value;
+  }
+
+  public boolean literal() {
+    return true;
+  }
+
+  public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    REF.invoke(thread, lc, caller, new Pair(this, args));
   }
 
   public String value() {

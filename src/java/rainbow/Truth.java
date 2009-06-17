@@ -10,8 +10,8 @@ public class Truth extends Symbol {
     super("t");
   }
 
-  public ArcObject eval() {
-    return this;
+  public boolean literal() {
+    return true;
   }
 
   public String toString() {

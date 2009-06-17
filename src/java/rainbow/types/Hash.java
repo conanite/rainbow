@@ -9,7 +9,7 @@ import rainbow.vm.continuations.TableMapper;
 
 import java.util.*;
 
-public class Hash extends ArcObject {
+public class Hash extends ArcObject implements Function {
   public static final Symbol TYPE = (Symbol) Symbol.make("table");
 
   public static final Function REF = new Function() {
@@ -25,6 +25,10 @@ public class Hash extends ArcObject {
 
 
   LinkedHashMap map = new LinkedHashMap();
+
+  public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    REF.invoke(thread, lc, caller, new Pair(this, args));
+  }
 
   public String toString() {
     return "#hash" + toList();

@@ -1,13 +1,13 @@
 package rainbow.functions;
 
 import rainbow.ArcError;
-import rainbow.Function;
 import rainbow.LexicalClosure;
-import rainbow.types.*;
+import rainbow.types.ArcObject;
+import rainbow.types.Pair;
+import rainbow.types.Symbol;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.EvaluatorContinuation;
-import rainbow.vm.continuations.FunctionDispatcher;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -26,28 +26,7 @@ public class Evaluation {
   public static class Apply extends Builtin {
     public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
       ArcObject fn = args.car();
-      args = constructApplyArgs((Pair) args.cdr());
-      if (fn instanceof Function) {
-        ((Function) fn).invoke(thread, lc, caller, args);
-      } else {
-        anarkiCompatibleTypeDispatch(thread, lc, caller, args, fn);
-      }
-    }
-
-    private void anarkiCompatibleTypeDispatch(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject args, ArcObject fn) {
-      Symbol callTable = FunctionDispatcher.TYPE_DISPATCHER_TABLE;
-      Hash dispatchers = callTable.bound() ? (Hash) callTable.value() : null;
-      try {
-        ArcObject targetObject = Tagged.rep(fn);
-        Function function = Builtin.cast(dispatchers.value(fn.type()), this);
-        function.invoke(thread, lc, caller, new Pair(targetObject, args));
-      } catch (NullPointerException e) {
-        if (dispatchers == null) {
-          throw new ArcError("call* table not found in environment!");
-        } else {
-          throw e;
-        }
-      }
+      fn.invoke(thread, lc, caller, constructApplyArgs((Pair) args.cdr()));
     }
 
     private Pair constructApplyArgs(Pair args) {
