@@ -4,18 +4,21 @@ To download and build rainbow:
   cd rainbow
   ant jar
 
+Open a REPL
+
+  cd src/arc
+  java -server -jar rainbow.jar
+
 Open welder.arc in welder:
 
-  ARC_PATH=/PATH/TO/anarki/arc:./src/arc java -jar build/dist/rainbow/rainbow.jar -e '(welder "src/arc/rainbow/welder.arc")' 
+  cd src/arc
+  java -server -jar rainbow.jar -e '(welder "src/arc/rainbow/welder.arc")'
 
 Play tetris:
 
-  ARC_PATH=/PATH/TO/anarki/arc:./src/arc java -jar build/dist/rainbow/rainbow.jar -e '(tetris)' 
+  cd src/arc
+  java -server -jar rainbow.jar -e '(tetris)' 
 
-Just open a REPL
-
-  ARC_PATH=/PATH/TO/anarki/arc:./src/arc java -jar build/dist/rainbow/rainbow.jar
-  
 Command-line options:
   --strict-arc              # don't include anarki-compatible extensions
   -f file1 ... fileN        # evaluate each file
