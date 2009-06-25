@@ -5,14 +5,10 @@ import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.EvaluatorContinuation;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class Evaluation {
   public static boolean isSpecialSyntax(ArcObject expression) {
@@ -24,9 +20,8 @@ public class Evaluation {
   }
 
   public static class Apply extends Builtin {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-      ArcObject fn = args.car();
-      fn.invoke(thread, lc, caller, constructApplyArgs((Pair) args.cdr()));
+    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+      args.car().invoke(lc, caller, constructApplyArgs((Pair) args.cdr()));
     }
 
     private Pair constructApplyArgs(Pair args) {
@@ -39,8 +34,8 @@ public class Evaluation {
   }
 
   public static class Eval extends Builtin {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-      EvaluatorContinuation.compileAndEval(thread, lc, caller, args.car());
+    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+      EvaluatorContinuation.compileAndEval(lc, caller, args.car());
     }
   }
 
@@ -50,7 +45,7 @@ public class Evaluation {
     }
 
     public static boolean isSpecial(Symbol symbol) {
-      return isComposeComplement(symbol.name()) || isListListQuoted(symbol.name());
+      return isComposeComplement(symbol.name()) || isAndf(symbol.name()) || isListListQuoted(symbol.name());
     }
   }
 
@@ -68,8 +63,20 @@ public class Evaluation {
     return isCompose(symbol) || isComplement(symbol);
   }
 
+  private static boolean isAndf(String symbol) {
+    if (symbol.length() == 0) {
+      return false;
+    } else if (symbol.charAt(0) == '+') {
+      return isAndf(symbol.substring(1));
+    } else if (symbol.charAt(symbol.length() - 1) == '+') {
+      return isAndf(symbol.substring(0, symbol.length() - 1));
+    } else {
+      return symbol.indexOf("+") != -1;
+    }
+  }
+
   private static boolean isComplement(String symbol) {
-    return symbol.contains("~");
+    return symbol.startsWith("~");
   }
 
   private static boolean isCompose(String symbol) {
@@ -85,10 +92,38 @@ public class Evaluation {
       String symbol = s.name();
       if (isComposeComplement(symbol)) {
         return expandCompose(symbol);
+      } else if (isAndf(symbol)) {
+        return expandAndf(symbol);
       } else if (isListListQuoted(symbol)) {
         return expandExpression(symbol);
       } else {
         throw new ArcError("Unknown syntax " + symbol);
+      }
+    }
+
+    private static ArcObject expandAndf(String symbol) {
+      List toks = new ArrayList();
+      toks.add(Symbol.make("andf"));
+      String[] tokenised = andToks(symbol);
+      for (String s : tokenised) {
+        toks.add(Symbol.make(s));
+      }
+      return Pair.buildFrom(toks);
+    }
+
+    private static String[] andToks(String symbol) {
+      if (symbol.length() == 0) {
+        return new String[] { "" };
+      } else if (symbol.charAt(0) == '+') {
+        String[] result = andToks(symbol.substring(1));
+        result[0] = "+" + result[0];
+        return result;
+      } else if (symbol.charAt(symbol.length() - 1) == '+') {
+        String[] result = andToks(symbol.substring(0, symbol.length() - 1));
+        result[result.length - 1] = result[result.length - 1] + "+";
+        return result;
+      } else {
+        return symbol.split("\\+");
       }
     }
 

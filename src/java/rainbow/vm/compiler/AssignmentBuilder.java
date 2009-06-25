@@ -1,10 +1,8 @@
 package rainbow.vm.compiler;
 
 import rainbow.ArcError;
-import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair.NotPair;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import static rainbow.vm.compiler.Compiler.compile;
 import rainbow.vm.continuations.ContinuationSupport;
@@ -17,8 +15,8 @@ public class AssignmentBuilder extends ContinuationSupport {
   private Assignment assignment = new Assignment();
   private Map[] lexicalBindings;
 
-  public AssignmentBuilder(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject body, Map[] lexicalBindings) {
-    super(thread, lc, caller);
+  public AssignmentBuilder(Continuation caller, ArcObject body, Map[] lexicalBindings) {
+    super(caller);
     this.body = body;
     this.lexicalBindings = lexicalBindings;
     assignment.prepare((int) body.len());
@@ -34,7 +32,7 @@ public class AssignmentBuilder extends ContinuationSupport {
       } catch (NotPair notPair) {
         throw new ArcError("assign: unexpected: " + body);
       }
-      compile(thread, lc, this, body.car(), lexicalBindings);
+      compile(lc, this, body.car(), lexicalBindings);
     }
   }
 

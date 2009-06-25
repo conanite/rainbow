@@ -4,7 +4,6 @@ import rainbow.ArcError;
 import rainbow.Function;
 import rainbow.LexicalClosure;
 import rainbow.functions.Builtin;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
 import java.util.*;
@@ -13,7 +12,7 @@ public class Pair extends ArcObject implements Function {
   public static final Symbol TYPE = (Symbol) Symbol.make("cons");
 
   public static final Function REF = new Function() {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
       Pair pair = Pair.cast(args.car(), this);
       ArcNumber index = ArcNumber.cast(args.cdr().car(), this);
       caller.receive(pair.nth(index.toInt()).car());
@@ -50,6 +49,10 @@ public class Pair extends ArcObject implements Function {
     this.cdr = cdr;
   }
 
+  public ArcObject xcar() {
+    return car;
+  }
+
   public ArcObject car() {
     return car;
   }
@@ -58,8 +61,8 @@ public class Pair extends ArcObject implements Function {
     return cdr;
   }
 
-  public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-    REF.invoke(thread, lc, caller, new Pair(this, args));
+  public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+    REF.invoke(lc, caller, new Pair(this, args));
   }
 
   public Function refFn() {
@@ -76,7 +79,7 @@ public class Pair extends ArcObject implements Function {
     return false;
   }
 
-  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
+  public void interpret(LexicalClosure lc, Continuation caller) {
     throw new ArcError("can't interpret a cons cell!!! " + this);
   }
 

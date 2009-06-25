@@ -1,10 +1,10 @@
 ; HTTP Server.
 
-; if you want to be able to ^C the server, set breaksrv* to t
+; To improve performance with static files, set static-max-age*.
 
 (= arcdir* "arc/" logdir* "arc/logs/" staticdir* "static/")
 
-(= quitsrv* nil breaksrv* nil) 
+(= quitsrv* nil breaksrv* nil)
 
 (def serve ((o port 8080))
   (wipe quitsrv*)
@@ -36,7 +36,7 @@
 ; to handle it. also arrange to kill that thread if it
 ; has not completed in threadlife* seconds.
 
-(= threadlife* 30  requests* 0  requests/ip* (table) 
+(= threadlife* 30  requests* 0  requests/ip* (table)
    throttle-ips* (table)  ignore-ips* (table)  spurned* (table))
 
 (def handle-request (s breaksrv)
@@ -53,23 +53,23 @@
             (++ (requests/ip* ip 0))
             (with (th1 nil th2 nil)
               (= th1 (thread
-                       (errsafe (handle-request-thread i o ip))
-                       (close i o)
-                       (kill-thread th2)))
+                       (after (handle-request-thread i o ip)
+                              (close i o)
+                              (kill-thread th2))))
               (= th2 (thread
                        (sleep threadlife*)
                        (unless (dead th1)
-                               (prn "srv thread took too long for " ip))
+                         (prn "srv thread took too long for " ip))
                        (break-thread th1)
                        (force-close i o))))))))
 
 ; Returns true if ip has made req-limit* requests in less than
-; req-window* seconds.  If an ip is throttled, only 1 request is 
-; allowed per req-window* seconds.  If an ip makes req-limit* 
+; req-window* seconds.  If an ip is throttled, only 1 request is
+; allowed per req-window* seconds.  If an ip makes req-limit*
 ; requests in less than dos-window* seconds, it is a treated as a DoS
 ; attack and put in ignore-ips* (for this server invocation).
 
-; To adjust this while running, adjust the req-window* time, not 
+; To adjust this while running, adjust the req-window* time, not
 ; req-limit*, because algorithm doesn't enforce decreases in the latter.
 
 (= req-times* (table) req-limit* 30 req-window* 10 dos-window* 2)
@@ -78,7 +78,7 @@
   (and (only.> (requests/ip* ip) 250)
        (let now (seconds)
          (do1 (if (req-times* ip)
-                  (and (>= (qlen (req-times* ip)) 
+                  (and (>= (qlen (req-times* ip))
                            (if (throttle-ips* ip) 1 req-limit*))
                        (let dt (- now (deq (req-times* ip)))
                          (if (< dt dos-window*) (set (ignore-ips* ip)))
@@ -93,7 +93,7 @@
       (whilet c (unless responded (readc i))
         (if srv-noisy* (pr c))
         (if (is c #\newline)
-            (if (is (++ nls) 2) 
+            (if (is (++ nls) 2)
                 (let (type op args n cooks) (parseheader (rev lines))
                   (let t1 (msec)
                     (case type
@@ -112,9 +112,9 @@
 
 (def log-request (type op args cooks ip t0 t1)
   (with (parsetime (- t1 t0) respondtime (- (msec) t1))
-    (srvlog 'srv ip 
-                 parsetime 
-                 respondtime 
+    (srvlog 'srv ip
+                 parsetime
+                 respondtime
                  (if (> (+ parsetime respondtime) 1000) "***" "")
                  type
                  op
@@ -133,24 +133,24 @@
         (whilet c (and (> n 0) (readc i))
           (if srv-noisy* (pr c))
           (-- n)
-          (push c line)) 
+          (push c line))
         (if srv-noisy* (pr "\n\n"))
         (respond o op (+ (parseargs (string (rev line))) args) cooks ip))))
 
-(= header* "HTTP/1.0 200 OK
+(= header* "HTTP/1.1 200 OK
 Content-Type: text/html; charset=utf-8
 Connection: close")
 
-(= srv-header* (table))
+(= type-header* (table))
 
-(def gen-srv-header (ctype)
+(def gen-type-header (ctype)
   (+ "HTTP/1.0 200 OK
 Content-Type: "
      ctype
      "
 Connection: close"))
 
-(map (fn ((k v)) (= (srv-header* k) (gen-srv-header v)))
+(map (fn ((k v)) (= (type-header* k) (gen-type-header v)))
      '((gif       "image/gif")
        (jpg       "image/jpeg")
        (png       "image/png")
@@ -167,13 +167,13 @@ Connection: close"))
   (unless (optimes* name) (= (optimes* name) (queue)))
   (enq-limit elapsed (optimes* name) 1000))
 
-; For ops that want to add their own headers.  They must thus remember 
+; For ops that want to add their own headers.  They must thus remember
 ; to prn a blank line before anything meant to be part of the page.
 
 (mac defop-raw (name parms . body)
   (w/uniq t1
-    `(= (srvops* ',name) 
-        (fn ,parms 
+    `(= (srvops* ',name)
+        (fn ,parms
           (let ,t1 (msec)
             (do1 (do ,@body)
                  (save-optime ',name (- (msec) ,t1))))))))
@@ -185,7 +185,7 @@ Connection: close"))
 (mac defop (name parm . body)
   (w/uniq gs
     `(do (wipe (redirector* ',name))
-         (defop-raw ,name (,gs ,parm) 
+         (defop-raw ,name (,gs ,parm)
            (w/stdout ,gs (prn) ,@body)))))
 
 ; Defines op as a redirector.  Its retval is new location.
@@ -203,26 +203,30 @@ Connection: close"))
   cooks nil
   ip    nil)
 
-(= unknown-msg* "Unknown.")
+(= unknown-msg* "Unknown." max-age* (table) static-max-age* nil)
 
 (def respond (str op args cooks ip)
   (w/stdout str
-    (aif (srvops* op)
-         (let req (inst 'request 'args args 'cooks cooks 'ip ip)
-           (if (redirector* op)
-               (do (prn rdheader*)
-                   (prn "Location: " (it str req))
-                   (prn))
-               (do (prn header*)
-                   (it str req))))
-         (let filetype (static-filetype op)
-           (aif (and filetype (file-exists (string staticdir* op)))
-                (do (prn (srv-header* filetype))
-                    (prn)
-                    (w/infile i it
-                      (whilet b (readb i)
-                        (writeb b str))))
-                (respond-err str unknown-msg*))))))
+    (iflet f (srvops* op)
+           (let req (inst 'request 'args args 'cooks cooks 'ip ip)
+             (if (redirector* op)
+                 (do (prn rdheader*)
+                     (prn "Location: " (f str req))
+                     (prn))
+                 (do (prn header*)
+                     (awhen (max-age* op)
+                       (prn "Cache-Control: max-age=" it))
+                     (f str req))))
+           (let filetype (static-filetype op)
+             (aif (and filetype (file-exists (string staticdir* op)))
+                  (do (prn (type-header* filetype))
+                      (awhen static-max-age*
+                        (prn "Cache-Control: max-age=" it))
+                      (prn)
+                      (w/infile i it
+                        (whilet b (readb i)
+                          (writeb b str))))
+                  (respond-err str unknown-msg*))))))
 
 (def static-filetype (sym)
   (let fname (coerce sym 'string)
@@ -232,7 +236,8 @@ Connection: close"))
            "jpg"  'jpg
            "jpeg" 'jpg
            "png"  'png
-           "css"  'text/html
+           "js"   'javascript
+           "css"  'css
            "txt"  'text/html
            "htm"  'text/html
            "html" 'text/html
@@ -278,7 +283,7 @@ Connection: close"))
        (map [tokens _ #\=] (tokens s #\&))))
 
 (def parsecookies (s)
-  (map [tokens _ #\=] 
+  (map [tokens _ #\=]
        (cdr (tokens s [or (whitec _) (is _ #\;)]))))
 
 (def arg (req key) (alref req!args key))
@@ -327,31 +332,31 @@ Connection: close"))
 ;  (tag (a href (url-for (afnid (fn (req) (prn) (pr "my fnid is " it)))))
 ;    (pr "click here")))
 
-; To be more sophisticated, instead of killing fnids, could first 
-; replace them with fns that tell the server it's harvesting too 
-; aggressively if they start to get called.  But the right thing to 
-; do is estimate what the max no of fnids can be and set the harvest 
+; To be more sophisticated, instead of killing fnids, could first
+; replace them with fns that tell the server it's harvesting too
+; aggressively if they start to get called.  But the right thing to
+; do is estimate what the max no of fnids can be and set the harvest
 ; limit there-- beyond that the only solution is to buy more memory.
 
 (def harvest-fnids ((o n 50000))  ; was 20000
-  (when (len> fns* n) 
+  (when (len> fns* n)
     (pull (fn ((id created lasts))
-            (when (> (since created) lasts)    
+            (when (> (since created) lasts)
               (wipe (fns* id))
               t))
           timed-fnids*)
     (atlet nharvest (trunc (/ n 10))
       (let (kill keep) (split (rev fnids*) nharvest)
-        (= fnids* (rev keep)) 
-        (each id kill 
+        (= fnids* (rev keep))
+        (each id kill
           (wipe (fns* id)))))))
 
-(= fnurl* "x" rfnurl* "r" rfnurl2* "y" jfnurl* "a")
+(= fnurl* "/x" rfnurl* "/r" rfnurl2* "/y" jfnurl* "/a")
 
 (= dead-msg* "\nUnknown or expired link.")
- 
+
 (defop-raw x (str req)
-  (w/stdout str 
+  (w/stdout str
     (aif (fns* (sym (arg req "fnid")))
          (it req)
          (pr dead-msg*))))
@@ -384,7 +389,7 @@ Connection: close"))
 
 (def rflink (f)
   (string rfnurl* "?fnid=" (fnid f)))
-  
+
 ; Since it's just an expr, gensym a parm for (ignored) args.
 
 (mac w/link (expr . body)
@@ -441,7 +446,7 @@ Connection: close"))
 ;(defop test1 req
 ;  (fnform (fn (req) (prn) (pr req))
 ;          (fn () (single-input "" 'foo 20 "submit"))))
- 
+
 ;(defop test2 req
 ;  (aform (fn (req) (pr req))
 ;    (single-input "" 'foo 20 "submit")))
@@ -470,9 +475,9 @@ Connection: close"))
      (fnid-field (fnid ,f))
      ,@body))
 
-; these timed- variants are overlong
+; overlong
 
-(mac timed-arform (lasts f . body)
+(mac tarform (lasts f . body)
   (w/uniq (gl gf)
     `(withs (,gl ,lasts ,gf ,f)
        (tag (form method 'post action rfnurl*)
@@ -522,7 +527,7 @@ Connection: close"))
   (when (admin (get-user req))
     (whitepage
       (sptab
-        (each ip (let leaders nil 
+        (each ip (let leaders nil
                    (maptable (fn (ip n)
                                (when (> n 100)
                                  (insort (compare > requests/ip*)
@@ -556,7 +561,7 @@ Connection: close"))
 
 (def new-bgthread (id f sec)
   (aif (bgthreads* id) (break-thread it))
-  (= (bgthreads* id) (new-thread (fn () 
+  (= (bgthreads* id) (new-thread (fn ()
                                    (while t
                                      (sleep sec)
                                      (f))))))
@@ -565,7 +570,7 @@ Connection: close"))
 
 (mac defbg (id sec . body)
   `(do (pull [caris _ ',id] pending-bgthreads*)
-       (push (list ',id (fn () ,@body) ,sec) 
+       (push (list ',id (fn () ,@body) ,sec)
              pending-bgthreads*)))
 
 

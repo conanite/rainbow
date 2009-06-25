@@ -1,9 +1,10 @@
 package rainbow.functions;
 
-import rainbow.*;
+import rainbow.ArcError;
+import rainbow.Environment;
+import rainbow.LexicalClosure;
 import rainbow.parser.ParseException;
 import rainbow.types.*;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
 import java.util.ArrayList;
@@ -35,8 +36,8 @@ public class Typing {
           return coerce(args);
         }
       }, new Builtin("ref") {
-        public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-          args.car().refFn().invoke(thread, lc, caller, args);
+        public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+          args.car().refFn().invoke(lc, caller, args);
         }
       }
     });
@@ -143,6 +144,12 @@ public class Typing {
     coercion.put("num-int", new Coercer() {
       public ArcObject coerce(ArcObject original, ArcNumber base) {
         return ((ArcNumber) original).round();
+      }
+    });
+
+    coercion.put("int-num", new Coercer() {
+      public ArcObject coerce(ArcObject original, ArcNumber base) {
+        return original;
       }
     });
 

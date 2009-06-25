@@ -4,14 +4,13 @@ import rainbow.ArcError;
 import rainbow.Function;
 import rainbow.LexicalClosure;
 import rainbow.functions.Builtin;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
 public class ArcString extends ArcObject implements Function {
   public static final Symbol TYPE = (Symbol) Symbol.make("string");
 
   public static final Function REF = new Function() {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
       Builtin.checkMaxArgCount(args, getClass(), 2);
       ArcString string = ArcString.cast(args.car(), this);
       Rational index = Rational.cast(args.cdr().car(), this);
@@ -40,8 +39,8 @@ public class ArcString extends ArcObject implements Function {
     return true;
   }
 
-  public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-    REF.invoke(thread, lc, caller, new Pair(this, args));
+  public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+    REF.invoke(lc, caller, new Pair(this, args));
   }
 
   public String value() {

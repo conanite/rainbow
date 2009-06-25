@@ -14,9 +14,32 @@ public abstract class ContinuationSupport implements Continuation, Cloneable {
   protected boolean stopped;
 
   public ContinuationSupport(ArcThread thread, LexicalClosure lc, Continuation caller) {
+    if (thread == null) {
+      throw new Error("can't have a null thread!!");
+    }
     this.thread = thread;
     this.lc = lc;
     this.caller = caller;
+  }
+
+  public ContinuationSupport(Continuation caller) {
+    this.thread = caller.thread();
+    this.lc = caller.lc();
+    this.caller = caller;
+  }
+
+  public ContinuationSupport(LexicalClosure lc, Continuation caller) {
+    this.thread = caller.thread();
+    this.lc = lc;
+    this.caller = caller;
+  }
+
+  public final ArcThread thread() {
+    return thread;
+  }
+
+  public final LexicalClosure lc() {
+    return lc;
   }
 
   public final void receive(ArcObject returned) {

@@ -1,17 +1,15 @@
 package rainbow.vm.compiler;
 
 import rainbow.ArcError;
-import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair.NotPair;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.vm.interpreter.IfClause;
-import rainbow.vm.interpreter.Else;
-import rainbow.vm.interpreter.LastIfThen;
-import rainbow.vm.interpreter.IfThen;
 import static rainbow.vm.compiler.Compiler.compile;
 import rainbow.vm.continuations.ContinuationSupport;
+import rainbow.vm.interpreter.Else;
+import rainbow.vm.interpreter.IfClause;
+import rainbow.vm.interpreter.IfThen;
+import rainbow.vm.interpreter.LastIfThen;
 
 import java.util.Map;
 
@@ -20,8 +18,8 @@ public class IfBuilder extends ContinuationSupport {
   private ArcObject body;
   private Map[] lexicalBindings;
 
-  public IfBuilder(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject body, Map[] lexicalBindings) {
-    super(thread, lc, caller);
+  public IfBuilder(Continuation caller, ArcObject body, Map[] lexicalBindings) {
+    super(caller);
     this.lexicalBindings = lexicalBindings;
     this.body = body;
     while(body.len() > 0) {
@@ -44,7 +42,7 @@ public class IfBuilder extends ContinuationSupport {
       } catch (NotPair notPair) {
         throw new ArcError("if: unexpected: " + body);
       }
-      compile(thread, lc, this, body.car(), lexicalBindings);
+      compile(lc, this, body.car(), lexicalBindings);
     }
   }
 

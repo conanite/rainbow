@@ -2,11 +2,10 @@ package rainbow.vm.interpreter;
 
 import rainbow.ArcError;
 import rainbow.LexicalClosure;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.AssignmentContinuation;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
+import rainbow.vm.Continuation;
+import rainbow.vm.continuations.AssignmentContinuation;
 
 public class SingleAssignment {
   protected ArcObject name;
@@ -39,7 +38,7 @@ public class SingleAssignment {
     assigning.continueWith(next);
   }
 
-  public void evaluate(ArcThread thread, LexicalClosure lc, AssignmentContinuation assigning) {
-    expression.interpret(thread, lc, assigning);
+  public void evaluate(LexicalClosure lc, AssignmentContinuation assigning) {
+    expression.interpret(lc, assigning);
   }
 }

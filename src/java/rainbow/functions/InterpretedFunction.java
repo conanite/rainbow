@@ -6,7 +6,6 @@ import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.FunctionEvaluator;
 import rainbow.vm.continuations.NamespaceBuilder;
@@ -25,7 +24,7 @@ public abstract class InterpretedFunction extends ArcObject implements Function 
     this.body = body.toArray();
   }
 
-  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
+  public void interpret(LexicalClosure lc, Continuation caller) {
     caller.receive(new Threads.Closure(this, lc));
   }
 
@@ -66,8 +65,8 @@ public abstract class InterpretedFunction extends ArcObject implements Function 
       super(lexicalBindings, body);
     }
 
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-      FunctionEvaluator.evaluate(thread, lc, caller, this);
+    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+      FunctionEvaluator.evaluate(lc, caller, this);
     }
   }
 
@@ -79,8 +78,8 @@ public abstract class InterpretedFunction extends ArcObject implements Function 
       this.parameterList = parameterList;
     }
 
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-      new NamespaceBuilder(thread, new LexicalClosure(lexicalBindings.size(), lc), caller, parameterList, (Pair)args, this);
+    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+      new NamespaceBuilder(new LexicalClosure(lexicalBindings.size(), lc), caller, parameterList, args, this);
     }
 
     public ArcObject parameterList() {
@@ -96,10 +95,10 @@ public abstract class InterpretedFunction extends ArcObject implements Function 
       this.parameterList = parameterList;
     }
 
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
       lc = new LexicalClosure(lexicalBindings.size(), lc);
       NamespaceBuilder.simple(lc, parameterList, args);
-      FunctionEvaluator.evaluate(thread, lc, caller, this);
+      FunctionEvaluator.evaluate(lc, caller, this);
     }
 
     public ArcObject parameterList() {

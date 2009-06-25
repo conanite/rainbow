@@ -17,11 +17,11 @@ public class IfThen extends ArcObject implements Conditional {
   }
 
   public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller, Continuation conditional) {
-    ifExpression.interpret(thread, lc, conditional);
+    ifExpression.interpret(lc, conditional);
   }
 
   public void execute(ArcThread thread, LexicalClosure lc, Continuation caller) {
-    thenExpression.interpret(thread, lc, caller);
+    thenExpression.interpret(lc, caller);
   }
 
   public void continueFor(ConditionalContinuation cc, Continuation caller) {

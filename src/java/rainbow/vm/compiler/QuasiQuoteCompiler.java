@@ -23,18 +23,18 @@ public class QuasiQuoteCompiler extends ContinuationSupport {
   private Symbol rebuildSymbol;
   private int nesting;
 
-  private QuasiQuoteCompiler(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression, Map[] lexicalBindings) {
-    this(thread, lc, caller, expression, lexicalBindings, 1);
+  private QuasiQuoteCompiler(Continuation caller, ArcObject expression, Map[] lexicalBindings) {
+    this(caller, expression, lexicalBindings, 1);
   }
 
-  private QuasiQuoteCompiler(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression, Map[] lexicalBindings, int nesting) {
-    super(thread, lc, caller);
+  private QuasiQuoteCompiler(Continuation caller, ArcObject expression, Map[] lexicalBindings, int nesting) {
+    super(caller);
     this.expression = expression;
     this.lexicalBindings = lexicalBindings;
     this.nesting = nesting;
   }
 
-  public static void compile(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression, Map[] lexicalBindings) {
+  public static void compile(LexicalClosure lc, Continuation caller, ArcObject expression, Map[] lexicalBindings) {
     if (expression.isNotPair()) {
       caller.receive(expression);
       return;
@@ -42,18 +42,18 @@ public class QuasiQuoteCompiler extends ContinuationSupport {
 
     if (QuasiQuoteContinuation.isUnQuote(expression)) {
       Rebuilder rebuilder = new Rebuilder(caller, UNQUOTE);
-      Compiler.compile(thread, lc, rebuilder, expression.cdr().car(), lexicalBindings);
+      Compiler.compile(lc, rebuilder, expression.cdr().car(), lexicalBindings);
 
     } else if (QuasiQuoteContinuation.isUnQuoteSplicing(expression)) {
-      QuasiQuoteCompiler qqc = new QuasiQuoteCompiler(thread, lc, caller, ArcObject.NIL, lexicalBindings);
+      QuasiQuoteCompiler qqc = new QuasiQuoteCompiler(caller, ArcObject.NIL, lexicalBindings);
       qqc.rebuildSymbol = UNQUOTE_SPLICING;
-      Compiler.compile(qqc.thread, qqc.lc, qqc, expression.cdr().car(), qqc.lexicalBindings);
+      Compiler.compile(qqc.lc, qqc, expression.cdr().car(), qqc.lexicalBindings);
 
     } else if (QuasiQuoteContinuation.isQuasiQuote(expression)) {
-      new QuasiQuoteCompiler(thread, lc, caller, expression, lexicalBindings, 2).start();
+      new QuasiQuoteCompiler(caller, expression, lexicalBindings, 2).start();
 
     } else {
-      new QuasiQuoteCompiler(thread, lc, caller, expression, lexicalBindings).start();
+      new QuasiQuoteCompiler(caller, expression, lexicalBindings).start();
     }
   }
 
@@ -73,26 +73,26 @@ public class QuasiQuoteCompiler extends ContinuationSupport {
     if (QuasiQuoteContinuation.isUnQuote(next)) {
       if (nesting == 1) {
         rebuildSymbol = UNQUOTE;
-        Compiler.compile(thread, lc, this, next.cdr().car(), lexicalBindings);
+        Compiler.compile(lc, this, next.cdr().car(), lexicalBindings);
       } else {
-        new QuasiQuoteCompiler(thread, lc, this, next, lexicalBindings, nesting - 1).start();
+        new QuasiQuoteCompiler(this, next, lexicalBindings, nesting - 1).start();
       }
 
     } else if (QuasiQuoteContinuation.isUnQuoteSplicing(next)) {
       if (nesting == 1) {
         rebuildSymbol = UNQUOTE_SPLICING;
-        Compiler.compile(thread, lc, this, next.cdr().car(), lexicalBindings);
+        Compiler.compile(lc, this, next.cdr().car(), lexicalBindings);
       } else {
         continueWith(next);
       }
 
     } else if (QuasiQuoteContinuation.isQuasiQuote(next)) {
       rebuildSymbol = null;
-      new QuasiQuoteCompiler(thread, lc, this, next, lexicalBindings, nesting + 1).start();
+      new QuasiQuoteCompiler(this, next, lexicalBindings, nesting + 1).start();
 
     } else {
       rebuildSymbol = null;
-      new QuasiQuoteCompiler(thread, lc, this, next, lexicalBindings, nesting).start();
+      new QuasiQuoteCompiler(this, next, lexicalBindings, nesting).start();
     }
   }
 

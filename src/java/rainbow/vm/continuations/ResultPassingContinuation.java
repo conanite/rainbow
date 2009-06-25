@@ -7,7 +7,7 @@ public class ResultPassingContinuation extends ContinuationSupport {
   private final ArcObject result;
 
   public ResultPassingContinuation(Continuation caller, ArcObject result) {
-    super(null, null, caller);
+    super(caller);
     this.result = result;
   }
 

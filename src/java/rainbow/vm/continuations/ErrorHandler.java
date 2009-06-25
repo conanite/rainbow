@@ -6,14 +6,13 @@ import rainbow.LexicalClosure;
 import rainbow.types.ArcException;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
 public class ErrorHandler extends ContinuationSupport {
   private final Function errorHandler;
 
-  public ErrorHandler(ArcThread thread, LexicalClosure lc, Continuation caller, Function errorHandler) {
-    super(thread, lc, caller);
+  public ErrorHandler(LexicalClosure lc, Continuation caller, Function errorHandler) {
+    super(lc, caller);
     this.errorHandler = errorHandler;
   }
 
@@ -22,6 +21,6 @@ public class ErrorHandler extends ContinuationSupport {
   }
 
   public void error(ArcError error) {
-    errorHandler.invoke(thread, lc, caller, Pair.buildFrom(new ArcException(error)));
+    errorHandler.invoke(lc, caller, Pair.buildFrom(new ArcException(error)));
   }
 }

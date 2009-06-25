@@ -1,7 +1,6 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.Function;
 import rainbow.LexicalClosure;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
@@ -17,8 +16,8 @@ public class Tagged extends ArcObject {
     this.rep = rep;
   }
 
-  public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-    ((Hash) TYPE_DISPATCHER_TABLE.value()).value(type).invoke(thread, lc, caller, new Pair(rep, args));
+  public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+    ((Hash) TYPE_DISPATCHER_TABLE.value()).value(type).invoke(lc, caller, new Pair(rep, args));
   }
 
   public ArcObject getType() {
@@ -74,8 +73,7 @@ public class Tagged extends ArcObject {
 
     ArcThread thread = new ArcThread();
     TopLevelContinuation topLevel = new TopLevelContinuation(thread);
-    Function f = (Function) fn;
-    f.invoke(thread, null, topLevel, Pair.buildFrom(rep));
+    fn.invoke(null, topLevel, Pair.buildFrom(rep));
     thread.run();
     return (String) JavaObject.unwrap(thread.finalValue(), String.class);
   }

@@ -1,18 +1,18 @@
 package rainbow.vm.continuations;
 
+import rainbow.ArcError;
+import rainbow.LexicalClosure;
+import rainbow.types.ArcObject;
 import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
-import rainbow.types.ArcObject;
-import rainbow.LexicalClosure;
-import rainbow.ArcError;
 
 public class Atomic extends ContinuationSupport {
   private static final Object lock = new Object();
   private static ArcThread owner;
   private static int entryCount;
 
-  public Atomic(ArcThread thread, LexicalClosure lc, Continuation caller) {
-    super(thread, lc, caller);
+  public Atomic(LexicalClosure lc, Continuation caller) {
+    super(lc, caller);
     synchronized (lock) {
       while (thread != owner && owner != null) {
         try {

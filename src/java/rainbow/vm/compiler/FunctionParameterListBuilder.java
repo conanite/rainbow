@@ -1,10 +1,8 @@
 package rainbow.vm.compiler;
 
-import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
 import rainbow.vm.continuations.ContinuationSupport;
 import rainbow.vm.continuations.NamespaceBuilder;
 
@@ -20,8 +18,8 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
   private ArcObject optionalParamName;
   ArcObject complexParams = ArcObject.NIL;
 
-  public FunctionParameterListBuilder(ArcThread thread, LexicalClosure lc, FunctionBodyBuilder caller, ArcObject parameters, Map[] lexicalBindings) {
-    super(thread, lc, caller);
+  public FunctionParameterListBuilder(FunctionBodyBuilder caller, ArcObject parameters, Map[] lexicalBindings) {
+    super(caller);
     this.parameters = parameters;
     this.lexicalBindings = lexicalBindings;
     index(parameters, lexicalBindings[0], new int[]{0}, false);
@@ -46,7 +44,7 @@ public class FunctionParameterListBuilder extends ContinuationSupport {
       Pair maybeOptional = (Pair) first;
       if (NamespaceBuilder.optional(maybeOptional)) {
         optionalParamName = maybeOptional.cdr().car();
-        rainbow.vm.compiler.Compiler.compile(thread, lc, this, maybeOptional.cdr().cdr().car(), lexicalBindings);
+        rainbow.vm.compiler.Compiler.compile(lc, this, maybeOptional.cdr().cdr().car(), lexicalBindings);
       } else {
         continueWith(first);
       }

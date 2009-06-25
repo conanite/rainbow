@@ -15,8 +15,8 @@ public class NamespaceBuilder extends ContinuationSupport {
   private Pair args;
   private InterpretedFunction f;
 
-  public NamespaceBuilder(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject parameters, Pair arguments, InterpretedFunction f) {
-    super(thread, lc, caller);
+  public NamespaceBuilder(LexicalClosure lc, Continuation caller, ArcObject parameters, Pair arguments, InterpretedFunction f) {
+    super(lc, caller);
     this.parameters = parameters;
     this.args = arguments;
     this.f = f;
@@ -42,7 +42,7 @@ public class NamespaceBuilder extends ContinuationSupport {
       if (!args.isNil()) {
         lc.add(nextArg);
       } else {
-        optional.cdr().car().interpret(thread, lc, this);
+        optional.cdr().car().interpret(lc, this);
         return;
       }
     } else {
@@ -52,7 +52,7 @@ public class NamespaceBuilder extends ContinuationSupport {
       } catch (Pair.NotPair e) {
         throw new ArcError("Expected list argument for destructuring parameter " + nextParameter + ", got " + nextArg);
       }
-      new NamespaceBuilder(thread, lc, this, Pair.cast(nextParameter, this), Pair.cast(nextArg, this), null);
+      new NamespaceBuilder(lc, this, Pair.cast(nextParameter, this), Pair.cast(nextArg, this), null);
       return;
     }
 
@@ -67,7 +67,7 @@ public class NamespaceBuilder extends ContinuationSupport {
       if (!lc.finished()) {
         throw new ArcError("Expected " + lc.size() + " arguments, got " + lc.count() + " for function " + f);
       }
-      FunctionEvaluator.evaluate(thread, lc, caller, f);
+      FunctionEvaluator.evaluate(lc, caller, f);
     }
   }
 

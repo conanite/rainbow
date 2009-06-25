@@ -1,24 +1,33 @@
 (require-lib "rainbow/img")
 
-(attribute script src opstring)
+(attribute script src  opstring)
+(attribute script type opstring)
+(attribute div    id   opstring)
+(attribute input  id   opstring)
+(attribute form   id   opstring)
+(attribute link   rel  opstring)
+(attribute link   href opstring)
+(attribute link   type opstring)
+(attribute img    id   opstring)
+(attribute img    alt  opstring)
 
 (mac spiral-params (req . body)
-  `(with (x      (num-param ,req "x"    0)
-          y      (num-param ,req "y"    0)
-          x0     (num-param ,req "x0"   0)
-          y0     (num-param ,req "y0"   0)
-          w      (num-param ,req "w"    512)
-          h      (num-param ,req "h"    384)
-          ox     (num-param ,req "ox"   0)
-          oy     (num-param ,req "oy"   0)
-          nc     (num-param ,req "nc"   0.01)
-          zoom   (num-param ,req "zoom" 2)
+  `(with (x      (num-param ,req "x"      0)
+          y      (num-param ,req "y"      0)
+          x0     (num-param ,req "x0"     0)
+          y0     (num-param ,req "y0"     0)
+          w      (num-param ,req "w"      512)
+          h      (num-param ,req "h"      384)
+          ox     (num-param ,req "ox"     0)
+          oy     (num-param ,req "oy"     0)
+          nc     (num-param ,req "nc"     0.01)
+          zoom   (num-param ,req "zoom"   2)
           frames (num-param ,req "frames" 10))
      ,@body))
 
 (mac spiral-head ()
   `(tag head
-     (tag (script src "/spiral.js"))
+     (tag (script src "/spiral.js" type "text/javascript"))
      (tag (link rel "stylesheet" type "text/css" href "/spiral.css"))))
 
 (mac spiralpage (left body right)
@@ -37,7 +46,7 @@
 (mac text-input (name . attrs)
   (withs (input-name (coerce name 'string)
           id (+ input-name "_field"))
-    `(empty-elem-tag input type "text" id ,id name ,input-name value ,name ,@attrs)))
+    `(tag (input type "text" id ,id name ,input-name value ,name ,@attrs))))
 
 (def spiral-form (x y x0 y0 zoom ox oy nc frames)
   (tag (form method "get" action "spiral" id "spiral_form")
@@ -78,9 +87,9 @@
                    (tag td (pr "frames"))
                    (tag td (text-input frames))
                    (tag (td colspan 2) (pr "for animation"))))
-         (empty-elem-tag input type "submit" value "plot this")
+         (tag (input type "submit" value "plot this"))
          (nbsp)
-         (empty-elem-tag input type "submit" value "animate (x+iy) -> (x'+iy')" id "animate")))
+         (tag (input type "submit" value "animate (x+iy) -> (x'+iy')" id "animate"))))
 
 (def spiral-help ()
   (pr "<p>plot values of iterating <code>z &lt;- z<sup>2</sup> + c</code> where c is <code>x+iy</code></p>"))
@@ -112,19 +121,17 @@
 
 (def img-generator (x y w h ox oy zoom)
   (fn (os req)
-    (w/stdout os
-      (prn (header "image/png" 200))
-      (prn "\r"))
+    (prn (srv-header* 'png))
+    (prn "\r")
     (let p (plot x y w h ox oy zoom)
-      ((p 'write) os)
-    )))
+      ((p 'write) os))))
 
 (def spiral-img (id x y w h ox oy zoom)
-  (empty-elem-tag img
+  (tag (img
     id     id
     alt    (string (make-complex x y))
     src    (string "/i?fnid=" (fnid:img-generator x y w h ox oy zoom))
-    border "0"))
+    border "0")))
 
 (def spiral-neighbour (req x-offset y-offset)
   (spiral-params req
@@ -146,7 +153,7 @@
               (tag td (spiral-neighbour req x y)))))))
 
 (def num-param (req name default)
-  (coerce (or (arg req name) default) 'int))
+  (coerce (or (arg req name) default) 'num))
 
 (def join-str (token args)
      (apply + (interleave token args)))
@@ -187,10 +194,10 @@
   (spiral-params req
     (spiralpage (do (spiral-form x y x0 y0 zoom ox oy nc frames)
                     (spiral-help)
-                    (empty-elem-tag img
+                    (tag (img
                       id     "main_img"
-                      src    (string "/i?fnid=" (fnid:img-generator x y w h ox oy zoom)))
-                    (tag script (pr "$s.install();$s.recentering();"))
+                      src    (string "/i?fnid=" (fnid:img-generator x y w h ox oy zoom))))
+                    (tag (script type "text/javascript") (pr "$s.install();$s.recentering();"))
                     (tag (div id "img_hover") (nbsp)))
                 (neighbours req)
                 nil)))
@@ -211,12 +218,18 @@
     (spiralpage (do (spiral-form x y x0 y0 zoom ox oy nc frames)
                     (animation-info))
                 (animation x y x0 y0 zoom ox oy nc frames)
-                (tag script (pr "$s.install();$s.animate();")))))
+                (tag (script type "text/javascript") (pr "$s.install();$s.animate();")))))
 
 (def start-spiral-app ()
+  (assign req-limit* 300)
   (assign threadlimit* 500 threadlife* 60)
   (assign asv-thread (thread (asv))))
 
+(map (fn ((k v)) (= (srv-header* k) (gen-srv-header v)))
+     '((javascript "text/javascript")
+       (css        "text/css")))
+
+; http://localhost:8080/animate?x=-0.39&y=-0.47&x0=-0.55&y0=-0.63&ox=-0.94625&oy=-0.77609375&nc=0.0008&zoom=1.2&frames=600
 ; http://localhost:8080/spiral?x=-0.465&y=-0.543&ox=-1.04&oy=-0.74&nc=0.0008&zoom=1.2
 ; http://localhost:8080/spiral?x=-0.154&y=-0.644&ox=-0.733984375&oy=-0.759375&zoom=1&nc=0.006
 ; http://localhost:8080/spiral?x=-0.667957&y=-0.32&x0=-0.667978&y0=-0.32&ox=-0.90390625&oy=-0.5171875&nc=0.005&zoom=1&frames=10

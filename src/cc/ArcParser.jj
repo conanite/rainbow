@@ -190,7 +190,6 @@ ArcObject list():             {
     )*
   ")"                         {
                                 if (list.size() > 0) {
-/*                                  return Pair.buildFrom(list, last); */
                                   return Pair.parse(list);
                                 } else if (last != ArcObject.NIL) {
                                   generateParseException();

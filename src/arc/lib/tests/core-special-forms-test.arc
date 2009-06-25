@@ -45,7 +45,7 @@
           `qqqfoo
           qqqfoo )
 
-        ("quais-quote quasi-quote"
+        ("quasi-quote quasi-quote"
           ``double-qq
           `double-qq )
 
@@ -130,7 +130,7 @@
         ( (fn args (apply + args)) 17 13 14 16)
         60)
 
-      ("a simple function with a body parameter"
+      ("a simple function with a rest parameter"
         ( (fn (a b . c) (* (- a b) (apply + c))) 20 15 19 20 21)
         300)
 
@@ -146,7 +146,7 @@
         99)
 
       ("nested variables are lexically scoped - really"
-        ( (fn ()
+        ((fn ()
           ((fn (a)
             ((fn (b)
               ((fn (c)
@@ -177,19 +177,17 @@
         65)
 
       ("optional args evaluated at invocation time, but in lexical scope of fn definition"
-        ((fn ()
-          (assign fopt (fn (x (o y z)) (cons x y)))
-          (assign z 'goo)
-          ( (fn (z) (fopt 2)) 'zoo)
-        ))
+        ((fn (z)
+          (assign test-opt-arg (fn (x (o y z)) (cons x y)))
+          ( (fn (z) (test-opt-arg 2)) 'zoo)
+        ) 'goo)
         (2 . goo))
 
       ("optional arg may be invocation"
-        ((fn ()
-          (assign fopt (fn (x (o y (+ z z))) (cons x y)))
-          (assign z 25)
-          ( (fn (z) (fopt 2)) 101)
-        ))
+        ((fn (z)
+          (assign test-opt-arg (fn (x (o y (+ z z))) (cons x y)))
+          ( (fn (z) (test-opt-arg 2)) 101)
+        ) 25)
         (2 . 50))
 
       ("o is not always an optional arg"

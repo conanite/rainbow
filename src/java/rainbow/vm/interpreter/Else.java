@@ -16,7 +16,7 @@ public class Else extends ArcObject implements Conditional {
   }
 
   public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller, Continuation conditional) {
-    ifExpression.interpret(thread, lc, caller);
+    ifExpression.interpret(lc, caller);
   }
 
   public void execute(ArcThread thread, LexicalClosure lc, Continuation caller) {

@@ -14,13 +14,13 @@
 (def index-defs (files itable)
   (each f files
     (prn "indexing definitions from " f)
-    (index-from-file f 
-                     (find-defs f) 
+    (index-from-file f
+                     (find-defs f)
                      itable)))
 
 (def index-from-file (file toks itable)
   (each tok toks
-    (zap [cons (list file (tok 3)) _] 
+    (zap [cons (list file (tok 3)) _]
          (itable (cadr tok)))))
 
 (def delete-from-index (itable remfn)
@@ -33,15 +33,15 @@
 
 (let (fd1 fd2 fd3) nil
   (defs
-    fd1 (tok tkz acc) (if tok 
+    fd1 (tok tkz acc) (if tok
                           (fdcall (if (token? tok 'syntax 'left-paren) fd2 fd1)))
-    fd2 (tok tkz acc) (if tok 
+    fd2 (tok tkz acc) (if tok
                           (fdcall
                             (if (find cadr.tok definers)  fd3
                                 (is car.tok 'whitespace)  fd2
                                                           fd1)))
     fd3 (tok tkz acc) (if (and tok (~is car.tok 'whitespace))
-                          (do (if (is car.tok 'sym) 
+                          (do (if (is car.tok 'sym)
                                   (acc tok))
                               (fdcall fd1))
                           (fdcall fd3))

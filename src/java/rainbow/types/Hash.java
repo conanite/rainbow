@@ -3,7 +3,6 @@ package rainbow.types;
 import rainbow.Function;
 import rainbow.LexicalClosure;
 import rainbow.ArcError;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.TableMapper;
 
@@ -13,9 +12,9 @@ public class Hash extends ArcObject implements Function {
   public static final Symbol TYPE = (Symbol) Symbol.make("table");
 
   public static final Function REF = new Function() {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
       Hash hash = Hash.cast(args.car(), this);
-      caller.receive(hash.value(args.cdr().car()));
+      caller.receive(hash.value(args.cdr().car()).or(args.cdr().cdr().car()));
     }
 
     public String toString() {
@@ -26,8 +25,8 @@ public class Hash extends ArcObject implements Function {
 
   LinkedHashMap map = new LinkedHashMap();
 
-  public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-    REF.invoke(thread, lc, caller, new Pair(this, args));
+  public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+    REF.invoke(lc, caller, new Pair(this, args));
   }
 
   public String toString() {
@@ -99,8 +98,8 @@ public class Hash extends ArcObject implements Function {
     return map.size();
   }
 
-  public void map(Function f, ArcThread thread, LexicalClosure lc, Continuation caller) {
-    new TableMapper(thread, lc, caller, f, this).receive(null);
+  public void map(Function f, LexicalClosure lc, Continuation caller) {
+    new TableMapper(lc, caller, f, this).receive(null);
   }
 
   public static Hash cast(ArcObject argument, Object caller) {

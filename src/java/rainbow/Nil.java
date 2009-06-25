@@ -3,7 +3,6 @@ package rainbow;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
 import java.util.Collection;
@@ -26,7 +25,7 @@ public class Nil extends Pair {
     return true;
   }
 
-  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
+  public void interpret(LexicalClosure lc, Continuation caller) {
     caller.receive(this);
   }
 
@@ -47,6 +46,10 @@ public class Nil extends Pair {
 
   public String toString() {
     return rep;
+  }
+
+  public ArcObject xcar() {
+    return this;
   }
 
   public ArcObject car() {
@@ -95,5 +98,9 @@ public class Nil extends Pair {
 
   public boolean isSame(ArcObject other) {
     return other.isNil();
+  }
+
+  public ArcObject or(ArcObject other) {
+    return other;
   }
 }

@@ -4,13 +4,12 @@ import rainbow.ArcError;
 import rainbow.Environment;
 import rainbow.LexicalClosure;
 import rainbow.types.*;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 
 public class SystemFunctions {
@@ -46,13 +45,13 @@ public class SystemFunctions {
         return Rational.make(1);
       }
     }, new Builtin("pipe-from") {
-      public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+      public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
         pipeFrom(ArcString.cast(args.car(), this), caller);
       }
     }, new Builtin("system") {
-      public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+      public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
         try {
-          copyStream(createProcess(ArcString.cast(args.car(), this)), thread.stdOut());
+          copyStream(createProcess(ArcString.cast(args.car(), this)), caller.thread().stdOut());
           caller.receive(NIL);
         } catch (IOException e) {
           throw new ArcError("system: failed to run " + args.car());

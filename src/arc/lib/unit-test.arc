@@ -1,3 +1,6 @@
+; This software is copyright (c) Conan Dalton 2008. Permission to use
+; it is granted under the Perl Foundations's Artistic License 2.0.
+
 ;; to run a test,
 ;;
 ;; arc>(run-tests '("addition" (+ 2 3) 5))

@@ -13,12 +13,12 @@ public class Threads {
   public static void collect(Environment top) {
     top.add(new Builtin[]{
       new Builtin("new-thread") {
-        public void invoke(ArcThread thread, final LexicalClosure lc, Continuation caller, final Pair args) {
+        public void invoke(final LexicalClosure lc, Continuation caller, final Pair args) {
           final ArcThread newThread = new ArcThread();
           new Thread() {
             public void run() {
               Function fn = Builtin.cast(args.car(), this);
-              fn.invoke(newThread, lc, new TopLevelContinuation(newThread), NIL);
+              fn.invoke(lc, new TopLevelContinuation(newThread), NIL);
               newThread.run();
             }
           }.start();
@@ -40,20 +40,19 @@ public class Threads {
           return NIL;
         }
       }, new Builtin("dead") {
-        public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+        public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
           ArcThread target = ArcThread.cast(args.car(), this);
           caller.receive(Truth.valueOf(target.isDead()));
         }
       }, new Builtin("atomic-invoke") {
-        public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-          Builtin.cast(args.car(), this).invoke(thread, lc, new Atomic(thread, lc, caller), NIL);
+        public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+          Builtin.cast(args.car(), this).invoke(lc, new Atomic(lc, caller), NIL);
         }
       }, new Builtin("ccc") {
-        public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+        public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
           checkMaxArgCount(args, getClass(), 1);
           ContinuationWrapper e = new ContinuationWrapper(caller);
-          Function toCall = (Function) args.car();
-          toCall.invoke(thread, lc, caller, Pair.buildFrom(e));
+          args.car().invoke(lc, caller, Pair.buildFrom(e));
         }
       }
     });
@@ -66,9 +65,9 @@ public class Threads {
       this.continuation = continuation.cloneFor(null);
     }
 
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation deadContinuation, Pair args) {
+    public void invoke(LexicalClosure lc, Continuation deadContinuation, Pair args) {
       deadContinuation.stop();
-      continuation.cloneFor(thread).receive(args.car());
+      continuation.cloneFor(deadContinuation.thread()).receive(args.car());
     }
   }
 
@@ -81,8 +80,8 @@ public class Threads {
       this.lc = lc;
     }
 
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-      expression.invoke(thread, this.lc, caller, args);
+    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+      expression.invoke(this.lc, caller, args);
     }
 
     public ArcObject type() {

@@ -17,12 +17,12 @@ public class QuasiQuoteContinuation extends ContinuationSupport {
   private ArcObject current;
   private int nesting;
 
-  public QuasiQuoteContinuation(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression) {
-    this(thread, lc, caller, expression, 1);
+  public QuasiQuoteContinuation(LexicalClosure lc, Continuation caller, ArcObject expression) {
+    this(lc, caller, expression, 1);
   }
 
-  private QuasiQuoteContinuation(ArcThread thread, LexicalClosure lc, Continuation caller, ArcObject expression, int nesting) {
-    super(thread, lc, caller);
+  private QuasiQuoteContinuation(LexicalClosure lc, Continuation caller, ArcObject expression, int nesting) {
+    super(lc, caller);
     this.expression = expression;
     this.nesting = nesting;
     start();
@@ -33,7 +33,7 @@ public class QuasiQuoteContinuation extends ContinuationSupport {
       caller.receive(expression);
     } else if (isUnQuote(expression)) {
       current = expression;
-      expression.cdr().car().interpret(thread, lc, caller);
+      expression.cdr().car().interpret(lc, caller);
     } else if (!isPair(expression)) {
       caller.receive(expression);
     } else {
@@ -49,23 +49,23 @@ public class QuasiQuoteContinuation extends ContinuationSupport {
       expression = expression.cdr();
       if (isUnQuote(current)) {
         if (nesting == 1) {
-          current.cdr().car().interpret(thread, lc, this);
+          current.cdr().car().interpret(lc, this);
         } else {
           Rebuilder rb = new Rebuilder(this, QuasiQuoteCompiler.UNQUOTE);
-          new QuasiQuoteContinuation(thread, lc, rb, current.cdr().car(), nesting - 1);
+          new QuasiQuoteContinuation(lc, rb, current.cdr().car(), nesting - 1);
         }
       } else if (isUnQuoteSplicing(current)) {
         if (nesting == 1) {
-          current.cdr().car().interpret(thread, lc, new UnquoteSplicer(this, result));
+          current.cdr().car().interpret(lc, new UnquoteSplicer(this, result));
         } else {
           append(current);
           repeat();
         }
       } else if (isQuasiQuote(current)) {
         Rebuilder rb = new Rebuilder(this, QuasiQuoteCompiler.QUASIQUOTE);
-        new QuasiQuoteContinuation(thread, lc, rb, current.cdr().car(), nesting + 1);
+        new QuasiQuoteContinuation(lc, rb, current.cdr().car(), nesting + 1);
       } else if (isPair(current)) {
-        new QuasiQuoteContinuation(thread, lc, this, current, nesting);
+        new QuasiQuoteContinuation(lc, this, current, nesting);
       } else {
         append(current);
         repeat();

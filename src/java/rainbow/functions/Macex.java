@@ -6,12 +6,11 @@ import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.types.Tagged;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.compiler.MacExpander;
 
 public class Macex extends Builtin {
-  public void invoke(final ArcThread thread, LexicalClosure lc, final Continuation caller, final Pair args) {
+  public void invoke(LexicalClosure lc, final Continuation caller, final Pair args) {
     if (args.isNil()) {
       caller.receive(args);
       return;
@@ -32,11 +31,11 @@ public class Macex extends Builtin {
       return;
     }
     ArcObject macro = macroName.value();
-    Function fn = (Function) Tagged.ifTagged(macro, "mac");
+    Function fn = Tagged.ifTagged(macro, "mac");
     if (fn == null) {
       caller.receive(expression);
     } else {
-      fn.invoke(thread, lc, new MacExpander(thread, lc, caller, !args.cdr().car().isNil()), (Pair) expression.cdr());
+      fn.invoke(lc, new MacExpander(caller, !args.cdr().car().isNil()), (Pair) expression.cdr());
     }
   }
 }

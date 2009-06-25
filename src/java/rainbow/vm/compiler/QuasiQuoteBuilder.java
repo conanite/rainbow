@@ -7,7 +7,7 @@ import rainbow.vm.interpreter.QuasiQuotation;
 
 public class QuasiQuoteBuilder extends ContinuationSupport {
   public QuasiQuoteBuilder(Continuation caller) {
-    super(null, null, caller);
+    super(caller);
   }
 
   protected void onReceive(ArcObject returned) {

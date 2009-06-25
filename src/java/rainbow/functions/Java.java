@@ -4,7 +4,6 @@ import rainbow.ArcError;
 import rainbow.Environment;
 import rainbow.LexicalClosure;
 import rainbow.types.*;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
 import java.util.ArrayList;
@@ -53,7 +52,7 @@ public abstract class Java {
             return args.car();
           }
         }, new Builtin("java-implement") {
-          public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+          public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
             ArcObject interfaces = args.car();
             if (interfaces instanceof ArcString) {
               interfaces = Pair.buildFrom(interfaces);

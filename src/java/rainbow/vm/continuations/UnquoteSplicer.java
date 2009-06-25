@@ -11,7 +11,7 @@ public class UnquoteSplicer extends ContinuationSupport {
   private List<ArcObject> result;
 
   public UnquoteSplicer(Continuation caller, List<ArcObject> result) {
-    super(null, null, caller);
+    super(caller);
     this.result = result;
   }
 

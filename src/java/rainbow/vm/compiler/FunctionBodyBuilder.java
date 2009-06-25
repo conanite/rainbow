@@ -1,6 +1,5 @@
 package rainbow.vm.compiler;
 
-import rainbow.LexicalClosure;
 import rainbow.functions.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
@@ -23,8 +22,8 @@ public class FunctionBodyBuilder extends ContinuationSupport {
   private Map myParams;
   private ArcObject complexParams;
 
-  public FunctionBodyBuilder(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args, Map[] lexicalBindings) {
-    super(thread, lc, caller);
+  public FunctionBodyBuilder(Continuation caller, Pair args, Map[] lexicalBindings) {
+    super(caller);
     if (lexicalBindings == null) {
       throw new IllegalArgumentException("can't have null lexical bindings!");
     }
@@ -39,7 +38,7 @@ public class FunctionBodyBuilder extends ContinuationSupport {
       onReceive(parameters);
     } else {
       this.lexicalBindings = concat(myParams, lexicalBindings);
-      new FunctionParameterListBuilder(thread, lc, this, parameters, lexicalBindings).start();
+      new FunctionParameterListBuilder(this, parameters, lexicalBindings).start();
     }
   }
 
@@ -50,7 +49,7 @@ public class FunctionBodyBuilder extends ContinuationSupport {
       expectingBody = true;
       this.complexParams = returned.car();
       this.parameterList = returned.cdr();
-      new PairExpander(thread, lc, this, body, lexicalBindings).start();
+      new PairExpander(this, body, lexicalBindings).start();
     }
   }
 

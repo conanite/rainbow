@@ -13,8 +13,8 @@ public class TableMapper extends ContinuationSupport {
   private Hash hash;
   private Pair pairs;
 
-  public TableMapper(ArcThread thread, LexicalClosure lc, Continuation caller, Function f, Hash hash) {
-    super(thread, lc, caller);
+  public TableMapper(LexicalClosure lc, Continuation caller, Function f, Hash hash) {
+    super(lc, caller);
     this.f = f;
     this.hash = hash;
     this.pairs = hash.toList();
@@ -26,7 +26,7 @@ public class TableMapper extends ContinuationSupport {
     } else {
       Pair args = Pair.buildFrom(pairs.car().car(), pairs.car().cdr());
       pairs = (Pair) pairs.cdr();
-      f.invoke(thread, lc, this, args);
+      f.invoke(lc, this, args);
     }
   }
 

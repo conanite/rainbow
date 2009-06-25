@@ -5,7 +5,6 @@ import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.InvocationContinuation;
 import rainbow.vm.interpreter.invocation.*;
@@ -13,8 +12,8 @@ import rainbow.vm.interpreter.invocation.*;
 public class Invocation extends ArcObject {
   private InvocationComponent invocationComponent;
 
-  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
-    thread.continueWith(new InvocationContinuation(thread, lc, caller, invocationComponent));
+  public void interpret(LexicalClosure lc, Continuation caller) {
+    caller.thread().continueWith(new InvocationContinuation(lc, caller, invocationComponent));
   }
 
   public void buildFrom(Pair args) {

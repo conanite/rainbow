@@ -1,3 +1,6 @@
+; This software is copyright (c) Conan Dalton 2008. Permission to use
+; it is granted under the Perl Foundations's Artistic License 2.0.
+
 (assign syntax-chars (obj
   #\( 'left-paren
   #\) 'right-paren
@@ -116,101 +119,8 @@
                                    (assign state default))
                                (add-to-token ch)))
        interpolating (fn (ch)
-           (if (is ch #\()     (do (assign state default)
-                                   (enq-token 'string-fragment)
-                                   (add-to-token #\#)
-                                   (add-to-token #\()
-                                   (enq-token 'interpolation-start))
-                               (do (add-to-token #\#)
-                                   (if (is len.token 1) (-- token-start))
-                                   ((assign state in-string) ch))))
-       escaping      (fn (ch)
-           (add-to-token ch)
-           (assign state in-string))
-       in-character  (fn (ch)
-           (if (and (> (len token) 2) (char-terminator ch))
-               ((enq/switch0 default) ch)
-               (add-to-token ch)))
-       in-comment    (fn (ch)
-           (if (is ch #\newline) ((enq/switch0 default) ch)
-                                 (add-to-token ch)))
-       in-atom       (fn (ch)
-           (if (or whitespace?.ch
-                   syntax-chars.ch) ((enq/switch0 default) ch)
-                                    (add-to-token ch)))
-       in-unquote    (fn (ch)
-           (if (is ch #\@)     (enq/switch 'unquote-splicing default)
-                               ((enq/switch 'unquote default) ch))))
-
-     (assign state default)
-
-     (list
-       (fn () (tokenator))
-       (fn () lines)
-       (fn () (assign state in-string)))))
-
-(def arc-tokeniser2 (char-stream)
-  (with ((default in-string interpolating escaping in-character in-comment in-atom in-unquote) nil
-         (token state token-queue) nil
-         (nextc enq-token enq-token1 enq/switch0 enq/switch tokenator add-to-token) nil
-         lines       1
-         char-count  0
-         token-start 0)
-
-    (= nextc        (fn ()
-                        (assign char-count (+ char-count 1))
-                        (readc char-stream))
-       enq-token    (fn ((o token-kind nil))
-                        (when token
-                          (fpush (list token (- token-start 1) token-kind) token-queue)
-                          (fwipe token)))
-       enq-token1   (fn (another (o token-kind nil))
-                        (enq-token token-kind)
-                        (fpush (list another (- char-count 1) nil) token-queue))
-       enq/switch0  (fn (new-state)
-                        (enq-token)
-                        (assign state new-state))
-       enq/switch   (fn (another-tok new-state)
-                        (enq-token1 another-tok)
-                        (assign state new-state))
-       tokenator    (afn ()
-                        (if token-queue
-                            (let q rev.token-queue
-                                 (assign token-queue (rev cdr.q))
-                                 (tokenise car.q))
-                            (aif (nextc)
-                                 (do (if (is it #\newline)
-                                         (assign lines (+ 1 lines)))
-                                     state.it
-                                     (self))
-                                 token
-                                 (do (enq-token) (self)))))
-       add-to-token (fn (ch)
-                        (if (no token) (assign token-start char-count))
-                        (fpush ch token))
-
-       default       (fn (ch)
-           (if whitespace?.ch  (add-to-token ch)
-               syntax-chars.ch (enq-token1 syntax-chars.ch)
-               (is ch #\.)     (enq-token1 'dot)
-               (is ch #\")     (enq/switch 'left-string-delimiter in-string)
-               (is ch #\#)     ((enq/switch0 in-character) ch)
-               (is ch #\,)     (enq/switch0 in-unquote)
-               (is ch #\;)     ((enq/switch0 in-comment) ch)
-                               ((enq/switch0 in-atom) ch)))
-       in-string     (fn (ch)
-           (if (is ch #\\)     (do (add-to-token ch)
-                                   (assign state escaping))
-               (is ch #\#)     (assign state interpolating)
-               (is ch #\")     (do (enq-token1 'right-string-delimiter 'string-fragment)
-                                   (assign state default))
-                               (add-to-token ch)))
-       interpolating (fn (ch)
-           (if (is ch #\()     (do (assign state default)
-                                   (enq-token 'string-fragment)
-                                   (add-to-token #\#)
-                                   (add-to-token #\()
-                                   (enq-token 'interpolation-start))
+           (if (is ch #\()     (do (enq-token 'string-fragment)
+                                   (enq/switch 'interpolation default))
                                (do (add-to-token #\#)
                                    (if (is len.token 1) (-- token-start))
                                    ((assign state in-string) ch))))
@@ -294,7 +204,7 @@
       (let token (token-generator)
         (if (token? token 'syntax 'right-string-delimiter)
             (assemble-string fragments)
-            (token? token 'interpolation-start)
+            (token? token 'syntax 'interpolation)
             (do (push (read-form token-generator) fragments)
                 (let token2 (token-generator)
                   (if (token? token2 'syntax 'right-paren)

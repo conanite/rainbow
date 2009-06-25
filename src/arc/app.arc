@@ -228,7 +228,7 @@
 
 (def username-taken (user)
   (when (empty dc-usernames*)
-    (ontable k v hpasswords*
+    (each (k v) hpasswords*
       (set (dc-usernames* (downcase k)))))
   (dc-usernames* (downcase user)))
 
@@ -545,10 +545,6 @@
                                (+ it 3)
                                endurl)))
                  (writec (s i))))
-          (litmatch "<pre><code>" s i)
-           (awhen (findsubseq "</code></pre>" s (+ i 12))
-             (pr (cut s (+ i 11) it))
-             (= i (+ it 12)))
           (litmatch "<pre><code>" s i)
            (awhen (findsubseq "</code></pre>" s (+ i 12))
              (pr (cut s (+ i 11) it))

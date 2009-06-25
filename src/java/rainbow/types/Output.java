@@ -54,4 +54,8 @@ public class Output extends ArcObject {
       throw new ArcError("Wrong argument type: " + caller + " expected output-port, got " + argument);
     }
   }
+
+  public void flush() {
+    out.flush();
+  }
 }

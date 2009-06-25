@@ -4,14 +4,13 @@ import rainbow.ArcError;
 import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Output;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
 public class CallWStdoutContinuation extends ContinuationSupport {
   private Output previousOutput;
 
-  public CallWStdoutContinuation(ArcThread thread, LexicalClosure lc, Continuation caller, Output previousOutput) {
-    super(thread, lc, caller);
+  public CallWStdoutContinuation(LexicalClosure lc, Continuation caller, Output previousOutput) {
+    super(lc, caller);
     this.previousOutput = previousOutput;
   }
 

@@ -6,7 +6,6 @@ import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
 public abstract class Builtin extends ArcObject implements Function {
@@ -25,7 +24,7 @@ public abstract class Builtin extends ArcObject implements Function {
     throw new ArcError("Builtin:invoke(args):provide implementation!");
   }
 
-  public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+  public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
     caller.receive(invoke(args));
   }
 
@@ -61,12 +60,12 @@ public abstract class Builtin extends ArcObject implements Function {
   }
 
   public String name() {
-    return name;
+    return "".equals(name) ? getClass().getSimpleName().toLowerCase() : name;
   }
 
   public static Function cast(ArcObject argument, Object caller) {
     try {
-      return (Function) argument;
+      return argument;
     } catch (ClassCastException e) {
       throw new ArcError("Wrong argument type: " + caller + " expected a function, got " + argument);
     }

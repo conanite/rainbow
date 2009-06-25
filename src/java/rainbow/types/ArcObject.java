@@ -2,7 +2,6 @@ package rainbow.types;
 
 import rainbow.*;
 import rainbow.types.Pair.NotPair;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
 import java.util.Collection;
@@ -17,11 +16,11 @@ public abstract class ArcObject implements Function {
     return false;
   }
 
-  public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
-    ((Hash) TYPE_DISPATCHER_TABLE.value()).value(type()).invoke(thread, lc, caller, new Pair(this, args));
+  public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+    ((Hash) TYPE_DISPATCHER_TABLE.value()).value(type()).invoke(lc, caller, new Pair(this, args));
   }
 
-  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
+  public void interpret(LexicalClosure lc, Continuation caller) {
     caller.receive(this);
   }
 
@@ -43,6 +42,10 @@ public abstract class ArcObject implements Function {
 
   public int compareTo(ArcObject right) {
     return 0;
+  }
+
+  public ArcObject xcar() {
+    return NIL;
   }
 
   public ArcObject car() {
@@ -93,6 +96,10 @@ public abstract class ArcObject implements Function {
 
   public void mustBeNil() throws NotNil {
     throw new NotNil();
+  }
+
+  public ArcObject or(ArcObject other) {
+    return this;
   }
 
   public static class NotNil extends Throwable {

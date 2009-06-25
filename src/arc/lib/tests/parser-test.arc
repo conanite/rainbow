@@ -15,23 +15,23 @@
   ("parse a number: is num"             (type:parse "99/101")           num                 )
   ("parse numbers in a list"            (parse "(12 34.56 -17 3/4)")    (12 34.56 -17 3/4)  )
   ("parse an improper list"             (parse "(a b c . d)")           (a b c . d))
-  ("parse a list of characters"         
+  ("parse a list of characters"
     (eval (parse "(coerce '(#\\( #\\a #\\b #\\space #\\c #\\  #\\d #\\)) 'string)"))
     "(ab c d)")
   ("raise error for unrecognised chars"
     (on-err (fn (ex) (details ex)) (fn () (parse "#\\spade")))
     "unknown char: #\\spade")
   ("parse a string containing spaces"
-    (parse "\"foo bar\"")               
+    (parse "\"foo bar\"")
     "foo bar")
   ("completely ignore comments"
-    (parse "(foo bar) ; the foo bar\n; more commentary")               
+    (parse "(foo bar) ; the foo bar\n; more commentary")
     (foo bar))
   ("parse quote non-atom"
     (parse "'(foo bar)")
     '(foo bar))
   ("parse whitespace before closing paren"
-    (parse "(foo bar )")               
+    (parse "(foo bar )")
     (foo bar))
   ("parse a nasty string containing parens and escapes"
     (parse "(parse \"\\\"foo bar\\\"\")")
@@ -48,7 +48,7 @@
   ("parse escaped interpolations"
     (coerce (parse:string "\"foo \\#" "(foo)\"") 'cons)
     (#\f #\o #\o #\space #\# #\( #\f #\o #\o #\)))
-  ("parse a complex expression"    
+  ("parse a complex expression"
     (parse "(foo bar '(toto) `(do ,blah ,@blahs \"astring\") titi)")
     (foo bar '(toto) `(do ,blah ,@blahs "astring") titi))))
 
@@ -72,7 +72,7 @@
       (syntax right-paren   1 35 )) 3))
 
   ("index an unbalanced left-paren"
-    (index-source "(def foo (bar) (toto 'a \"blah\")") 
+    (index-source "(def foo (bar) (toto 'a \"blah\")")
     (((syntax unmatched-left-paren     0  1 )
       (sym    def                      1  4 )
       (sym    foo                      5  8 )
@@ -89,7 +89,7 @@
       (syntax right-paren             15 31 )) 1))
 
   ("index an unbalanced left-bracket"
-    (index-source "(map [disp _ val)") 
+    (index-source "(map [disp _ val)")
     (((syntax left-paren               0 17 )
       (sym    map                      1  4 )
       (syntax unmatched-left-bracket   5  6 )
@@ -97,9 +97,9 @@
       (sym    _                       11 12 )
       (sym    val                     13 16 )
       (syntax right-paren              0 17 )) 1))
-     
+
   ("index an unbalanced right-paren"
-    (index-source "(prn (foo (x) y))) (prn 'yo)") 
+    (index-source "(prn (foo (x) y))) (prn 'yo)")
     (((syntax left-paren               0 17 )
       (sym    prn                      1  4 )
       (syntax left-paren               5 16 )

@@ -34,9 +34,9 @@ public class Console {
     Environment environment = new Environment();
     ((Symbol) Symbol.make("*argv*")).setValue(Pair.buildFrom(programArgs));
     ((Symbol) Symbol.make("*env*")).setValue(getEnvironment());
+    ((Symbol) Symbol.make("call*")).setValue(new Hash());
 
     if (!argv.present("--no-libs")) {
-      loadFile(environment, path, "rainbow/init");
       loadFile(environment, path, "arc");
       loadFile(environment, path, "strings");
       loadFile(environment, path, "lib/bag-of-tricks");
@@ -148,7 +148,7 @@ public class Console {
   private static ArcObject compileAndEval(Environment environment, ArcObject expression) {
     ArcThread thread = new ArcThread();
     TopLevelContinuation topLevel = new TopLevelContinuation(thread);
-    EvaluatorContinuation.compileAndEval(thread, null, topLevel, expression);
+    EvaluatorContinuation.compileAndEval(null, topLevel, expression);
     thread.run();
     return thread.finalValue();
   }

@@ -3,7 +3,6 @@ package rainbow.vm.interpreter;
 import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 
 public class Quotation extends ArcObject {
@@ -17,7 +16,7 @@ public class Quotation extends ArcObject {
     return Symbol.make("quoatation");
   }
 
-  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
+  public void interpret(LexicalClosure lc, Continuation caller) {
     caller.receive(quoted);
   }
 }

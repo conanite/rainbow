@@ -8,7 +8,7 @@ public class ErrorPassingContinuation extends ContinuationSupport {
   private final ArcError originalError;
 
   public ErrorPassingContinuation(Continuation caller, ArcError originalError) {
-    super(null, null, caller);
+    super(caller);
     this.originalError = originalError;
   }
 

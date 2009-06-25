@@ -1,9 +1,9 @@
 package rainbow.functions;
 
-import rainbow.*;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
+import rainbow.LexicalClosure;
+import rainbow.Truth;
 import rainbow.types.*;
+import rainbow.vm.Continuation;
 
 public abstract class Predicates {
 
@@ -42,7 +42,7 @@ public abstract class Predicates {
   }
 
   public static class Bound extends Builtin {
-    public void invoke(ArcThread thread, LexicalClosure lc, Continuation caller, Pair args) {
+    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
       checkMaxArgCount(args, getClass(), 2);
       Symbol sym = Symbol.cast(args.car(), this);
       caller.receive(Truth.valueOf(sym.bound()));

@@ -59,7 +59,24 @@
 
       ("recognises list-quoted"
         (ssyntax 'a!b)
-        t ))
+        t )
+
+      ("andf"
+        (ssyntax 'a+b)
+        t)
+
+      ("andf"
+        (ssyntax '+a+b+)
+        t)
+
+      ("andf - ignore +"
+        (ssyntax '+)
+        nil)
+
+      ("andf - ignore ++"
+        (ssyntax '++)
+        nil)
+    )
 
     (suite "special syntax invocation (compose is implemented in Arc)"
       ("direct invocation"
@@ -75,3 +92,64 @@
         ((fn (addand)
           (addand sqrt:* 5 20 1.0)) (fn (op x y z) (+ z (op x y))))
         11.0 )))))
+
+(register-test '(suite "ssexpand"
+  ("expand compose"
+    (ssexpand 'x:y)
+    (compose x y))
+
+  ("expand complement"
+    (ssexpand '~p)
+    (complement p))
+
+  ("expand compose/complement"
+    (ssexpand 'p:~q:r)
+    (compose p (complement q) r) )
+
+  ("expand compose/complement"
+    (ssexpand '~p:q:r)
+    (compose (complement p) q r) )
+
+  ("expand list"
+    (ssexpand '*.a.b)
+    ((* a) b))
+
+  ("expand quoted list"
+    (ssexpand 'cons!a!b)
+    ((cons (quote a)) (quote b)) )
+
+  ("expand chained dots and bangs"
+    (ssexpand 'a.b!c.d)
+    (((a b) (quote c)) d))
+
+  ("ssexpand with initial dot"
+    (ssexpand '.a.b.c)
+    (((get a) b) c))
+
+  ("ssexpand with initial quote"
+    (ssexpand '!a.b.c)
+    (((get (quote a)) b) c))
+
+  ("andf"
+    (ssexpand 'a+b)
+    (andf a b))
+))
+
+(register-test '(suite "using special syntax"
+  ("everything at once, in functional position"
+    ((fn (x p) (tostring (pr:odd+~x.p 7) (pr:odd+~x.p 8) (pr:odd+~x.p 9))) (fn (n) (fn (p) (is (mod p n) 0))) 3)
+    "tnilnil")
+
+  ("everything at once, as argument"
+    ((fn (y p) (tostring:map pr:odd+~y.p '(7 8 9))) (fn (n) (fn (p) (is (mod p n) 0))) 3)
+    "tnilnil")
+
+  ("everything at once, as argument"
+    ((fn (y p) (tostring:map pr:~y.p '(7 8 9))) (fn (n) (fn (p) (is (mod p n) 0))) 3)
+    "ttnil")
+
+  ("everything at once, as argument"
+    ((fn (y p) (tostring:map odd+pr '(7 8 9))) (fn (n) (fn (p) (is (mod p n) 0))) 3)
+    "79")
+
+    ))

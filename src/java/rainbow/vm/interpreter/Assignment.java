@@ -4,7 +4,6 @@ import rainbow.ArcError;
 import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.AssignmentContinuation;
 
@@ -19,8 +18,8 @@ public class Assignment extends ArcObject {
     assignment.take(o);
   }
 
-  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
-    new AssignmentContinuation(thread, lc, caller).continueWith(assignment);
+  public void interpret(LexicalClosure lc, Continuation caller) {
+    new AssignmentContinuation(lc, caller).continueWith(assignment);
   }
 
   public void prepare(int size) {

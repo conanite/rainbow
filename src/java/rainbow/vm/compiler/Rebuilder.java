@@ -9,7 +9,7 @@ public class Rebuilder extends ContinuationSupport {
   private ArcObject car;
 
   public Rebuilder(Continuation caller, ArcObject car) {
-    super(null, null, caller);
+    super(caller);
     this.car = car;
   }
 

@@ -1,6 +1,5 @@
 package rainbow.vm.compiler;
 
-import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.vm.ArcThread;
@@ -17,8 +16,8 @@ public class PairExpander extends ContinuationSupport {
   private List result = new LinkedList();
   private boolean atLast;
 
-  public PairExpander(ArcThread thread, LexicalClosure lc, Continuation caller, Pair expressions, Map[] lexicalBindings) {
-    super(thread, lc, caller);
+  public PairExpander(Continuation caller, Pair expressions, Map[] lexicalBindings) {
+    super(caller);
     this.body = expressions;
     this.lexicalBindings = lexicalBindings;
   }
@@ -27,10 +26,10 @@ public class PairExpander extends ContinuationSupport {
     if (!body.isNil() && body instanceof Pair) {
       ArcObject next = body.car();
       body = body.cdr();
-      Compiler.compile(thread, lc, this, next, lexicalBindings);
+      Compiler.compile(lc, this, next, lexicalBindings);
     } else {
       atLast = true;
-      Compiler.compile(thread, lc, this, body, lexicalBindings);
+      Compiler.compile(lc, this, body, lexicalBindings);
     }
   }
 

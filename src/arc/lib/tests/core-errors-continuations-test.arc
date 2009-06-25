@@ -6,14 +6,14 @@
         "bailout value")
 
       ("support continuation-passing style to calculate hypoteneuse"
-        ( (fn ((cps* cps+ cps-sqrt cps-pyth))
+        ( (fn ((cps* cpsplus cps-sqrt cps-pyth))
           (assign cps* (fn (x y k) (k (* x y))))
-          (assign cps+ (fn (x y k) (k (+ x y))))
+          (assign cpsplus (fn (x y k) (k (+ x y))))
           (assign cps-sqrt (fn (x k) (k (sqrt x))))
           (assign cps-pyth (fn (x y k)
             (cps* x x (fn (x2)
               (cps* y y (fn (y2)
-                (cps+ x2 y2 (fn (x2py2)
+                (cpsplus x2 y2 (fn (x2py2)
                   (cps-sqrt x2py2 k)))))))))
           (< 6.40312423743284 (ccc (fn (cc) (cps-pyth 4 5 cc))) 6.40312423743285)) nil)
         t)

@@ -231,8 +231,8 @@
         "")
 
       ("list to string"
-        (coerce '(#\z #\o #\o #\, #\?) 'string)
-        "zoo,?" )
+        (coerce '(#\z #\o #\o #\, #\space #\n #\o #\?) 'string)
+        "zoo, no?" )
 
       ("list to string"
         (coerce '(#\a #\b #\c #\@ #\e #\x #\a #\m #\p #\l #\e #\. #\c #\o #\m) 'string)
@@ -255,6 +255,10 @@
         ("int to string"
           (coerce 66 'string)
           "66")
+
+        ("int to num"
+          (coerce 0 'num)
+          0)
 
         ("int to char"
           (coerce 67 'char)

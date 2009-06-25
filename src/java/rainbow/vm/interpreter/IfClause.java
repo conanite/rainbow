@@ -2,7 +2,6 @@ package rainbow.vm.interpreter;
 
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.ConditionalContinuation;
 import rainbow.LexicalClosure;
@@ -15,8 +14,8 @@ public class IfClause extends ArcObject {
     return TYPE;
   }
 
-  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller) {
-    new ConditionalContinuation(thread, lc, caller).continueWith(first);
+  public void interpret(LexicalClosure lc, Continuation caller) {
+    new ConditionalContinuation(lc, caller).continueWith(first);
   }
 
   public void add(Conditional c) {
