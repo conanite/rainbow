@@ -3,7 +3,10 @@ package rainbow.vm.compiler;
 import rainbow.Function;
 import rainbow.LexicalClosure;
 import rainbow.functions.Evaluation;
-import rainbow.types.*;
+import rainbow.types.ArcObject;
+import rainbow.types.Pair;
+import rainbow.types.Symbol;
+import rainbow.types.Tagged;
 import rainbow.vm.Continuation;
 import rainbow.vm.continuations.ContinuationSupport;
 import rainbow.vm.interpreter.BoundSymbol;
@@ -64,6 +67,8 @@ public class Compiler extends ContinuationSupport {
         caller.receive(decompose((Pair) fun.cdr(), (Pair) expression.cdr()));
       } else if (Symbol.is("complement", fun.xcar())) {
         caller.receive(decomplement(fun.cdr().car(), (Pair) expression.cdr()));
+      } else if (Evaluation.isSpecialSyntax(fun)) {
+        compile(lc, this, new Pair(Evaluation.ssExpand(fun), expression.cdr()), lexicalBindings);
       } else {
         new PairExpander(new MacExpander(this, false), expression, lexicalBindings).start();
       }
@@ -80,7 +85,6 @@ public class Compiler extends ContinuationSupport {
 
   public static void main(String[] args) {
     ArcObject o = ArcObject.NIL;
-    System.out.println(decomplement(Pair.buildFrom(Symbol.make("foo"), Symbol.make("it")), Pair.buildFrom(ArcString.make("bar"))));
   }
 
   private Function getMacro(Pair maybeMacCall) {

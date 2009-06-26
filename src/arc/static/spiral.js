@@ -38,9 +38,14 @@
   }
 
   function px2xy(event, f) {
+    var centre_y = $('main_img').offsetHeight / 2;
+    var centre_x = $('main_img').offsetWidth / 2;
     var scale = $('main_img').offsetWidth / zoom();
 
     offsets($('main_img'), event, function(y, x) {
+//      y = $('main_img').offsetHeight - y;
+      y = centre_y - y;
+      x = x - centre_x;
       f(sc(y, scale, oy()), sc(x, scale, ox()));
     });
   }
@@ -51,7 +56,7 @@
     };
   }
 
-  var vars = ["x", "y", "x0", "y0", "zoom", "ox", "oy"];
+  var vars = ["x", "y", "x0", "y0", "zoom", "zoom0", "ox", "oy"];
 
   for (var i = 0; i < vars.length; i++) {
     var v = vars[i];
@@ -99,9 +104,16 @@
         zoom(1.2 * zoom());
       };
 
-      button("copy").onclick = function() {
-        y0(y());
+      button("copy_x").onclick = function() {
         x0(x());
+      };
+
+      button("copy_y").onclick = function() {
+        y0(y());
+      };
+
+      button("copy_zoom").onclick = function() {
+        zoom0(zoom());
       };
 
       installAnimateButton();
@@ -115,10 +127,9 @@
       };
 
       $("main_img").onclick = function(event) {
-        var prop = $('main_img').offsetHeight / $('main_img').offsetWidth;
         px2xy(event, function(y, x) {
-          oy(y - ((zoom() * prop / 2)));
-          ox(x - (zoom() / 2));
+          ox(x);
+          oy(y);
         });
       };
     },
@@ -127,10 +138,21 @@
       var n = 0;
 
       function step() {
+        var loaded = 0;
         var img = $("anim_" + n);
         img.style.display = 'none';
 
         n++;
+
+        var ld = 0;
+        img = $("anim_" + ld);
+        while (img) {
+          if (img.complete) {
+            loaded++;
+          }
+          ld++;
+          img = $("anim_" + ld);
+        }
 
         img = $("anim_" + n);
         while (img && (!img.complete)) {
@@ -144,8 +166,10 @@
           img = $("anim_" + n);
         }
 
-        $("animinfo").innerHTML = "frame " + n + ", " + img.alt;
-        img.style.display = '';
+        $("animinfo").innerHTML = "frame " + n + ",<br/>" + img.alt + "<br/>(loaded " + loaded + " of " + ld + ")";
+        if (img.complete) {
+          img.style.display = '';
+        }
       }
 
       setInterval(step, 50);

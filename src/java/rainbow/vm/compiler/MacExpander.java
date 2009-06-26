@@ -19,7 +19,7 @@ public class MacExpander extends ContinuationSupport {
     if (onlyOnce) {
       caller.receive(expansion);
     } else {
-      macex.invoke(lc, caller, Pair.buildFrom(expansion)); // todo move macex.invoke into start() ??
+      macex.invoke(lc, caller, Pair.buildFrom(expansion));
     }
   }
 }

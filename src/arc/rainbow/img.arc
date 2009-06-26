@@ -16,7 +16,9 @@
   (ImageIO write img format output))
 
 (def plotter ((w h) (origin-x origin-y) scale bg fg)
-  (= scale (/ w scale))
+  (zap [- _ (/ scale 2)] origin-x)
+  (zap [- _ (/ scale 2)] origin-y)
+  (zap [/ w _] scale)
   (let img (new-img w h)
     (with (gc   img!getGraphics
            sc   (fn (d orig) (trunc:* scale (- d orig)))
@@ -31,7 +33,7 @@
                             (gc 'fillRect x y 1 1)
                             already))
       (make-obj
-        (plot  (x y)  (plot-point (sc x origin-x) (sc y origin-y)))
+        (plot  (x y)  (plot-point (sc x origin-x) (- h (sc y origin-y))))
         (write (out)  (write-img img out)))))))
 
 

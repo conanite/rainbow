@@ -110,6 +110,14 @@
     (ssexpand '~p:q:r)
     (compose (complement p) q r) )
 
+  ("expand compose with numbers"
+    (ssexpand 'x:1.2)
+    (compose x 1.2))              ; bizarre but true
+
+  ("expand compose with numbers"
+    (type ((ssexpand 'x:1.2) 2))
+    num)                          ; bizarre but true
+
   ("expand list"
     (ssexpand '*.a.b)
     ((* a) b))
@@ -136,6 +144,10 @@
 ))
 
 (register-test '(suite "using special syntax"
+  ("ssyntax expands numbers too"
+    ((fn (s) s.1) "foo")
+    #\o)
+
   ("everything at once, in functional position"
     ((fn (x p) (tostring (pr:odd+~x.p 7) (pr:odd+~x.p 8) (pr:odd+~x.p 9))) (fn (n) (fn (p) (is (mod p n) 0))) 3)
     "tnilnil")

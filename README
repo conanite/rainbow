@@ -3,20 +3,18 @@ To download and build rainbow:
   git clone git://github.com/conanite/rainbow.git
   cd rainbow
   ant jar
+  cd src/arc
 
 Open a REPL
 
-  cd src/arc
   java -server -jar rainbow.jar
 
 Open welder.arc in welder:
 
-  cd src/arc
   java -server -jar rainbow.jar -e '(welder "src/arc/rainbow/welder.arc")'
 
 Play tetris:
 
-  cd src/arc
   java -server -jar rainbow.jar -e '(tetris)' 
 
 Command-line options:

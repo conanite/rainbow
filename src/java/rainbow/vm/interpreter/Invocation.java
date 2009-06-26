@@ -45,4 +45,8 @@ public class Invocation extends ArcObject {
   public ArcObject type() {
     return Symbol.make("function-invocation");
   }
+
+  public String toString() {
+    return invocationComponent.toString();
+  }
 }

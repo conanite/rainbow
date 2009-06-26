@@ -5,7 +5,7 @@
 (assign unmatched (obj
   unmatched-left-paren              "("
   unmatched-left-bracket            "["
-  unmatched-interpolation-start     "\#("
+  unmatched-interpolation           "\#("
   unmatched-left-string-delimiter   "\""
   unmatched-right-string-delimiter  "\""
   unmatched-right-paren             ")"
@@ -13,6 +13,7 @@
 
 (assign syntax-char-names  (obj
   left-paren        "("
+  interpolation     "\#("
   left-bracket      "["
   right-paren       ")"
   right-bracket     "]"
@@ -218,6 +219,44 @@
       (let w (welder (car defn))
         (w!caret 'setDot cadr.defn)))))
 
+(defweld newline-indent "Insert newline and indent"
+  "Insert a newline character and indent the new line like the previous line"
+  (awhen (previous-indent editor (dot))
+    (later (editor!doc 'insertString (dot) it colour-scheme!default))))
+
+(def find-newline (editor position forwards fun)
+  (withs (text (all-text editor)
+          text-len (text-length editor!doc)
+          step [(if forwards + -) _ 1]
+          found [is (text _) #\newline]
+          nl nil)
+    (loop (= nl position)
+          (and (> nl 0)
+               (< nl text-len)
+               (~found nl))
+          (zap step nl))
+    (found+fun nl)))
+
+(def previous-line (editor position fun)
+  (let text (all-text editor)
+    (if (is (text position) #\newline)
+        (-- position))
+    (find-newline editor position nil (fn (begin)
+      (find-newline editor position t (fn (end)
+        (fun (cut text begin end) begin end)))))))
+
+(def previous-indent (editor position)
+  (previous-line editor (dot) (fn (text begin end)
+    (let line (coerce text 'cons)
+      (string:cdr:accum ws (whilet ch (whitespace? pop.line) ws.ch))))))
+
+(def duplicate-line (editor)
+  (previous-line editor (dot) (fn (text begin end)
+    (later (editor!doc 'insertString
+                       begin
+                       text
+                       colour-scheme!default)))))
+
 (def ensure-source-index ()
   (when (or (~bound 'all-defs) (no all-defs))
     (assign all-defs (table))
@@ -281,6 +320,7 @@
         'ctrl-e      'eval
         'meta-o      'open
         'meta-n      'new
+        'enter       'newline-indent
         'meta-f      'show-search
         'meta-d             'duplicate
         'meta-z             'undo
@@ -410,7 +450,7 @@
             (find-right-matching 'right-string-delimiter text position index)
           (aif (and (> position 0) (text (- position 1)))
             (if (is it #\))
-                (find-left-matching [in _ 'left-paren "\#("] text position index)
+                (find-left-matching [in _ 'left-paren 'interpolation] text position index)
                 (is it #\")
                 (find-left-matching [is _ 'left-string-delimiter] text position index)
                 (is it #\])
@@ -431,24 +471,6 @@
     (later (editor!doc 'insertString
                        ins
                        text
-                       colour-scheme!default))))
-
-(def duplicate-line (editor)
-  (withs (text (all-text editor)
-          text-len (text-length editor!doc)
-          cond [no:is (text _) #\newline]
-          (begin end) nil)
-    (loop (= begin (dot))
-          (and (> begin 0)
-               (cond begin))
-          (-- begin))
-    (loop (= end (dot))
-          (and (< end text-len)
-               (cond end))
-          (++ end))
-    (later (editor!doc 'insertString
-                       begin
-                       (editor!doc 'getText begin (- end begin))
                        colour-scheme!default))))
 
 (def find-right-matching (match text position index)
@@ -473,7 +495,7 @@
 
 (def token-attribute (tok)
   (let tok-type (type tok)
-    (if (and tok (is tok-type 'sym) (no:ssyntax tok) (bound tok))
+    (if (and tok (is tok-type 'sym) (~ssyntax tok) (bound tok))
         (bound-symbol-token-attribute tok)
         tok-type)))
 
@@ -694,5 +716,3 @@
 
 (def welder-w/text (txt)
   (welder nil txt))
-
-

@@ -16,7 +16,7 @@
   "#\\return"  #\return))
 
 (def whitespace? (ch)
-  (in ch #\space #\newline #\tab #\return))
+  (if (in ch #\space #\newline #\tab #\return) ch))
 
 (def make-character (token)
   (if (is (len token) 3)
@@ -119,8 +119,8 @@
                                    (assign state default))
                                (add-to-token ch)))
        interpolating (fn (ch)
-           (if (is ch #\()     (do (enq-token 'string-fragment)
-                                   (enq/switch 'interpolation default))
+           (if (is ch #\()     (do (enq-token1 'interpolation 'string-fragment)
+                                   (assign state default))
                                (do (add-to-token #\#)
                                    (if (is len.token 1) (-- token-start))
                                    ((assign state in-string) ch))))
@@ -245,6 +245,7 @@
 
 (assign syntax-pairs (obj
   left-paren            'right-paren
+  interpolation         'right-paren
   left-bracket          'right-bracket
   left-string-delimiter 'right-string-delimiter))
 
@@ -274,14 +275,14 @@
         (if (is kind 'syntax)
             (if (is tok 'left-paren)             (fpush token parens)
                 (is tok 'left-bracket)           (fpush token brackets)
+                (is tok 'interpolation)          (fpush token parens)
                 (is tok 'left-string-delimiter)  (fpush token quotes)
                 (is tok 'right-bracket)          (link-parens token (fpop brackets))
                 (is tok 'right-string-delimiter) (link-parens token (fpop quotes))
                 (is tok 'right-paren)            (let left-tok (fpop parens)
-                                                    (if (is car.left-tok 'interpolation-start)
+                                                    (if (token? left-tok 'syntax 'interpolation)
                                                         (in-string))
                                                     (link-parens token left-tok)))
-            (is kind 'interpolation-start)       (fpush token parens)
             (is kind 'whitespace)                (fpop result))))
     (each unmatched (list quotes parens brackets)
       (each p unmatched (scar cdr.p (unmatchify:cadr p))))

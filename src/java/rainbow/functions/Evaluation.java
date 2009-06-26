@@ -2,6 +2,8 @@ package rainbow.functions;
 
 import rainbow.ArcError;
 import rainbow.LexicalClosure;
+import rainbow.parser.ArcParser;
+import rainbow.parser.ParseException;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
@@ -106,7 +108,7 @@ public class Evaluation {
       toks.add(Symbol.make("andf"));
       String[] tokenised = andToks(symbol);
       for (String s : tokenised) {
-        toks.add(Symbol.make(s));
+        toks.add(readValue((Symbol) Symbol.make(s)));
       }
       return Pair.buildFrom(toks);
     }
@@ -128,7 +130,7 @@ public class Evaluation {
     }
 
     private static ArcObject expandToks(Iterator list) {
-      Symbol s = (Symbol) list.next();
+      ArcObject s = readValue((Symbol) list.next());
       Symbol sep = null;
       if (list.hasNext()) {
         sep = (Symbol) list.next();
@@ -142,6 +144,18 @@ public class Evaluation {
       } else {
         return next;
       }
+    }
+
+    private static ArcObject readValue(String s) {
+      try {
+        return new ArcParser(s).expression();
+      } catch (ParseException e) {
+        throw new ArcError("Couldn't read value of symbol: " + s, e);
+      }
+    }
+
+    private static ArcObject readValue(Symbol symbol) {
+      return readValue(symbol.name());
     }
 
     private static ArcObject expandExpression(String symbol) {
@@ -188,7 +202,7 @@ public class Evaluation {
     }
 
     private static ArcObject possiblyComplement(String element) {
-      return element.startsWith("~") ? Pair.buildFrom(Symbol.make("complement"), Symbol.make(element.substring(1))) : Symbol.make(element);
+      return element.startsWith("~") ? Pair.buildFrom(Symbol.make("complement"), readValue(element.substring(1))) : readValue(element);
     }
   }
 }

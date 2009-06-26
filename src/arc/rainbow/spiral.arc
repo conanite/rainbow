@@ -22,6 +22,7 @@
           oy     (num-param ,req "oy"     0)
           nc     (num-param ,req "nc"     0.01)
           zoom   (num-param ,req "zoom"   2)
+          zoom0  (num-param ,req "zoom0"  2)
           frames (num-param ,req "frames" 10))
      ,@body))
 
@@ -48,25 +49,26 @@
           id (+ input-name "_field"))
     `(tag (input type "text" id ,id name ,input-name value ,name ,@attrs))))
 
-(def spiral-form (x y x0 y0 zoom ox oy nc frames)
+(def spiral-form (x y x0 y0 zoom zoom0 ox oy nc frames)
   (tag (form method "get" action "spiral" id "spiral_form")
          (tag table
+              (row (pr)
+                   (pr)
+                   (pr)
+                   (pr)
+                   (pr "animate to"))
               (row (pr "x")
                    (text-input x)
                    (clickable span "left_button" "left")
-                   (clickable span "right_button" "right"))
+                   (clickable span "right_button" "right")
+                   (text-input x0)
+                   (clickable span "copy_x_button" "copy"))
               (row (pr "y")
                    (text-input y)
                    (clickable span "up_button" "up")
-                   (clickable span "down_button" "down"))
-              (row (pr "x'")
-                   (text-input x0)
-                   (clickable span "copy_button" "copy")
-                   (nbsp))
-              (row (pr "y'")
+                   (clickable span "down_button" "down")
                    (text-input y0)
-                   (nbsp)
-                   (nbsp))
+                   (clickable span "copy_y_button" "copy"))
               (row (pr "x origin")
                    (text-input ox)
                    (clickable span "origin_left_button" "left")
@@ -82,7 +84,9 @@
               (row (pr "zoom")
                    (text-input zoom)
                    (clickable span "zoom_in_button" "zoom in")
-                   (clickable span "zoom_out_button" "zoom out"))
+                   (clickable span "zoom_out_button" "zoom out")
+                   (text-input zoom0)
+                   (clickable span "copy_zoom_button" "copy"))
               (tag tr
                    (tag td (pr "frames"))
                    (tag td (text-input frames))
@@ -121,17 +125,26 @@
 
 (def img-generator (x y w h ox oy zoom)
   (fn (os req)
-    (prn (srv-header* 'png))
+    (prn (type-header* 'png))
     (prn "\r")
     (let p (plot x y w h ox oy zoom)
       ((p 'write) os))))
 
-(def spiral-img (id x y w h ox oy zoom)
+(def spiral-img (id x y w h ox oy zoom (o display "''"))
   (tag (img
     id     id
+    style  (string "display:" display ";")
     alt    (string (make-complex x y))
     src    (string "/i?fnid=" (fnid:img-generator x y w h ox oy zoom))
     border "0")))
+
+(def spiral-neighbour-x-label (req x-offset)
+  (spiral-params req
+    (+ x (* x-offset nc))))
+
+(def spiral-neighbour-y-label (req y-offset)
+  (spiral-params req
+    (+ y (* y-offset nc))))
 
 (def spiral-neighbour (req x-offset y-offset)
   (spiral-params req
@@ -141,8 +154,8 @@
          (spiral-img (string "img_" x-offset "_" y-offset) x y 100 75 ox oy zoom))))
 
 ;(assign nb-array '(-81 -9 -3 -1 0 1 3 9 81))
-(assign nb-array '(-64 -8 -1 0 1 8 64))
-;(assign nb-array '(-10 -1 0 1 10))
+;(assign nb-array '(-64 -8 -1 0 1 8 64))
+(assign nb-array '(-10 -1 0 1 10))
 ;(assign nb-array '(-1 0 1))
 
 (def neighbours (req)
@@ -150,7 +163,11 @@
        (each y (rev nb-array)
           (tag tr
             (each x nb-array
-              (tag td (spiral-neighbour req x y)))))))
+              (tag td (spiral-neighbour req x y)))
+            (tag td (pr:spiral-neighbour-y-label req y))))
+       (tag tr
+         (each x nb-array
+           (tag td (pr:spiral-neighbour-x-label req x))))))
 
 (def num-param (req name default)
   (coerce (or (arg req name) default) 'num))
@@ -171,7 +188,7 @@
          z 0+0i
          n 0
          repeats 0)
-    (while (and (small z) (< n 10000) (< repeats 1000))
+    (while (and (small z) (< n 100000) (< repeats 1000))
       (++ n)
       (assign z (+ c (* z z)))
       (if (apply p!plot (complex-parts z)) (++ repeats)
@@ -192,7 +209,7 @@
 
 (defop spiral req
   (spiral-params req
-    (spiralpage (do (spiral-form x y x0 y0 zoom ox oy nc frames)
+    (spiralpage (do (spiral-form x y x0 y0 zoom zoom0 ox oy nc frames)
                     (spiral-help)
                     (tag (img
                       id     "main_img"
@@ -202,11 +219,13 @@
                 (neighbours req)
                 nil)))
 
-(def animation (x y x0 y0 zoom ox oy nc frames)
+(def animation (x y x0 y0 zoom zoom0 ox oy nc frames)
   (with (stepx (/ (- x0 x) frames)
-         stepy (/ (- y0 y) frames))
+         stepy (/ (- y0 y) frames)
+         stepz (/ (- zoom0 zoom) frames))
     (for step 0 frames
-      (spiral-img (string "anim_" step) x y 512 384 ox oy zoom)
+      (spiral-img (string "anim_" step) x y 512 384 ox oy zoom "none")
+      (zap [+ _ stepz] zoom)
       (zap [+ _ stepx] x)
       (zap [+ _ stepy] y))))
 
@@ -215,20 +234,26 @@
 
 (defop animate req
   (spiral-params req
-    (spiralpage (do (spiral-form x y x0 y0 zoom ox oy nc frames)
+    (spiralpage (do (spiral-form x y x0 y0 zoom zoom0 ox oy nc frames)
                     (animation-info))
-                (animation x y x0 y0 zoom ox oy nc frames)
+                (animation x y x0 y0 zoom zoom0 ox oy nc frames)
                 (tag (script type "text/javascript") (pr "$s.install();$s.animate();")))))
 
 (def start-spiral-app ()
   (assign req-limit* 300)
   (assign threadlimit* 500 threadlife* 60)
-  (assign asv-thread (thread (asv))))
+  (assign asv-thread (thread (asv 8085))))
 
-(map (fn ((k v)) (= (srv-header* k) (gen-srv-header v)))
+(map (fn ((k v)) (= (type-header* k) (gen-type-header v)))
      '((javascript "text/javascript")
        (css        "text/css")))
 
+; http://localhost:8085/animate?x=-0.025706206&x0=-0.025706206&y=0.746410795&y0=0.746410795&ox=0.00112736418955&oy=-0.002373162486222&nc=0.000000002&zoom=0.010901331100431&zoom0=2&frames=50
+; http://localhost:8085/spiral?x=-0.092&x0=-0.0318807&y=0.649&y0=0.6418998&ox=-0.18278875&oy=0.6933475&nc=0.0001&zoom=1.966080000000001&zoom0=1&frames=20
+; http://localhost:8085/animate?x=0.0743&x0=-0.1257&y=0.6464&y0=0.8464&ox=0.0011&oy=-0.0023&nc=0.01&zoom=1.5&zoom0=0.5&frames=400
+; http://localhost:8085/animate?x=-0.1&x0=-0.31&y=0.6264&y0=0.6264&ox=-0.1014390625&oy=0.7252390625&nc=0.08&zoom=2.5&zoom0=2.5&frames=1000
+
+;; old coordinates:
 ; http://localhost:8080/animate?x=-0.39&y=-0.47&x0=-0.55&y0=-0.63&ox=-0.94625&oy=-0.77609375&nc=0.0008&zoom=1.2&frames=600
 ; http://localhost:8080/spiral?x=-0.465&y=-0.543&ox=-1.04&oy=-0.74&nc=0.0008&zoom=1.2
 ; http://localhost:8080/spiral?x=-0.154&y=-0.644&ox=-0.733984375&oy=-0.759375&zoom=1&nc=0.006
@@ -237,3 +262,5 @@
 ; http://localhost:8080/animate?x=0.254&y=0.003&x0=0.264&y0=0.003&ox=0.2&oy=-0.03&nc=0.003&zoom=0.589824&frames=200
 ; http://localhost:8080/spiral?x=0.25048&y=0&x0=0.263&y0=0.003&ox=0.20576&oy=-0.218928&nc=0.00001&zoom=0.589824&frames=200
 ; http://localhost:8080/animate?x=0.25048&y=-0.00081&x0=0.25048&y0=0.00081&ox=0.20576&oy=-0.218928&nc=0.00001&zoom=0.589824&frames=200
+; http://localhost:8085/spiral?x=-0.031&y=0.642&x0=0&y0=0&ox=-1.2960625&oy=-0.5186875&nc=0.001&zoom=2.304&frames=10
+; zoom out from this: http://localhost:8085/spiral?x=-0.0318807&y=0.6418998&x0=0&y0=0&ox=-0.015388035658146&oy=-0.010260485213829&nc=0.0000000001&zoom=0.033204139332677&frames=10
