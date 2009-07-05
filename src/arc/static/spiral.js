@@ -56,6 +56,14 @@
     };
   }
 
+  function getFPS() {
+    var fps = parseFloat($("fps").value);
+    if (isNaN(fps) || fps > 100) {
+      fps = 100;
+    }
+    return fps;
+  }
+
   var vars = ["x", "y", "x0", "y0", "zoom", "zoom0", "ox", "oy"];
 
   for (var i = 0; i < vars.length; i++) {
@@ -138,6 +146,12 @@
       var n = 0;
 
       function step() {
+        var fps = getFPS();
+        if (fps <= 0) {
+          setInterval(step, 50);
+          return;
+        }
+
         var loaded = 0;
         var img = $("anim_" + n);
         img.style.display = 'none';
@@ -166,13 +180,16 @@
           img = $("anim_" + n);
         }
 
-        $("animinfo").innerHTML = "frame " + n + ",<br/>" + img.alt + "<br/>(loaded " + loaded + " of " + ld + ")";
+        fps = getFPS();
+        $("animinfo").innerHTML = "frame " + n + ",<br/>" + img.alt + "<br/>(loaded " + loaded + " of " + ld + ")<br/>" + fps + "fps";
         if (img.complete) {
           img.style.display = '';
         }
+
+        setTimeout(step, 1000/fps);
       }
 
-      setInterval(step, 50);
+      step();
     }
 
   };

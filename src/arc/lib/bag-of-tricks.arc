@@ -68,3 +68,9 @@
 (def eval-these (exprs)
   (if (acons exprs)
       (do (eval (car exprs)) (eval-these (cdr exprs)))))
+
+(mac afnwith (withses . body)
+  (let w (pair withses)
+    `((afn ,(map car w) ,@body) ,@(map cadr w))))
+
+

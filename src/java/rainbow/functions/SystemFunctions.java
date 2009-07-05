@@ -23,18 +23,20 @@ public class SystemFunctions {
       public ArcObject invoke(Pair args) {
         return Rational.make(System.currentTimeMillis() / 1000);
       }
-    }, new Builtin("datetbl") {
+    }, new Builtin("datetime") {
       public ArcObject invoke(Pair args) {
         Calendar c = new GregorianCalendar();
-        c.setTime(new Date(1000 * Rational.cast(args.car(), this).toInt()));
-        Hash hash = new Hash();
-        hash.sref(Symbol.make("year"), Rational.make(c.get(Calendar.YEAR)));
-        hash.sref(Symbol.make("month"), Rational.make(c.get(Calendar.MONTH)));
-        hash.sref(Symbol.make("day"), Rational.make(c.get(Calendar.DAY_OF_MONTH)));
-        hash.sref(Symbol.make("hour"), Rational.make(c.get(Calendar.HOUR_OF_DAY)));
-        hash.sref(Symbol.make("minute"), Rational.make(c.get(Calendar.MINUTE)));
-        hash.sref(Symbol.make("second"), Rational.make(c.get(Calendar.SECOND)));
-        return hash;
+        if (!args.isNil()) {
+          c.setTime(new Date(1000 * Rational.cast(args.car(), this).toInt()));
+        }
+        return Pair.buildFrom(
+                Rational.make(c.get(Calendar.SECOND)),
+                Rational.make(c.get(Calendar.MINUTE)),
+                Rational.make(c.get(Calendar.HOUR_OF_DAY)),
+                Rational.make(c.get(Calendar.DAY_OF_MONTH)),
+                Rational.make(c.get(Calendar.MONTH)),
+                Rational.make(c.get(Calendar.YEAR))
+        );
       }
     }, new Builtin("current-process-milliseconds") {
       public ArcObject invoke(Pair args) {
@@ -60,6 +62,10 @@ public class SystemFunctions {
     }, new Builtin("which-os") {
       public ArcObject invoke(Pair args)  {
         return Symbol.make(System.getProperty("os.name").replaceAll(" ", "").toLowerCase());
+      }
+    }, new Builtin("declare") {
+      public ArcObject invoke(Pair args)  {
+        return NIL;
       }
     }, new Builtin("quit") {
       public ArcObject invoke(Pair args) {

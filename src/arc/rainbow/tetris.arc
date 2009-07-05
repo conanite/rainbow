@@ -38,7 +38,7 @@
   (assign delay* 0.5 score* 0 paused* nil)
   (assign universe (table) cell-updates* (table))
   (new-shape)
-  (ontable k v universe-cells*
+  (each (k v) universe-cells*
     (repaint-cell k nil))
   (update-score))
 
@@ -50,12 +50,12 @@
 
 (def shape (colour cells)
   (= colours (cons colour colours))
-  ((afn (info)
+  (afnwith (info cells)
     (if info
       (let (rotation row col) (car info)
         (= shape-rotations.colour rotation)
         (set (shape-info (shape-cell-key colour rotation row col)))
-        (self (cdr info))))) cells))
+        (self (cdr info))))))
 
 (shape 'red    '((0 0 1) (0 1 1) (0 2 1) (0 3 1)
                  (1 1 0) (1 1 1) (1 1 2) (1 1 3)))
@@ -194,7 +194,7 @@
     (set-cell colour (+ row falling!y) (+ col falling!x))))
 
 (def update-updates (cells-to-update)
-  (ontable k v cells-to-update
+  (each (k v) cells-to-update
     (repaint-cell k (if (is v 'none) nil v))))
 
 (def repaint-cell (k colour)

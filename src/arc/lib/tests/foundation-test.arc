@@ -1,5 +1,11 @@
 
 (register-test '(suite "Foundation Tests"
+
+  ("datetime breaks date into calendar components"
+    ((fn (d)
+      (list d.5 d.4 d.3)) (datetime 1203450000))
+    (2008 01 19))
+
   (suite "Strings"
     ("get the length of a string"
       (len "foo-bar-toto")

@@ -24,7 +24,7 @@
          (itable (cadr tok)))))
 
 (def delete-from-index (itable remfn)
-  (ontable k v itable
+  (each (k v) itable
     (= itable.k (rem remfn v))))
 
 (assign definers (cdr '(x def mac redef assign defop newsop defweld atdef)))

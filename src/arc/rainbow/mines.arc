@@ -49,11 +49,10 @@
                             (trunc (/ (- (ended) started) 1000.0))
                             0))
       (marks      ()    (len marked))
-      (surrounded (p)   ((afn (ns)
+      (surrounded (p)   (afnwith (ns (neighbours p))
                            (if (no ns)       0
                                (mf (car ns)) (+ 1 (self (cdr ns)))
-                                             (self (cdr ns))))
-                         (neighbours p)))
+                                             (self (cdr ns)))))
       (here       ()    `(,cursor-x ,cursor-y))
       (dimension  ()    `(,(+ max-x 1) ,(+ max-y 1)))
       (clear?     (p)   (cleared p))
@@ -61,7 +60,7 @@
       (won?       ()    (is (+ (len cleared) (len mf))
                             (apply * (dimension))))
       (lost?      ()    (catch
-                          (ontable p bomb mf
+                          (each (p bomb) mf
                             (when (and bomb (cleared p))
                               (throw t)))
                           nil))
@@ -87,7 +86,7 @@
                           (redraw this)))))))
 
 (def redraw (mf)
-  (ontable k v mf!cells
+  (each (k v) mf!cells
     (v (if (mf!clear? k)  (if (mf!bomb? k)
                               'exploded
                               'exposed)

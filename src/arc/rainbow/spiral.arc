@@ -1,4 +1,4 @@
-(require-lib "rainbow/img")
+(require-lib "rainbow/img") 
 
 (attribute script src  opstring)
 (attribute script type opstring)
@@ -87,13 +87,16 @@
                    (clickable span "zoom_out_button" "zoom out")
                    (text-input zoom0)
                    (clickable span "copy_zoom_button" "copy"))
-              (tag tr
-                   (tag td (pr "frames"))
-                   (tag td (text-input frames))
-                   (tag (td colspan 2) (pr "for animation"))))
-         (tag (input type "submit" value "plot this"))
-         (nbsp)
-         (tag (input type "submit" value "animate (x+iy) -> (x'+iy')" id "animate"))))
+              (row (nbsp)
+                   (nbsp)
+                   (nbsp)
+                   (pr "frames")
+                   (text-input frames))
+              (row (nbsp)
+                   (tag (input type "submit" value "plot this"))
+                   (nbsp)
+                   (nbsp)
+                   (tag (input type "submit" value "animate" id "animate"))))))
 
 (def spiral-help ()
   (pr "<p>plot values of iterating <code>z &lt;- z<sup>2</sup> + c</code> where c is <code>x+iy</code></p>"))
@@ -188,7 +191,7 @@
          z 0+0i
          n 0
          repeats 0)
-    (while (and (small z) (< n 100000) (< repeats 1000))
+    (while (and (small z) (< n 20000) (< repeats 1000))
       (++ n)
       (assign z (+ c (* z z)))
       (if (apply p!plot (complex-parts z)) (++ repeats)
@@ -230,7 +233,10 @@
       (zap [+ _ stepy] y))))
 
 (def animation-info ()
-  (tag (span id "animinfo") (nbsp)))
+  (tag (span id "animinfo") (nbsp))
+  (br)
+  (tag (input id "fps" value "20"))
+  (pr "fps"))
 
 (defop animate req
   (spiral-params req
@@ -252,6 +258,7 @@
 ; http://localhost:8085/spiral?x=-0.092&x0=-0.0318807&y=0.649&y0=0.6418998&ox=-0.18278875&oy=0.6933475&nc=0.0001&zoom=1.966080000000001&zoom0=1&frames=20
 ; http://localhost:8085/animate?x=0.0743&x0=-0.1257&y=0.6464&y0=0.8464&ox=0.0011&oy=-0.0023&nc=0.01&zoom=1.5&zoom0=0.5&frames=400
 ; http://localhost:8085/animate?x=-0.1&x0=-0.31&y=0.6264&y0=0.6264&ox=-0.1014390625&oy=0.7252390625&nc=0.08&zoom=2.5&zoom0=2.5&frames=1000
+; http://localhost:8085/animate?x=-0.314&x0=-0.317&y=0.6264&y0=0.6264&ox=-0.3&oy=0.45&nc=0.08&zoom=1.3&zoom0=1.3&frames=2000
 
 ;; old coordinates:
 ; http://localhost:8080/animate?x=-0.39&y=-0.47&x0=-0.55&y0=-0.63&ox=-0.94625&oy=-0.77609375&nc=0.0008&zoom=1.2&frames=600

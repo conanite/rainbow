@@ -160,8 +160,9 @@
     (= ignore (uniq))
 
     (def unescape-fragment (fragment)
-      (string (accum s
-        ((afn (chs escaping)
+      (string:accum s
+        (afnwith (chs      (coerce fragment 'cons)
+                  escaping nil)
           (iflet ch (car chs)
             (if escaping
                 (do
@@ -176,7 +177,7 @@
                 (case ch
                   #\\ (self (cdr chs) t)
                       (do (s ch)
-                          (self (cdr chs) nil)))))) (coerce fragment 'cons) nil))))
+                          (self (cdr chs) nil))))))))
 
     (def assemble-string (fragments)
       (if no.fragments
