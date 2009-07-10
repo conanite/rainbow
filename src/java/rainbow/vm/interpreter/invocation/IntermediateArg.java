@@ -13,4 +13,8 @@ public class IntermediateArg extends InvocationComponent {
     invocationContinuation.lastArg = arg;
     invocationContinuation.continueWith(next);
   }
+
+  public String toString() {
+    return " " + expression + next;
+  }
 }

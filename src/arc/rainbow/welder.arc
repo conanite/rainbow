@@ -354,7 +354,7 @@
 
 (def htmlify-keybindings (bindings)
   (pr "<table border='1' width='100%'>")
-  (ontable k v bindings
+  (each (k v) bindings
     (pr "<tr><td>" k "</td>"
         "<td>" welder-actions*.v!label     "</td>"
         "<td>" welder-actions*.v!help-text "</td>"

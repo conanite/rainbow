@@ -10,4 +10,8 @@ public class FunctionInvocation extends InvocationComponent {
     invocationContinuation.function = function;
     invocationContinuation.continueWith(next);
   }
+
+  public String toString() {
+    return "(" + expression + next;
+  }
 }

@@ -164,6 +164,7 @@ public abstract class Maths {
         }
       },
       new Builtin("make-complex") {
+        // todo this can be implemented in arc (def make-complex (real imag) (+ real (* 0+i imag)))
         protected ArcObject invoke(Pair args) {
           checkMaxArgCount(args, getClass(), 2);
           ArcNumber a = ArcNumber.cast(args.car(), this);

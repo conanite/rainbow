@@ -1,6 +1,5 @@
 package rainbow.functions;
 
-import rainbow.Console;
 import rainbow.Environment;
 import rainbow.types.ArcObject;
 import rainbow.types.ArcThreadLocal;
@@ -8,10 +7,6 @@ import rainbow.types.Pair;
 
 public abstract class ThreadLocals {
   public static void collect(Environment environment) {
-    if (!Console.ANARKI_COMPATIBILITY) {
-      return;
-    }
-
     environment.add(new Builtin[]{
       new Builtin("thread-local") {
         public ArcObject invoke(Pair args) {

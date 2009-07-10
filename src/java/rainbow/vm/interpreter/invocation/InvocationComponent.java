@@ -29,8 +29,4 @@ public abstract class InvocationComponent {
       next.add(ic);
     }
   }
-
-  public String toString() {
-    return expression + "\n" + next;
-  }
 }

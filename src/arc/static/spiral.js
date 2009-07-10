@@ -43,7 +43,6 @@
     var scale = $('main_img').offsetWidth / zoom();
 
     offsets($('main_img'), event, function(y, x) {
-//      y = $('main_img').offsetHeight - y;
       y = centre_y - y;
       x = x - centre_x;
       f(sc(y, scale, oy()), sc(x, scale, ox()));
@@ -143,7 +142,7 @@
     },
 
     animate : function() {
-      var n = 0;
+      var n = 1;
 
       function step() {
         var fps = getFPS();
@@ -158,7 +157,7 @@
 
         n++;
 
-        var ld = 0;
+        var ld = 1;
         img = $("anim_" + ld);
         while (img) {
           if (img.complete) {
@@ -176,7 +175,7 @@
         }
 
         if (!img) {
-          n = 0;
+          n = 1;
           img = $("anim_" + n);
         }
 

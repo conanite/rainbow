@@ -12,4 +12,8 @@ public class FirstArg extends InvocationComponent {
     invocationContinuation.lastArg = invocationContinuation.args;
     invocationContinuation.continueWith(next);
   }
+
+  public String toString() {
+    return " " + expression + next;
+  }
 }

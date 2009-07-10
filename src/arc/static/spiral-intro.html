@@ -1,0 +1,66 @@
+<html>
+<body>
+  <p>This is a simple application that plots values of
+    <code>z &lt;- z<sup><small>2</small></sup> + c</code>
+    for complex numbers <code>z</code> and <code>c</code>
+  </p>
+
+  <p>
+    This application has two pages (apart from this one) -
+  </p>
+
+    <ul>
+      <li>
+        <a href="/spiral">/spiral</a> - plots a function for a given point and for some surrounding points.
+      </li>
+      <li>
+        <a href="/animate">/animate</a> - plots a function for a set of points and animates the resulting images using javascript.
+      </li>
+
+    </ul>
+
+
+  <p>
+    Here are some points to get started with:
+  </p>
+
+  Static:
+
+  <ul>
+    <li>
+      <a href="/spiral?x=0.1&x0=0.2&y=0.6&y0=0.6&ox=-0.18&oy=0.69&nc=0.01&zoom=2&zoom0=1&frames=20">0.1+0.6i</a>
+    </li>
+    <li>
+      <a href="/spiral?x=-0.05&x0=0.2&y=0.59&y0=0.6&ox=-0.18&oy=0.69&nc=0.005&zoom=1.28&zoom0=1&frames=20">-0.05+0.59i</a>
+    </li>
+    <li>
+      <a href="/spiral?x=-0.042&x0=0.2&y=0.625&y0=0.6&ox=-0.18&oy=0.69&nc=0.002&zoom=1.28&zoom0=1&frames=20">-0.042+0.625i</a>
+    </li>
+    <li>
+      <a href="/spiral?x=-0.092&x0=-0.0318807&y=0.649&y0=0.6418998&ox=-0.18278875&oy=0.6933475&nc=0.0001&zoom=1.966080000000001&zoom0=1&frames=20">-0.092+0.649i</a>
+    </li>
+    <li>
+      <a href="/spiral?x=-0.5&x0=0.4&y=0.5&y0=0.4&ox=0&oy=0.5&nc=0.013&zoom=2&zoom0=2&frames=20">-0.5+0.5i</a>
+    </li>
+  </ul>
+
+  Animations:
+
+  <ul>
+    <li>
+      <a href="/animate?x=-0.025706206&x0=-0.025706206&y=0.746410795&y0=0.746410795&ox=0.00112736418955&oy=-0.002373162486222&nc=0.000000002&zoom=0.010901331100431&zoom0=2&frames=50">-0.025706206+0.746410795i -&gt; -0.025706206+0.746410795i</a> 50 frames
+    </li>
+    <li>
+      <a href="/animate?x=0.0743&x0=-0.1257&y=0.6464&y0=0.8464&ox=0.0011&oy=-0.0023&nc=0.01&zoom=1.5&zoom0=0.5&frames=400">0.0743+0.6464i -&gt; -0.1257+0.8464i</a> 400 frames - slow
+    </li>
+    <li>
+      <a href="/animate?x=-0.1&x0=-0.31&y=0.6264&y0=0.6264&ox=-0.1014390625&oy=0.7252390625&nc=0.08&zoom=2.5&zoom0=2.5&frames=1000">-0.1+0.6264i -&gt; -0.31+0.6264i</a> 1000 frames - very slow
+    </li>
+    <li>
+      <a href="/animate?x=-0.314&x0=-0.317&y=0.6264&y0=0.6264&ox=-0.3&oy=0.45&nc=0.08&zoom=1.3&zoom0=1.3&frames=2000">-0.314+0.6264i -&gt; -0.317+0.6264i</a> 2000 frames - painfully slow
+    </li>
+  </ul>
+
+  <p>This application is written using Rainbow, a java implementation of Arc. It uses </p>
+</body>
+</html>

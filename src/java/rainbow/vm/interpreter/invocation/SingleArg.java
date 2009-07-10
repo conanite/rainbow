@@ -10,4 +10,9 @@ public class SingleArg extends InvocationComponent {
   public void received(LexicalClosure lc, Continuation caller, ArcObject arg, InvocationContinuation invocationContinuation) {
     invocationContinuation.function.invoke(lc, caller, new Pair(arg, ArcObject.NIL));
   }
+
+
+  public String toString() {
+    return " " + expression + ")";
+  }
 }

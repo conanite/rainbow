@@ -11,4 +11,8 @@ public class LastArg extends InvocationComponent {
     invocationContinuation.lastArg.setCdr(new Pair(arg, ArcObject.NIL));
     invocationContinuation.function.invoke(lc, caller, invocationContinuation.args);
   }
+
+  public String toString() {
+    return " " + expression + ")";
+  }  
 }

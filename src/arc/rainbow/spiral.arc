@@ -225,10 +225,10 @@
 (def animation (x y x0 y0 zoom zoom0 ox oy nc frames)
   (with (stepx (/ (- x0 x) frames)
          stepy (/ (- y0 y) frames)
-         stepz (/ (- zoom0 zoom) frames))
-    (for step 0 frames
+         stepz (expt (/ zoom0 zoom) (/ 1 (- frames 1))))
+    (for step 1 frames
       (spiral-img (string "anim_" step) x y 512 384 ox oy zoom "none")
-      (zap [+ _ stepz] zoom)
+      (zap [* _ stepz] zoom)
       (zap [+ _ stepx] x)
       (zap [+ _ stepy] y))))
 
@@ -240,9 +240,9 @@
 
 (defop animate req
   (spiral-params req
-    (spiralpage (do (spiral-form x y x0 y0 zoom zoom0 ox oy nc frames)
-                    (animation-info))
-                (animation x y x0 y0 zoom zoom0 ox oy nc frames)
+    (spiralpage (spiral-form x y x0 y0 zoom zoom0 ox oy nc frames)
+                (do (animation-info)
+                    (animation x y x0 y0 zoom zoom0 ox oy nc frames))
                 (tag (script type "text/javascript") (pr "$s.install();$s.animate();")))))
 
 (def start-spiral-app ()
@@ -254,20 +254,15 @@
      '((javascript "text/javascript")
        (css        "text/css")))
 
-; http://localhost:8085/animate?x=-0.025706206&x0=-0.025706206&y=0.746410795&y0=0.746410795&ox=0.00112736418955&oy=-0.002373162486222&nc=0.000000002&zoom=0.010901331100431&zoom0=2&frames=50
-; http://localhost:8085/spiral?x=-0.092&x0=-0.0318807&y=0.649&y0=0.6418998&ox=-0.18278875&oy=0.6933475&nc=0.0001&zoom=1.966080000000001&zoom0=1&frames=20
-; http://localhost:8085/animate?x=0.0743&x0=-0.1257&y=0.6464&y0=0.8464&ox=0.0011&oy=-0.0023&nc=0.01&zoom=1.5&zoom0=0.5&frames=400
-; http://localhost:8085/animate?x=-0.1&x0=-0.31&y=0.6264&y0=0.6264&ox=-0.1014390625&oy=0.7252390625&nc=0.08&zoom=2.5&zoom0=2.5&frames=1000
-; http://localhost:8085/animate?x=-0.314&x0=-0.317&y=0.6264&y0=0.6264&ox=-0.3&oy=0.45&nc=0.08&zoom=1.3&zoom0=1.3&frames=2000
 
 ;; old coordinates:
-; http://localhost:8080/animate?x=-0.39&y=-0.47&x0=-0.55&y0=-0.63&ox=-0.94625&oy=-0.77609375&nc=0.0008&zoom=1.2&frames=600
-; http://localhost:8080/spiral?x=-0.465&y=-0.543&ox=-1.04&oy=-0.74&nc=0.0008&zoom=1.2
-; http://localhost:8080/spiral?x=-0.154&y=-0.644&ox=-0.733984375&oy=-0.759375&zoom=1&nc=0.006
-; http://localhost:8080/spiral?x=-0.667957&y=-0.32&x0=-0.667978&y0=-0.32&ox=-0.90390625&oy=-0.5171875&nc=0.005&zoom=1&frames=10
-; http://localhost:8080/animate?x=-0.662957&y=-0.32&x0=-0.662957&y0=-0.35&ox=-0.90390625&oy=-0.5171875&nc=0.005&zoom=1&frames=200
-; http://localhost:8080/animate?x=0.254&y=0.003&x0=0.264&y0=0.003&ox=0.2&oy=-0.03&nc=0.003&zoom=0.589824&frames=200
-; http://localhost:8080/spiral?x=0.25048&y=0&x0=0.263&y0=0.003&ox=0.20576&oy=-0.218928&nc=0.00001&zoom=0.589824&frames=200
-; http://localhost:8080/animate?x=0.25048&y=-0.00081&x0=0.25048&y0=0.00081&ox=0.20576&oy=-0.218928&nc=0.00001&zoom=0.589824&frames=200
-; http://localhost:8085/spiral?x=-0.031&y=0.642&x0=0&y0=0&ox=-1.2960625&oy=-0.5186875&nc=0.001&zoom=2.304&frames=10
-; zoom out from this: http://localhost:8085/spiral?x=-0.0318807&y=0.6418998&x0=0&y0=0&ox=-0.015388035658146&oy=-0.010260485213829&nc=0.0000000001&zoom=0.033204139332677&frames=10
+; /animate?x=-0.39&y=-0.47&x0=-0.55&y0=-0.63&ox=-0.94625&oy=-0.77609375&nc=0.0008&zoom=1.2&frames=600
+; /spiral?x=-0.465&y=-0.543&ox=-1.04&oy=-0.74&nc=0.0008&zoom=1.2
+; /spiral?x=-0.154&y=-0.644&ox=-0.733984375&oy=-0.759375&zoom=1&nc=0.006
+; /spiral?x=-0.667957&y=-0.32&x0=-0.667978&y0=-0.32&ox=-0.90390625&oy=-0.5171875&nc=0.005&zoom=1&frames=10
+; /animate?x=-0.662957&y=-0.32&x0=-0.662957&y0=-0.35&ox=-0.90390625&oy=-0.5171875&nc=0.005&zoom=1&frames=200
+; /animate?x=0.254&y=0.003&x0=0.264&y0=0.003&ox=0.2&oy=-0.03&nc=0.003&zoom=0.589824&frames=200
+; /spiral?x=0.25048&y=0&x0=0.263&y0=0.003&ox=0.20576&oy=-0.218928&nc=0.00001&zoom=0.589824&frames=200
+; /animate?x=0.25048&y=-0.00081&x0=0.25048&y0=0.00081&ox=0.20576&oy=-0.218928&nc=0.00001&zoom=0.589824&frames=200
+; /spiral?x=-0.031&y=0.642&x0=0&y0=0&ox=-1.2960625&oy=-0.5186875&nc=0.001&zoom=2.304&frames=10
+; /spiral?x=-0.0318807&y=0.6418998&x0=0&y0=0&ox=-0.015388035658146&oy=-0.010260485213829&nc=0.0000000001&zoom=0.033204139332677&frames=10

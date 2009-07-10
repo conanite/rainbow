@@ -12,19 +12,12 @@ import java.io.*;
 import java.util.*;
 
 public class Console {
-  public static boolean ARC2_COMPATIBILITY = false;
-  public static boolean ANARKI_COMPATIBILITY = true;
 
   public static void main(String args[]) throws ParseException, IOException {
     Object o = ArcObject.NIL;
     String[] path = getArcPath();
     Argv argv = new Argv(args);
     List programArgs = parseAll(argv.terminal("-args"));
-
-    if (argv.present("--strict-arc")) {
-      ANARKI_COMPATIBILITY = false;
-      ARC2_COMPATIBILITY = true;
-    }
 
     if (argv.present("--help")) {
       showHelp();
