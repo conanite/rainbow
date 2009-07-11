@@ -32,20 +32,5 @@
 (prn "self-test:")
 (run-all-tests)
 
-(def welder ()
-  (require-lib "rainbow/welder")
-  (welder))
-
-(def path-browser ()
-  (require-lib "rainbow/fs-browser")
-  (path-browser))
-
-(def tetris ()
-  (require-lib "rainbow/tetris")
-  (tetris))
-
-(def mines ()
-  (require-lib "rainbow/mines")
-  (mines))
-
-
+(require-by-name rainbow/ welder fsb tetris mines)
+(requires start-spiral-app rainbow/spiral)

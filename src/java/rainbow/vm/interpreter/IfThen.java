@@ -45,4 +45,8 @@ public class IfThen extends ArcObject implements Conditional {
       next.take(expression);
     }
   }
+
+  public String toString() {
+    return ifExpression + " " + thenExpression + " " + next;
+  }
 }

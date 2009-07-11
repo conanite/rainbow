@@ -47,4 +47,3 @@
   (implement "java.util.Iterator"
     hasNext (fn () xs)
     next    (fn () (mapper (pop xs)))))
-

@@ -19,4 +19,8 @@ public class Quotation extends ArcObject {
   public void interpret(LexicalClosure lc, Continuation caller) {
     caller.receive(quoted);
   }
+
+  public String toString() {
+    return "'" + quoted;
+  }
 }

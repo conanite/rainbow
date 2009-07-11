@@ -41,4 +41,8 @@ public class LastIfThen extends ArcObject implements Conditional {
       throw new ArcError("Internal error: if clause: unexpected: " + expression);
     }
   }
+
+  public String toString() {
+    return ifExpression + " " + thenExpression;
+  }
 }

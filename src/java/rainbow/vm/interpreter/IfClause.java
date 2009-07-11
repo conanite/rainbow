@@ -29,4 +29,8 @@ public class IfClause extends ArcObject {
   public void take(ArcObject expression) {
     first.take(expression);
   }
+
+  public String toString() {
+    return "(if " + first + ")";
+  }
 }

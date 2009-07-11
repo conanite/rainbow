@@ -41,18 +41,27 @@
   `(def ,name ,args (atomic ,@body)))
 
 (def find-in-path (file)
-  (alet (+ file ".arc")
+  (alet (string file ".arc")
     (if (file-exists it) it)))
 
 (assign *required-libs* ())
 
-(def require-lib (arc-lib)
-  (if (no (find arc-lib *required-libs*))
-    (aif (find-in-path arc-lib)
-      (do
-        (push arc-lib *required-libs*)
-        (load it))
-      (err (string "Didn't find " arc-lib)))))
+(def require-lib (required)
+  (let arc-lib string.required
+    (if (no (find arc-lib *required-libs*))
+      (aif (find-in-path arc-lib)
+        (do (push arc-lib *required-libs*)
+            (load it))
+        (err:string "Didn't find " arc-lib)))))
+
+(mac requires (func lib)
+  `(def ,func args
+    (require-lib ,lib)
+    (apply ,func args)))
+
+(mac require-by-name (path . funcs)
+  `(do
+     ,@(map [quasiquote (requires ,_ ,(string path _))] funcs)))
 
 (def load-file (fname)
   (w/infile f (if (is (type fname) 'string) fname (coerce fname 'string))

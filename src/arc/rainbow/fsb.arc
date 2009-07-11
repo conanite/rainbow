@@ -31,13 +31,8 @@
                                   (dir root)))
                       nilfn)))
 
-(def make-root-node ()
-  (make-tree-node "."
-                  nil
-                  (fn () (map make-node (dir ".")))))
-
-(def pb-tree-model ()
-  (withs (root-node (make-root-node)
+(def pb-tree-model ((o path "."))
+  (withs (root-node (make-node path)
           listeners nil)
     (TreeModel implement t (make-obj
       (equals                  (other)          nil)
@@ -50,12 +45,12 @@
       (addTreeModelListener    (listener)       (push listener listeners))
       (removeTreeModelListener (listener)       (zap [rem listener _] listeners))))))
 
-(def refresh-path-browser (tree)
+(def refresh-path-browser (tree root)
   (with (expanded-paths (tree 'getExpandedDescendants (tree 'getPathForRow 0))
          selection-paths tree!getSelectionPaths
-         model (pb-tree-model))
+         model (pb-tree-model root))
     (tree 'setModel model)
-    (ontable path node pb-cache (rep.node!invalidate))
+    (each (path node) pb-cache (rep.node!invalidate))
     (while expanded-paths!hasMoreElements
       (tree 'expandPath expanded-paths!nextElement))
     (tree 'addSelectionPaths selection-paths)))
@@ -67,16 +62,16 @@
       (rmfile (node!name))
       (refresh-path-browser tree))))
 
-(def path-browser ()
+(def fsb ((o root "."))
   (withs (f (frame 20 100 320 800 "arc-path browser")
           tree     (java-new "javax.swing.JTree")
           renderer (bean "javax.swing.JLabel")
-          model    (pb-tree-model)
+          model    (pb-tree-model root)
           sc       (scroll-pane tree colour-scheme!background))
     (tree 'setModel model)
     (on-key-press tree
       'enter (welder (((rep tree!getSelectionPath!getLastPathComponent) 'name)))
       'delete (delete-file tree)
-      'f5    (refresh-path-browser tree))
+      'f5    (refresh-path-browser tree root))
     (f 'add sc)
     f!show))
