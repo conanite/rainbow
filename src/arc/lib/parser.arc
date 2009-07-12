@@ -26,26 +26,27 @@
       (on-err (fn (ex) (err (string "unknown char: " token)))
               (fn ()   (coerce (coerce (cut token 2) 'int 8) 'char)))))
 
-(def tokenise ((token start kind))
-  (if (isa token 'sym)
-      (list 'syntax token start (+ start 1))
-      (let tokend (+ start len.token)
-        (= token (string:rev token))
-        (if kind
-            (list kind token start tokend)
-            (let c0 (token 0)
-              (if whitespace?.c0   (list 'whitespace token start tokend)
-                  (is c0 #\#)      (list 'char (make-character token) start tokend)
-                  (is c0 #\;)      (list 'comment token start tokend)
-                  (in c0 #\+ #\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
-                  (on-err (fn (ex) (list 'sym
-                                         (if (is token "||") '|| (sym token))
-                                         start
-                                         tokend))
-                          (fn () (list 'int (coerce token 'num) start tokend)))
-                  (list 'sym (if (is token "||") '|| (sym token))
-                                         start
-                                         tokend)))))))
+(def tokenise-syntax (token start)
+  (list 'syntax token start (+ start 1)))
+
+(def tokenise-char (token start)
+  (list 'char
+        (make-character token)
+        start
+        (+ start len.token)))
+
+(def tokenise-other (token start kind)
+  (let tokend (+ start len.token)
+    (if kind
+        (list kind token start tokend)
+        (let c0 (token 0)
+          (if whitespace?.c0   (list 'whitespace token start tokend)
+              (is c0 #\#)      (list 'char (make-character token) start tokend) ; todo this is necessary for char token at end of stream (in-character state needs a next character to flush its token)
+              (is c0 #\;)      (list 'comment token start tokend)
+              (in c0 #\+ #\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
+              (on-err (fn (ex) (list 'sym (sym token) start tokend))
+                      (fn () (list 'int (coerce token 'num) start tokend)))
+              (list 'sym (if (is token "||") '|| (sym token)) start tokend))))))
 
 (def char-terminator (ch)
   (or syntax-chars.ch whitespace?.ch (in ch #\" #\, #\#)))
@@ -59,27 +60,34 @@
      (assign ,xs (cdr ,xs))
      ,gp)))
 
-(mac fwipe (place)
-  `(assign ,place nil))
-
 (def arc-tokeniser (char-stream)
   (with ((default in-string interpolating escaping in-character in-comment in-atom in-unquote) nil
-         (token state token-queue) nil
-         (nextc enq-token enq-token1 enq/switch0 enq/switch tokenator add-to-token) nil
+         (token state tq1 tq2 push-tok) nil
+         (nextc enq-token1 enq-char enq/switch0 enq/switch tokenator) nil
+         (enq-token enq-no-token enq-a-token) nil
+         (add-to-token default-add-to-token initial-add-to-token) nil
          lines       1
          char-count  0
          token-start 0)
 
-    (= nextc        (fn ()
+    (= push-tok     (fn (tok)
+                        (if tq1 (assign tq2 tok)
+                                (assign tq1 tok))
+                        (assign add-to-token initial-add-to-token
+                                enq-token    enq-no-token
+                                token        nil))
+       nextc        (fn ()
                         (assign char-count (+ char-count 1))
                         (readc char-stream))
-       enq-token    (fn ((o token-kind nil))
-                        (when token
-                          (fpush (list token (- token-start 1) token-kind) token-queue)
-                          (fwipe token)))
+       enq-no-token (fn args nil)
+       enq-a-token  (fn ((o token-kind nil))
+                        (push-tok:tokenise-other token (- token-start 1) token-kind))
        enq-token1   (fn (another (o token-kind nil))
                         (enq-token token-kind)
-                        (fpush (list another (- char-count 1) nil) token-queue))
+                        (push-tok (tokenise-syntax another (- char-count 1))))
+       enq-char     (fn (ch)
+                        (push-tok (tokenise-char token (- token-start 1)))
+                        ((assign state default) ch))
        enq/switch0  (fn (new-state)
                         (enq-token)
                         (assign state new-state))
@@ -87,10 +95,11 @@
                         (enq-token1 another-tok)
                         (assign state new-state))
        tokenator    (afn ()
-                        (if token-queue
-                            (let q rev.token-queue
-                                 (assign token-queue (rev cdr.q))
-                                 (tokenise car.q))
+                        (if tq1
+                            (let result tq1
+                              (assign tq1 tq2)
+                              (assign tq2 nil)
+                              result)
                             (aif (nextc)
                                  (do (if (is it #\newline)
                                          (assign lines (+ 1 lines)))
@@ -98,11 +107,15 @@
                                      (self))
                                  token
                                  (do (enq-token) (self)))))
-       add-to-token (fn (ch)
-                        (if (no token) (assign token-start char-count))
-                        (fpush ch token))
+       default-add-to-token (fn (ch)
+                                (assign token (+ token (coerce ch 'string))))
+       initial-add-to-token (fn (ch)
+                                (assign token-start  char-count
+                                        token        (coerce ch 'string)
+                                        enq-token    enq-a-token
+                                        add-to-token default-add-to-token))
 
-       default       (fn (ch)
+       default      (fn (ch)
            (if whitespace?.ch  (add-to-token ch)
                syntax-chars.ch (enq-token1 syntax-chars.ch)
                (is ch #\.)     (enq-token1 'dot)
@@ -111,7 +124,7 @@
                (is ch #\,)     (enq/switch0 in-unquote)
                (is ch #\;)     ((enq/switch0 in-comment) ch)
                                ((enq/switch0 in-atom) ch)))
-       in-string     (fn (ch)
+       in-string    (fn (ch)
            (if (is ch #\\)     (do (add-to-token ch)
                                    (assign state escaping))
                (is ch #\#)     (assign state interpolating)
@@ -124,25 +137,27 @@
                                (do (add-to-token #\#)
                                    (if (is len.token 1) (-- token-start))
                                    ((assign state in-string) ch))))
-       escaping      (fn (ch)
+       escaping     (fn (ch)
            (add-to-token ch)
            (assign state in-string))
-       in-character  (fn (ch)
+       in-character (fn (ch)
            (if (and (> (len token) 2) (char-terminator ch))
-               ((enq/switch0 default) ch)
+               (enq-char ch)
                (add-to-token ch)))
-       in-comment    (fn (ch)
+       in-comment   (fn (ch)
            (if (is ch #\newline) ((enq/switch0 default) ch)
                                  (add-to-token ch)))
-       in-atom       (fn (ch)
+       in-atom      (fn (ch)
            (if (or whitespace?.ch
                    syntax-chars.ch) ((enq/switch0 default) ch)
                                     (add-to-token ch)))
-       in-unquote    (fn (ch)
+       in-unquote   (fn (ch)
            (if (is ch #\@)     (enq/switch 'unquote-splicing default)
-                               ((enq/switch 'unquote default) ch))))
+                               ((enq/switch 'unquote default) ch)))
 
-     (assign state default)
+       state        default
+       enq-token    enq-no-token
+       add-to-token initial-add-to-token)
 
      (list
        (fn () (tokenator))
@@ -150,7 +165,7 @@
        (fn () (assign state in-string)))))
 
 (def read-tokens (text)
-  (let tt (arc-tokeniser (instring text))
+  (let (tt lns instr) (arc-tokeniser (instring text))
     (while (prn (tt)))))
 
 (def parse (text)
