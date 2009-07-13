@@ -279,6 +279,8 @@ public class Typing {
     if (!source.contains(".")) {
       String[] parts = source.split("E");
       source = parts[0] + ".0E" + parts[1];
+    } else if (source.startsWith(".")) {
+      source = "0" + source;
     }
 
     String[] parts = source.split("\\.");

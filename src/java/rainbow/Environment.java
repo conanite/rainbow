@@ -16,7 +16,6 @@ public class Environment {
     Threads.collect(this);
     FileSystem.collect(this);
 
-    addBuiltin("t", ArcObject.T);
     addBuiltin("uniq", new Uniq());
     addBuiltin("newstring", new Lists.NewString());
     addBuiltin("macex", new Macex());

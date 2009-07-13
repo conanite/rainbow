@@ -41,4 +41,16 @@ public class Truth extends Symbol {
   public Object unwrap() {
     return Boolean.TRUE;
   }
+
+  public void setSymbolValue(LexicalClosure lc, ArcObject value) {
+    throw new ArcError("error: can't rebind t!");
+  }
+
+  public void setValue(ArcObject value) {
+    throw new ArcError("error: can't rebind t!");
+  }
+
+  public ArcObject value() {
+    return this;
+  }
 }

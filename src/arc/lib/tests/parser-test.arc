@@ -13,6 +13,7 @@
   ("parse a character: is char"         (type:parse "#\\a")             char                )
   ("parse a number"                     (parse "99/101")                99/101              )
   ("parse a number: is num"             (type:parse "99/101")           num                 )
+  ("parse a number: initial dot"        (type:parse ".99")              num                 )
   ("parse numbers in a list"            (parse "(12 34.56 -17 3/4)")    (12 34.56 -17 3/4)  )
   ("parse an improper list"             (parse "(a b c . d)")           (a b c . d))
   ("parse a list of characters"
