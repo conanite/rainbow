@@ -3,7 +3,7 @@ package rainbow.types;
 import rainbow.ArcError;
 import rainbow.Environment;
 import rainbow.functions.InterpretedFunction;
-import rainbow.functions.Threads;
+import rainbow.functions.Closure;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -183,7 +183,7 @@ public class JavaObject extends ArcObject {
   }
 
   private static boolean autoProxyable(ArcObject arcObject, Class javaType) {
-    return javaType.isInterface() && (arcObject instanceof Hash || arcObject instanceof InterpretedFunction || arcObject instanceof Threads.Closure);
+    return javaType.isInterface() && (arcObject instanceof Hash || arcObject instanceof InterpretedFunction || arcObject instanceof Closure);
   }
 
   private static Object convert(Object o, Class javaType) {
@@ -274,7 +274,7 @@ public class JavaObject extends ArcObject {
       return true;
     } else if (!parameterType.isPrimitive() && arcObject.isNil()) {
       return true;
-    } else if (parameterType.isInterface() && (arcObject instanceof Hash || arcObject instanceof InterpretedFunction || arcObject instanceof Threads.Closure)) {
+    } else if (parameterType.isInterface() && (arcObject instanceof Hash || arcObject instanceof InterpretedFunction || arcObject instanceof Closure)) {
       return true;
     } else if (parameterType.isArray()) {
       return arcObject instanceof Pair;

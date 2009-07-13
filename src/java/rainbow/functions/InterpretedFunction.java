@@ -25,7 +25,7 @@ public abstract class InterpretedFunction extends ArcObject implements Function 
   }
 
   public void interpret(LexicalClosure lc, Continuation caller) {
-    caller.receive(new Threads.Closure(this, lc));
+    caller.receive(new Closure(this, lc));
   }
 
   public int compareTo(ArcObject right) {
