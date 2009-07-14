@@ -24,19 +24,29 @@ public class JavaObject extends ArcObject {
     }
   }
 
-  public static JavaObject instantiate(String className, Pair args) {
+  public static JavaObject instantiate(String className, Pair types, Pair args) {
     try {
       Class target = Class.forName(className);
       if (args.isNil()) {
         return new JavaObject(target.newInstance());
+      } else if (types != null) {
+        if (types.len() != args.len()) {
+          throw new ArcError("type-cast list doesn't match arg list: " + types + " " + args + " constructing " + className);
+        }
+        List typeList = (List) types.unwrap();
+        Class[] paramTypes = (Class[]) typeList.toArray(new Class[typeList.size()]);
+        return construct(target.getConstructor(paramTypes), args);
       } else {
-        Constructor c = findConstructor(target, args);
-        Object[] javaArgs = unwrapList(args, c.getParameterTypes());
-        return new JavaObject(c.newInstance(javaArgs));
+        return construct(findConstructor(target, args), args);
       }
     } catch (Exception e) {
       throw new ArcError("Can't instantiate class " + className + " : " + e.getMessage(), e);
     }
+  }
+
+  private static JavaObject construct(Constructor c, Pair args) throws InstantiationException, IllegalAccessException, InvocationTargetException {
+    Object[] javaArgs = unwrapList(args, c.getParameterTypes());
+    return new JavaObject(c.newInstance(javaArgs));
   }
 
   private static Constructor findConstructor(Class c, Pair args) {
@@ -45,7 +55,10 @@ public class JavaObject extends ArcObject {
       Constructor constructor = c.getConstructors()[i];
       if (constructor.getParameterTypes().length == parameterCount) {
         if (match(constructor.getParameterTypes(), args, 0)) {
-          return constructor; } } }
+          return constructor;
+        }
+      }
+    }
     throw new ArcError("no constructor found matching " + args + " on " + c);
   }
 

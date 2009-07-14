@@ -16,8 +16,23 @@ public abstract class Java {
     top.add(new Builtin[] {
         new Builtin("java-new") {
           protected ArcObject invoke(Pair args) {
-            String className = ArcString.cast(args.car(), this).value();
-            return JavaObject.instantiate(className, (Pair) args.cdr());
+            Pair constructArgs = (Pair) args.cdr();
+            String name = null;
+            Pair types = null;
+            if (args.car() instanceof ArcString) {
+              name = ((ArcString)args.car()).value();
+            } else if (args.car() instanceof Symbol) {
+              name = ((Symbol)args.car()).name();
+            } else {
+              Pair nameTypes = Pair.cast(args.car(), this);
+              types = (Pair) nameTypes.cdr();
+              if (nameTypes.car() instanceof ArcString) {
+                name = ((ArcString)nameTypes.car()).value();
+              } else if (nameTypes.car() instanceof Symbol) {
+                name = ((Symbol)nameTypes.car()).name();
+              }
+            }
+            return JavaObject.instantiate(name, types, constructArgs);              
           }
         }, new Builtin("java-class") {
           protected ArcObject invoke(Pair args) {

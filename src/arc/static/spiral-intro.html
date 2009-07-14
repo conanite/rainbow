@@ -1,66 +1,159 @@
 <html>
+<head>
+  <style type="text/css">
+    pre.arc        { background:black; padding:1em; border:1px solid yellow; }
+    .sym           { color:#80C080;   }
+    .sym.string    { color:#80D080;   }
+    .sym.fn        { color:#C0C0C0; font-weight:bold   }
+    .sym.mac       { color:#8080F0; font-weight:bold   }
+    .string        { color:#B0C0C0;    }
+    .int           { color:#808040;    }
+    .num           { color:#808040;    }
+    .char          { color:#806080;    }
+    .syntax        { color:gray;       }
+    .comment       { color:604060; font-style:italic;     }
+  </style>
+</head>
 <body>
-  <p>This is a simple application that plots values of
-    <code>z &lt;- z<sup><small>2</small></sup> + c</code>
-    for complex numbers <code>z</code> and <code>c</code>
-  </p>
 
-  <p>
-    This application has two pages (apart from this one) -
-  </p>
+  <div style="width:59em;margin-left:auto;margin-right:auto;">
+    <div style="margin-top:1em;">
+      <img src="/spiral-sample-8.png" alt="8"/>
+      <img src="/spiral-sample-15.png" alt="15"/>
+      <img src="/spiral-sample-10.png" alt="10"/>
+      <img src="/spiral-sample-5.png" alt="5"/>
+      <img src="/spiral-sample-4.png" alt="4"/>
+      <img src="/spiral-sample-16.png" alt="16"/>
+      <img src="/spiral-sample-12.png" alt="12"/>
+      <img src="/spiral-sample-17.png" alt="17"/>
+      <img src="/spiral-sample-18.png" alt="18"/>
+    </div>
+
+
+    <p>This is a simple demonstration rainbow/arc application that plots values of
+      <code>z &lt;- z<sup><small>2</small></sup> + c</code>
+      for complex numbers <code>z</code> and <code>c</code>.
+
+      This formula is the one used to generate the Mandelbrot fractal.
+    </p>
+
+    <p>Here is the code to generate the plot:</p>
+
+<pre class='arc'><span class="syntax">(</span><span class="sym mac">def</span> <span class="sym fn">plot</span> <span class="syntax">(</span><span class="sym fn">plt</span> <span class="sym nil">c</span><span class="syntax">)</span>
+  <span class="syntax">(</span><span class="sym mac">with</span> <span class="syntax">(</span><span class="sym nil">z</span> <span class="int nil">0.0+0.0i</span>
+         <span class="sym nil">n</span> <span class="int nil">0</span>
+         <span class="sym nil">repeats</span> <span class="int nil">0</span><span class="syntax">)</span>
+    <span class="syntax">(</span><span class="sym mac">while</span> <span class="syntax">(</span><span class="sym mac">and</span> <span class="syntax">(</span><span class="sym fn">small</span> <span class="sym nil">z</span><span class="syntax">)</span> <span class="syntax">(</span><span class="sym fn">&#60;</span> <span class="sym nil">n</span> <span class="int nil">20000</span><span class="syntax">)</span> <span class="syntax">(</span><span class="sym fn">&#60;</span> <span class="sym nil">repeats</span> <span class="int nil">1000</span><span class="syntax">)</span><span class="syntax">)</span>
+      <span class="syntax">(</span><span class="sym nil">assign</span> <span class="sym nil">n</span>       <span class="syntax">(</span><span class="sym fn">+</span> <span class="sym nil">n</span> <span class="int nil">1</span><span class="syntax">)</span>
+              <span class="sym nil">z</span>       <span class="syntax">(</span><span class="sym fn">+</span> <span class="sym nil">c</span> <span class="syntax">(</span><span class="sym fn">*</span> <span class="sym nil">z</span> <span class="sym nil">z</span><span class="syntax">)</span><span class="syntax">)</span>
+              <span class="sym nil">repeats</span> <span class="syntax">(</span><span class="sym nil">if</span> <span class="syntax">(</span><span class="sym fn">apply</span> <span class="sym fn">plt</span> <span class="syntax">(</span><span class="sym fn">complex-parts</span> <span class="sym nil">z</span><span class="syntax">)</span><span class="syntax">)</span>
+                          <span class="syntax">(</span><span class="sym fn">+</span> <span class="sym nil">repeats</span> <span class="int nil">1</span><span class="syntax">)</span>
+                          <span class="int nil">0</span><span class="syntax">)</span><span class="syntax">)</span><span class="syntax">)</span><span class="syntax">)</span><span class="syntax">)</span>
+</pre>
+
+    <p>
+      I've used <code>(assign n (+ n 1))</code> instead of <code>(++ n)</code>,
+      and <code>(assign z (+ c (* z z)))</code> instead of <code>(zap [+ c (* _ _)] z)</code>,
+      because <code>++</code> and <code>zap</code>, among other unused but otherwise cool macros,
+      use <code>atomic</code> internally, which slows things down awfully.
+
+      And it's slow enough already ...
+    </p>
+
+    <p>
+      Here are some points to get started with:
+    </p>
+
+    <p>
+      <strong>Static plots</strong> - plot the function for a given point, and its neighbours (the <code>nc</code> parameter determines neighbour closeness)
+    </p>
 
     <ul>
       <li>
-        <a href="/spiral">/spiral</a> - plots a function for a given point and for some surrounding points.
+        <a href="/spiral?x=0.1&x0=0.2&y=0.6&y0=0.6&ox=-0.18&oy=0.69&nc=0.01&zoom=2&zoom0=1&frames=20">0.1+0.6i</a>
       </li>
       <li>
-        <a href="/animate">/animate</a> - plots a function for a set of points and animates the resulting images using javascript.
+        <a href="/spiral?x=-0.05&x0=0.2&y=0.59&y0=0.6&ox=-0.18&oy=0.69&nc=0.005&zoom=1.28&zoom0=1&frames=20">-0.05+0.59i</a>
       </li>
-
+      <li>
+        <a href="/spiral?x=-0.042&x0=0.2&y=0.625&y0=0.6&ox=-0.18&oy=0.69&nc=0.002&zoom=1.28&zoom0=1&frames=20">-0.042+0.625i</a>
+      </li>
+      <li>
+        <a href="/spiral?x=-0.092&x0=-0.0318807&y=0.649&y0=0.6418998&ox=-0.18278875&oy=0.6933475&nc=0.0001&zoom=1.966080000000001&zoom0=1&frames=20">-0.092+0.649i</a>
+      </li>
+      <li>
+        <a href="/spiral?x=-0.5&x0=0.4&y=0.5&y0=0.4&ox=0&oy=0.5&nc=0.013&zoom=2&zoom0=2&frames=20">-0.5+0.5i</a>
+      </li>
     </ul>
 
+    <p>
+      <strong>Animations</strong> - plot the function for a sequence of points along a line from x+iy to x0+iy0.
 
-  <p>
-    Here are some points to get started with:
-  </p>
+      <strong>Warning:</strong> some animations are very flashy depending on how chaotic the region you are exploring is.
 
-  Static:
+      Generally, the more frames you use, the slower the animation will be.
+    </p>
 
-  <ul>
-    <li>
-      <a href="/spiral?x=0.1&x0=0.2&y=0.6&y0=0.6&ox=-0.18&oy=0.69&nc=0.01&zoom=2&zoom0=1&frames=20">0.1+0.6i</a>
-    </li>
-    <li>
-      <a href="/spiral?x=-0.05&x0=0.2&y=0.59&y0=0.6&ox=-0.18&oy=0.69&nc=0.005&zoom=1.28&zoom0=1&frames=20">-0.05+0.59i</a>
-    </li>
-    <li>
-      <a href="/spiral?x=-0.042&x0=0.2&y=0.625&y0=0.6&ox=-0.18&oy=0.69&nc=0.002&zoom=1.28&zoom0=1&frames=20">-0.042+0.625i</a>
-    </li>
-    <li>
-      <a href="/spiral?x=-0.092&x0=-0.0318807&y=0.649&y0=0.6418998&ox=-0.18278875&oy=0.6933475&nc=0.0001&zoom=1.966080000000001&zoom0=1&frames=20">-0.092+0.649i</a>
-    </li>
-    <li>
-      <a href="/spiral?x=-0.5&x0=0.4&y=0.5&y0=0.4&ox=0&oy=0.5&nc=0.013&zoom=2&zoom0=2&frames=20">-0.5+0.5i</a>
-    </li>
-  </ul>
+    <ul>
+      <li>
+        <a href="/animate?x=-0.025706206&x0=-0.025706206&y=0.746410795&y0=0.746410795&ox=0.00112736418955&oy=-0.002373162486222&nc=0.000000002&zoom=0.010901331100431&zoom0=2&frames=50">-0.025706206+0.746410795i -&gt; -0.025706206+0.746410795i</a> 50 frames
+      </li>
+      <li>
+        <a href="/animate?x=0.0743&x0=-0.1257&y=0.6464&y0=0.8464&ox=0.0011&oy=-0.0023&nc=0.01&zoom=1.5&zoom0=0.5&frames=400">0.0743+0.6464i -&gt; -0.1257+0.8464i</a> 400 frames
+      </li>
+      <li>
+        <a href="/animate?x=0.1054&x0=0.1055&y=0.6&y0=0.6&ox=-0.12140625&oy=0.69&nc=0.01&zoom=2&zoom0=1&frames=600">0.1054+0.6i -&gt; 0.1055+0.6i</a> 600 frames, wild and chaotic
+      </li>
+      <li>
+        <a href="/animate?x=-0.1&x0=-0.31&y=0.6264&y0=0.6264&ox=-0.1014390625&oy=0.7252390625&nc=0.08&zoom=2.5&zoom0=2.5&frames=1000">-0.1+0.6264i -&gt; -0.31+0.6264i</a> 1000 frames - a 3-armed spiral curls up on itself and explodes
+      </li>
+      <li>
+        <a href="/animate?x=-0.314&x0=-0.317&y=0.6264&y0=0.6264&ox=-0.3&oy=0.45&nc=0.08&zoom=1.3&zoom0=1.3&frames=2000">-0.314+0.6264i -&gt; -0.317+0.6264i</a> 2000 frames trip along the edge of chaos.
+      </li>
+    </ul>
 
-  Animations:
+    <p>
+      This application is written using Rainbow, an implementation of Arc in java.
 
-  <ul>
-    <li>
-      <a href="/animate?x=-0.025706206&x0=-0.025706206&y=0.746410795&y0=0.746410795&ox=0.00112736418955&oy=-0.002373162486222&nc=0.000000002&zoom=0.010901331100431&zoom0=2&frames=50">-0.025706206+0.746410795i -&gt; -0.025706206+0.746410795i</a> 50 frames
-    </li>
-    <li>
-      <a href="/animate?x=0.0743&x0=-0.1257&y=0.6464&y0=0.8464&ox=0.0011&oy=-0.0023&nc=0.01&zoom=1.5&zoom0=0.5&frames=400">0.0743+0.6464i -&gt; -0.1257+0.8464i</a> 400 frames - slow
-    </li>
-    <li>
-      <a href="/animate?x=-0.1&x0=-0.31&y=0.6264&y0=0.6264&ox=-0.1014390625&oy=0.7252390625&nc=0.08&zoom=2.5&zoom0=2.5&frames=1000">-0.1+0.6264i -&gt; -0.31+0.6264i</a> 1000 frames - very slow
-    </li>
-    <li>
-      <a href="/animate?x=-0.314&x0=-0.317&y=0.6264&y0=0.6264&ox=-0.3&oy=0.45&nc=0.08&zoom=1.3&zoom0=1.3&frames=2000">-0.314+0.6264i -&gt; -0.317+0.6264i</a> 2000 frames - painfully slow
-    </li>
-  </ul>
+      You can get rainbow at <a href="http://github.com/conanite/rainbow/tree/master">http://github.com/conanite/rainbow/tree/master</a>.
 
-  <p>This application is written using Rainbow, a java implementation of Arc. It uses </p>
+      The app uses a BufferedImage to render each image, and ImageIO to convert this into a PNG stream.
+
+      To run this yourself, download rainbow from github, compile and run it, type
+
+      <pre>  arc> (start-spiral-app)</pre>
+
+      and go to <a href="http://localhost:8085/spiral-intro.html">http://localhost:8085/spiral-intro.html</a> (this page, but on your machine).
+
+      It is known to work on java5 on macosx and ubuntu, and java6 on ubuntu.
+
+      To run as a daemon process, remember to specify <code>-Djava.awt.headless=true</code>.
+    </p>
+
+    <div style="width:80%;margin-left:auto;margin-right:auto;background:#FFF0F0;border:1px solid yellow;">
+      <pre>
+        Portions of this software are copyright (c) Conan Dalton 2008-2009.  Permission
+        to use it is granted under the Perl Foundation's Artistic License 2.0.
+
+        This software is based on and uses software that is copyright (c) Paul Graham
+        and Robert Morris.  Permission to use it is granted under the Perl Foundation's
+        Artistic License 2.0.
+
+        <a href="http://www.perlfoundation.org/artistic_license_2_0">Perl Foundation's Artistic License 2.0</a>
+      </pre>
+    </div>
+
+    <div style="margin-top:1em;">
+      <img src="/spiral-sample-1.png" alt="1"/>
+      <img src="/spiral-sample-2.png" alt="2"/>
+      <img src="/spiral-sample-3.png" alt="3"/>
+      <img src="/spiral-sample-13.png" alt="13"/>
+      <img src="/spiral-sample-9.png" alt="9"/>
+      <img src="/spiral-sample-6.png" alt="6"/>
+      <img src="/spiral-sample-7.png" alt="7"/>
+      <img src="/spiral-sample-14.png" alt="14"/>
+      <img src="/spiral-sample-11.png" alt="11"/>
+    </div>
+  </div>
 </body>
 </html>

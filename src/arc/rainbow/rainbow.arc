@@ -6,11 +6,14 @@
 (mac defcall (name parms . body)
   `(sref call* (fn ,parms ,@body) ',name))
 
-(mac java-import (class (o simple-name (last:tokens class #\.)))
+(mac java-import (class (o simple-name (last:tokens string.class #\.)))
+  (= class string.class)
   `(mac ,(sym simple-name) (method . args)
      (if (is method 'new)       `(java-new ,,class ,@args)
          (is method 'implement) `(java-implement ,,class ,@args)
-                                `(java-static-invoke ,,class ',method ,@args))))
+         (is method 'class)     `(java-static-invoke "java.lang.Class" 'forName ,,class)
+         (is type.method 'sym)  `(java-static-invoke ,,class ',method ,@args)
+                                `(java-static-invoke ,,class ,method ,@args))))
 
 (def java-accessor (dir name)
   (let prop-chars (coerce (string name) 'cons)

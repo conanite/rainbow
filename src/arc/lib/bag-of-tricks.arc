@@ -56,7 +56,7 @@
 
 (mac requires (func lib)
   `(def ,func args
-    (require-lib ,lib)
+    (require-lib ',lib)
     (apply ,func args)))
 
 (mac require-by-name (path . funcs)

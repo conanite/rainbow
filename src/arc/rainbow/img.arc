@@ -32,9 +32,9 @@
                             (= (seen k) t)
                             (gc 'fillRect x y 1 1)
                             already))
-      (make-obj
-        (plot  (x y)  (plot-point (sc x origin-x) (- h (sc y origin-y))))
-        (write (out)  (write-img img out)))))))
+      (list
+        (fn (x y)  (plot-point (sc x origin-x) (- h (sc y origin-y))))
+        (fn (out)  (write-img img out)))))))
 
 
 

@@ -278,7 +278,7 @@
           (= (left 3) (right 3)))
       (scar cdr.right (unmatchify:cadr right))))
 
-(def index-source (text)
+(def index-source (text (o keep-whitespace))
   (if (is (type text) 'string)
       (= text (instring text)))
 
@@ -298,7 +298,8 @@
                                                     (if (token? left-tok 'syntax 'interpolation)
                                                         (in-string))
                                                     (link-parens token left-tok)))
-            (is kind 'whitespace)                (fpop result))))
+            (and no.keep-whitespace (is kind 'whitespace))
+                                                 (fpop result))))
     (each unmatched (list quotes parens brackets)
       (each p unmatched (scar cdr.p (unmatchify:cadr p))))
     (list (rev result) (linecount))))

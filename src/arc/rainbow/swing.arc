@@ -1,26 +1,33 @@
-(java-import "java.awt.Font")
-(java-import "javax.swing.KeyStroke")
-(java-import "javax.swing.JMenuBar")
-(java-import "javax.swing.JLabel")
-(java-import "java.awt.event.KeyListener")
-(java-import "javax.swing.SwingUtilities")
-(java-import "javax.swing.SwingConstants")
-(java-import "javax.swing.JFileChooser")
-(java-import "javax.swing.BoxLayout")
-(java-import "javax.swing.ScrollPaneConstants")
+(java-import java.lang.Integer)
+(java-import java.lang.Float)
+(java-import java.awt.Font)
+(java-import javax.swing.KeyStroke)
+(java-import javax.swing.JMenuBar)
+(java-import javax.swing.JLabel)
+(java-import java.awt.event.KeyListener)
+(java-import javax.swing.SwingUtilities)
+(java-import javax.swing.SwingConstants)
+(java-import javax.swing.JFileChooser)
+(java-import javax.swing.BoxLayout)
+(java-import javax.swing.ScrollPaneConstants)
 
-(= file-chooser-approve*        (JFileChooser APPROVE_OPTION)
+(= java-int-type                Integer.TYPE
+   java-float-type              Float.TYPE
+   file-chooser-approve*        (JFileChooser APPROVE_OPTION)
    font-plain*                  (Font PLAIN)
    box-layout-vertical*         (BoxLayout Y_AXIS)
    horizontal_scrollbar_always* (ScrollPaneConstants HORIZONTAL_SCROLLBAR_ALWAYS))
 
-(defmemo awt-color (r (o g) (o b))
-  (if (is (type r) 'sym)      (java-static-field "java.awt.Color" r)
-      (is (type r) 'string)   (apply awt-color (from-css-colour r))
-                              (java-new "java.awt.Color" r g b)))
+(with (float-constructor `(java.awt.Color ,java-float-type ,java-float-type ,java-float-type)
+       int-constructor   `(java.awt.Color ,java-int-type ,java-int-type ,java-int-type))
+  (defmemo awt-color (r (o g) (o b))
+    (if (is (type r) 'sym)      (java-static-field "java.awt.Color" r)
+        (is (type r) 'string)   (apply awt-color (from-css-colour r))
+        (< r 1.0)               (java-new float-constructor r g b)
+                                (java-new int-constructor r g b))))
 
 (defmemo from-css-colour (c)
-  (let xfy (fn (ndx) 
+  (let xfy (fn (ndx)
                (/ (coerce (cut c ndx (+ ndx 2)) 'int 16) 256.0))
     (list (xfy 1) (xfy 3) (xfy 5))))
 
@@ -97,9 +104,9 @@
   (alet (bean "javax.swing.JFrame"
           'bounds       (list left top width height)
           'title        title)
-    (it!getContentPane 'setLayout 
-                       (BoxLayout new 
-                                  it!getContentPane 
+    (it!getContentPane 'setLayout
+                       (BoxLayout new
+                                  it!getContentPane
                                   (BoxLayout Y_AXIS)))))
 
 (def panel () (bean "javax.swing.JPanel"))

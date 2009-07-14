@@ -1,24 +1,35 @@
-To download and build rainbow:
+To download and build rainbow and open a REPL:
 
   git clone git://github.com/conanite/rainbow.git
   cd rainbow
   ant jar
   cd src/arc
-
-Open a REPL
-
   java -server -jar rainbow.jar
 
-Open welder.arc in welder:
+Rainbow comes with a small number of sample apps that demonstrate how to access java from arc.
 
-  java -server -jar rainbow.jar -e '(welder "src/arc/rainbow/welder.arc")'
+Welder, an arc IDE:
+
+  arc> (welder "rainbow/welder.arc")
+
+A filesystem browser
+
+  arc> (fsb)
 
 Play tetris:
 
-  java -server -jar rainbow.jar -e '(tetris)' 
+  arc> (tetris)
+
+Play minesweeper:
+
+  arc> (mines)
+
+A web application that plots z <- z^2 + c, the Mandelbrot formula:
+
+  arc> (start-spiral-app)
+
 
 Command-line options:
-  --strict-arc              # don't include anarki-compatible extensions
   -f file1 ... fileN        # evaluate each file
   -e '(arc axpr)'           # evaluate arc expr (after having evaluated -f, if specified)
   -args a b c               # sets "*argv*" in the arc environment to (a b c). This option, if present, must be specified last.

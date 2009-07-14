@@ -1,4 +1,4 @@
-(require-lib "rainbow/img") 
+(require-lib "rainbow/img")
 
 (attribute script src  opstring)
 (attribute script type opstring)
@@ -126,13 +126,6 @@
          (it str req)
          (pr dead-msg*))))
 
-(def img-generator (x y w h ox oy zoom)
-  (fn (os req)
-    (prn (type-header* 'png))
-    (prn "\r")
-    (let p (plot x y w h ox oy zoom)
-      ((p 'write) os))))
-
 (def spiral-img (id x y w h ox oy zoom (o display "''"))
   (tag (img
     id     id
@@ -185,18 +178,24 @@
   (let (x y) (complex-parts z)
     (and (< x 4) (< y 4))))
 
-(def plot (x y w h ox oy zoom)
-  (with (c (make-complex x y)
-         p (plotter `(,w ,h) `(,ox ,oy) zoom (awt-color 0 0 0) (awt-color 1 1 1))
-         z 0+0i
+(def img-generator (x y w h ox oy zoom)
+  (fn (os req)
+    (prn (type-header* 'png))
+    (prn "\r")
+    (let (plt write-img) (plotter `(,w ,h) `(,ox ,oy) zoom (awt-color 0 0 0) (awt-color 255 255 255))
+      (plot plt (make-complex x y))
+      (write-img os))))
+
+(def plot (plt c)
+  (with (z 0+0i
          n 0
          repeats 0)
     (while (and (small z) (< n 20000) (< repeats 1000))
-      (++ n)
-      (assign z (+ c (* z z)))
-      (if (apply p!plot (complex-parts z)) (++ repeats)
-                                           (= repeats 0)))
-    p))
+      (assign n       (+ n 1)
+              z       (+ c (* z z))
+              repeats (if (apply plt (complex-parts z))
+                          (+ repeats 1)
+                          0)))))
 
 (def draw-spiral (req)
   (spiral-params req
