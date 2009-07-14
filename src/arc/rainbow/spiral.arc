@@ -35,6 +35,8 @@
   `(tag html
      (spiral-head)
      (tag body
+       (tag b (tag (a href "/spiral-intro.html") (pr "home")))
+       (br)
        (tag table
          (tag tr
            (tag (td valign "top") ,left)
@@ -233,14 +235,16 @@
 
 (def animation-info ()
   (tag (span id "animinfo") (nbsp))
-  (br)
-  (tag (input id "fps" value "20"))
-  (pr "fps"))
+  (nbsp)
+  (tag (input id "fps" value "20" style "width:3em;font-size:66%;"))
+  (pr "fps")
+  (br))
 
 (defop animate req
   (spiral-params req
     (spiralpage (spiral-form x y x0 y0 zoom zoom0 ox oy nc frames)
                 (do (animation-info)
+                    (br)
                     (animation x y x0 y0 zoom zoom0 ox oy nc frames))
                 (tag (script type "text/javascript") (pr "$s.install();$s.animate();")))))
 
@@ -262,6 +266,6 @@
 ; /animate?x=-0.662957&y=-0.32&x0=-0.662957&y0=-0.35&ox=-0.90390625&oy=-0.5171875&nc=0.005&zoom=1&frames=200
 ; /animate?x=0.254&y=0.003&x0=0.264&y0=0.003&ox=0.2&oy=-0.03&nc=0.003&zoom=0.589824&frames=200
 ; /spiral?x=0.25048&y=0&x0=0.263&y0=0.003&ox=0.20576&oy=-0.218928&nc=0.00001&zoom=0.589824&frames=200
-; /animate?x=0.25048&y=-0.00081&x0=0.25048&y0=0.00081&ox=0.20576&oy=-0.218928&nc=0.00001&zoom=0.589824&frames=200
-; /spiral?x=-0.031&y=0.642&x0=0&y0=0&ox=-1.2960625&oy=-0.5186875&nc=0.001&zoom=2.304&frames=10
-; /spiral?x=-0.0318807&y=0.6418998&x0=0&y0=0&ox=-0.015388035658146&oy=-0.010260485213829&nc=0.0000000001&zoom=0.033204139332677&frames=10
+
+
+
