@@ -23,7 +23,7 @@
           nc     (num-param ,req "nc"     0.01)
           zoom   (num-param ,req "zoom"   2)
           zoom0  (num-param ,req "zoom0"  2)
-          frames (num-param ,req "frames" 10))
+          frames (num-param ,req "frames" 10 120))
      ,@body))
 
 (mac spiral-head ()
@@ -167,11 +167,12 @@
          (each x nb-array
            (tag td (pr:spiral-neighbour-x-label req x))))))
 
-(def num-param (req name default)
-  (coerce (or (arg req name) default) 'num))
+(def num-param (req name default (o max-val))
+  (alet (coerce (or (arg req name) default) 'num)
+    (if max-val (min it max-val) it)))
 
 (def join-str (token args)
-     (apply + (interleave token args)))
+  (apply + (interleave token args)))
 
 (def qs (req)
   (join-str "&" (map [+ (car _) "=" (cadr _)] (req 'args))))
@@ -192,7 +193,7 @@
   (with (z 0+0i
          n 0
          repeats 0)
-    (while (and (small z) (< n 20000) (< repeats 1000))
+    (while (and (small z) (< n 8000) (< repeats 1000))
       (assign n       (+ n 1)
               z       (+ c (* z z))
               repeats (if (apply plt (complex-parts z))
@@ -236,7 +237,7 @@
 (def animation-info ()
   (tag (span id "animinfo") (nbsp))
   (nbsp)
-  (tag (input id "fps" value "20" style "width:3em;font-size:66%;"))
+  (tag (input id "fps" value "12" style "width:3em;font-size:66%;"))
   (pr "fps")
   (br))
 

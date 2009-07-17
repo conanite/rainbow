@@ -200,10 +200,11 @@
 (mac choose-save-file (chooser file . actions)
   `(jfilechooser ,chooser ,file showSaveDialog ,@actions))
 
+(def convert-keystroke (ks)
+  (sym:downcase:subst "-" " " (subst "" "pressed " ks!toString)))
+
 (def convert-key-event (event)
-  (let ks ((KeyStroke getKeyStrokeForEvent event) 'toString)
-    (coerce (downcase (subst "-" " " (subst "" "pressed " ks)))
-            'sym)))
+  (convert-keystroke (KeyStroke getKeyStrokeForEvent event)))
 
 (mac create-action (label help-text . body)
   `(obj label     ,label

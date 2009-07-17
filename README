@@ -6,6 +6,12 @@ To download and build rainbow and open a REPL:
   cd src/arc
   java -server -jar rainbow.jar
 
+Make sure you have ant installed, including the optional libraries. On ubuntu or similar,
+
+  sudo apt-get install ant ant-optional
+
+On macosx, ant comes with the Developer Tools.
+
 Rainbow comes with a small number of sample apps that demonstrate how to access java from arc.
 
 Welder, an arc IDE:

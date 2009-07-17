@@ -686,6 +686,12 @@
     (= editor!search search)))
 
 (welder-init (editor)
+  (afnwith (m editor!pane!getInputMap)
+    (when m
+      (map [m 'remove _] (keep [in convert-keystroke._ 'ctrl-w 'ctrl-h] m!allKeys))
+      (self m!getParent))))
+
+(welder-init (editor)
   (fill-table editor (list
     'update-thread  (thread (follow-updates editor))
     'handle-key     (fn (keystroke)
