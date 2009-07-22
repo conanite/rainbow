@@ -65,6 +65,11 @@
         ) (table) (table))
       0)
 
+    ("constructor function"
+      ((table [do (= _!foo 'bar) (= _!toto 'titi)]) 'foo)
+      bar
+    )
+
     ("get the size of a table"
       ( len ( (fn (hash)
               (sref hash 'a "alpha")

@@ -6,11 +6,19 @@ import rainbow.types.ArcObject;
 import rainbow.types.Hash;
 import rainbow.types.Pair;
 import rainbow.vm.Continuation;
+import rainbow.vm.continuations.ResultPassingContinuation;
 
 public class Tables {
   public static class Table extends Builtin {
-    public ArcObject invoke(Pair args) {
-      return new Hash();
+    @Override
+    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+      Hash hash = new Hash();
+      if (args.isNil()) {
+        caller.receive(hash);
+      } else {
+        Function f = Builtin.cast(args.car(), "table");
+        f.invoke(lc, new ResultPassingContinuation(caller, hash), Pair.buildFrom(hash));
+      }
     }
   }
 

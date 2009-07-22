@@ -347,11 +347,7 @@
   <component name="ProjectDetails">
     <option name="projectName" value="rainbow" />
   </component>
-  <component name="ProjectFileVersion" converted="true">
-    <converter id="javaee-modules" />
-    <converter id="ror-modules" />
-    <converter id="SelenaRunConfToDiana" />
-  </component>
+  <component name="ProjectFileVersion" converted="true" />
   <component name="ProjectKey">
     <option name="state" value="project:///Users/conan/projects/rainbow/rainbow.ipr" />
   </component>
