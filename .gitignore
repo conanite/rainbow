@@ -3,3 +3,4 @@
 .manager
 *.jar
 build
+src/java/rainbow/parser

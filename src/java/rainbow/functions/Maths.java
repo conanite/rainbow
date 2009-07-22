@@ -2,6 +2,7 @@ package rainbow.functions;
 
 import rainbow.ArcError;
 import rainbow.Environment;
+import rainbow.Nil;
 import rainbow.types.*;
 
 import java.util.LinkedList;
@@ -87,6 +88,8 @@ public abstract class Maths {
         public ArcObject invoke(Pair args) {
           if (args.car() instanceof ArcNumber) {
             return sum(args);
+          } else if (args instanceof Nil) {
+            return sum(args);
           } else if (args.car() instanceof ArcString) {
             try {
               return concat(args);
@@ -101,8 +104,13 @@ public abstract class Maths {
         }
       }, new Builtin("-") {
         public ArcObject invoke(Pair args) {
+          if (args instanceof Nil) {
+            throw new ArcError("Function `-` expected at least 1 arg");
+          }
+
           ArcNumber first = ((ArcNumber) args.car()).negate();
           Pair rest = (Pair) args.cdr();
+
           if (rest.isNil()) {
             return first;
           }
@@ -114,6 +122,10 @@ public abstract class Maths {
         }
       }, new Builtin("/") {
         public ArcObject invoke(Pair args) {
+          if (args instanceof Nil) {
+            throw new ArcError("Function `-` expected at least 1 arg");
+          }
+
           return precision(args).divide(args);
         }
       }
@@ -245,7 +257,7 @@ public abstract class Maths {
     }
 
     public ArcNumber divide(Pair args) {
-      double first = ((ArcNumber) args.car()).toDouble();
+      double first = (args.cdr() instanceof Nil) ? 1.0d / ((ArcNumber) args.car()).toDouble() : ((ArcNumber) args.car()).toDouble();
       return Real.make(first / multiplyDouble((Pair) args.cdr()));
     }
 
@@ -301,7 +313,7 @@ public abstract class Maths {
     }
 
     public ArcNumber divide(Pair args) {
-      Rational first = (Rational) args.car();
+      Rational first = (Rational) ((args.cdr() instanceof Nil) ? ((Rational) args.car()).invert() : (Rational) args.car());
       return first.times(multiply((Pair) args.cdr()).invert());
     }
   };
