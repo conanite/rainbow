@@ -1,0 +1,35 @@
+package rainbow.vm.instructions.assign.free;
+
+import rainbow.LexicalClosure;
+import rainbow.types.ArcObject;
+import rainbow.types.Symbol;
+import rainbow.vm.VM;
+
+import java.util.List;
+
+public class Assign_Free_Other extends Assign_Free {
+  public Assign_Free_Other(Symbol name) {
+    super(name);
+  }
+
+  public void operate(VM vm) {
+    name.setValue(vm.peekA());
+  }
+
+  public String toString() {
+    return "(assign-free " + name + ")";
+  }
+
+  public String toString(LexicalClosure lc) {
+    return "(assign-free " + name + " -> " + symValue(name) + ")";
+  }
+
+  public static void addInstructions(List i, Symbol name, ArcObject expr, boolean last) {
+    expr.addInstructions(i);
+    if (last) {
+      i.add(new Assign_Free_Other(name));
+    } else {
+      i.add(new Assign_Free_Other_Intermediate(name));
+    }
+  }
+}
