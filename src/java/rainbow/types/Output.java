@@ -4,8 +4,8 @@ import rainbow.ArcError;
 
 import java.io.PrintStream;
 
-public class Output extends ArcObject {
-  public static Symbol TYPE = (Symbol) Symbol.make("output");
+public class Output extends LiteralObject {
+  public static Symbol TYPE = Symbol.mkSym("output");
   private PrintStream out;
 
   public Output(PrintStream out) {

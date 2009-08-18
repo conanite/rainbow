@@ -18,7 +18,6 @@ public class TableMapper extends Instruction {
       vm.pushA(list.cdr());
       vm.pushFrame(this);
       Pair args = (Pair) list.car();
-      args = Pair.buildFrom(args.car(), args.cdr());
       vm.pushFrame(new PopArg("map-table-iterator"));
       fn.invoke(vm, args);
     }

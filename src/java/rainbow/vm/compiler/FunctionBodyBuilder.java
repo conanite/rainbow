@@ -2,73 +2,47 @@ package rainbow.vm.compiler;
 
 import rainbow.functions.InterpretedFunction;
 import rainbow.types.ArcObject;
+import static rainbow.types.ArcObject.NIL;
 import rainbow.types.Pair;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.ContinuationSupport;
+import rainbow.vm.VM;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
-public class FunctionBodyBuilder extends ContinuationSupport {
-  private ArcObject parameters;
-  private Pair body;
-  private List result = new LinkedList();
-  private boolean expectingBody;
-  private ArcObject parameterList;
-  private Map[] lexicalBindings;
-  private Map myParams;
-  private ArcObject complexParams;
+public class FunctionBodyBuilder {
 
-  public FunctionBodyBuilder(Continuation caller, Pair args, Map[] lexicalBindings) {
-    super(caller);
+  public static ArcObject build(VM vm, Pair args, Map[] lexicalBindings) {
     if (lexicalBindings == null) {
       throw new IllegalArgumentException("can't have null lexical bindings!");
     }
-    this.lexicalBindings = lexicalBindings;
-    this.parameters = args.car();
-    this.body = Pair.cast(args.cdr(), this);
-  }
-
-  public void start() {
-    myParams = new HashMap();
+    Map myParams = new HashMap();
+    ArcObject parameters = args.car();
+    ArcObject complexParams;
+    ArcObject parameterList;
     if (parameters.isNil()) {
-      onReceive(parameters);
+      complexParams = NIL;
+      parameterList = NIL;
     } else {
-      this.lexicalBindings = concat(myParams, lexicalBindings);
-      new FunctionParameterListBuilder(this, parameters, lexicalBindings).start();
+      lexicalBindings = concat(myParams, lexicalBindings);
+      ArcObject fpl = FunctionParameterListBuilder.build(vm, parameters, lexicalBindings);
+      complexParams = fpl.car();
+      parameterList = fpl.cdr();
     }
+
+    Pair body = (Pair) args.cdr();
+    Pair expandedBody = PairExpander.expand(vm, body, lexicalBindings);
+    return buildFunctionBody(parameterList, myParams, expandedBody, complexParams);
   }
 
-  protected void onReceive(ArcObject returned) {
-    if (expectingBody) {
-      caller.receive(buildFunctionBody(parameterList, myParams, (Pair) returned, complexParams));
-    } else {
-      expectingBody = true;
-      this.complexParams = returned.car();
-      this.parameterList = returned.cdr();
-      new PairExpander(this, body, lexicalBindings).start();
-    }
-  }
-
-  private Map[] concat(Map map, Map[] lexicalBindings) {
+  private static Map[] concat(Map map, Map[] lexicalBindings) {
     Map[] result = new Map[lexicalBindings.length + 1];
     result[0] = map;
     System.arraycopy(lexicalBindings, 0, result, 1, lexicalBindings.length);
     return result;
   }
 
-  public Continuation cloneFor(ArcThread thread) {
-    FunctionBodyBuilder e = (FunctionBodyBuilder) super.cloneFor(thread);
-    e.body = this.body.copy();
-    e.result = new LinkedList(result);
-    return e;
-  }
-
-  private ArcObject buildFunctionBody(ArcObject parameterList, Map lexicalBindings, Pair expandedBody, ArcObject complexParams) {
-    if (this.parameterList.isNil()) {
+  private static ArcObject buildFunctionBody(ArcObject parameterList, Map lexicalBindings, Pair expandedBody, ArcObject complexParams) {
+    if (parameterList.isNil()) {
       return new InterpretedFunction.ZeroArgs(lexicalBindings, expandedBody);
     } else if (!complexParams.isNil()) {
       return new InterpretedFunction.ComplexArgs(parameterList, lexicalBindings, expandedBody);

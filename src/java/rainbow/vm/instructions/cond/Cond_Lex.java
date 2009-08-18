@@ -21,7 +21,7 @@ public abstract class Cond_Lex extends Instruction {
     } else if (thenExpression.literal()) {
       i.add(new Cond_Lex_Literal(ifExpression, thenExpression, (ArcObject) next));
     } else if (thenExpression instanceof Quotation) {
-      i.add(new Cond_Lex_Literal(ifExpression, ((Quotation) thenExpression).getQuoted(), (ArcObject) next));
+      i.add(new Cond_Lex_Literal(ifExpression, ((Quotation) thenExpression).quoted(), (ArcObject) next));
     } else {
       i.add(new Cond_Lex_Other(ifExpression, thenExpression, next));
     }

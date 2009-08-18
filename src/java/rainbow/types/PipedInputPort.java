@@ -1,6 +1,6 @@
 package rainbow.types;
 
-import rainbow.functions.SystemFunctions;
+import rainbow.functions.system.SystemFunctions;
 
 import java.io.InputStream;
 import java.io.IOException;

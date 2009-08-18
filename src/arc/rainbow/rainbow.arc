@@ -12,6 +12,7 @@
      (if (is method 'new)       `(java-new ,,class ,@args)
          (is method 'implement) `(java-implement ,,class ,@args)
          (is method 'class)     `(java-static-invoke "java.lang.Class" 'forName ,,class)
+         (is method '*reflect)  `(each m ((,',(sym simple-name) class) 'getMethods) (prn m))
          (is type.method 'sym)  `(java-static-invoke ,,class ',method ,@args)
                                 `(java-static-invoke ,,class ,method ,@args))))
 
@@ -50,3 +51,9 @@
   (implement "java.util.Iterator"
     hasNext (fn () xs)
     next    (fn () (mapper (pop xs)))))
+
+(java-import java.io.File)
+
+(def canonical-path (file)
+  ((File new file) 'getCanonicalPath))
+

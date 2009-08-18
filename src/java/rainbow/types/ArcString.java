@@ -1,33 +1,11 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.Function;
-import rainbow.LexicalClosure;
 import rainbow.functions.Builtin;
-import rainbow.vm.Continuation;
+import rainbow.vm.VM;
 
-public class ArcString extends ArcObject implements Function {
-  public static final Symbol TYPE = (Symbol) Symbol.make("string");
-
-  public static final Function REF = new Function() {
-    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-      Builtin.checkMaxArgCount(args, getClass(), 2);
-      ArcString string = ArcString.cast(args.car(), this);
-      Rational index = Rational.cast(args.cdr().car(), this);
-      if (!index.isInteger()) {
-        throw new ArcError("string-ref: expects exact integer: got " + index);
-      }
-      int i = (int) index.toInt();
-      if (i < 0 || i >= string.value.length()) {
-        throw new ArcError("string-ref: index " + i + " out of range [0, " + (string.value.length() - 1) + "] for string " + toString());
-      }
-      caller.receive(new ArcCharacter(string.value.charAt(i)));
-    }
-
-    public String toString() {
-      return "string-ref";
-    }
-  };
+public class ArcString extends LiteralObject {
+  public static final Symbol TYPE = Symbol.mkSym("string");
 
   private String value;
 
@@ -35,12 +13,18 @@ public class ArcString extends ArcObject implements Function {
     this.value = value;
   }
 
-  public boolean literal() {
-    return true;
-  }
-
-  public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-    REF.invoke(lc, caller, new Pair(this, args));
+  public void invoke(VM vm, Pair args) {
+    Builtin.checkMaxArgCount(args, getClass(), 1);
+    ArcString string = this;
+    Rational index = Rational.cast(args.car(), this);
+    if (!index.isInteger()) {
+      throw new ArcError("string-ref: expects exact integer: got " + index);
+    }
+    int i = (int) index.toInt();
+    if (i < 0 || i >= string.value.length()) {
+      throw new ArcError("string-ref: index " + i + " out of range [0, " + (string.value.length() - 1) + "] for string " + toString());
+    }
+    vm.pushA(new ArcCharacter(string.value.charAt(i)));
   }
 
   public String value() {
@@ -74,10 +58,6 @@ public class ArcString extends ArcObject implements Function {
 
   public long len() {
     return value.length();
-  }
-
-  public Function refFn() {
-    return ArcString.REF;
   }
 
   public ArcObject scar(ArcObject character) {

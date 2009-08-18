@@ -44,6 +44,8 @@
     (prn "failed: " results!failed)
     (/ results!passed (+ results!passed results!failed))))
 
+(assign rat run-all-tests)
+
 (def run-tests (tests (o results (obj passed 0 failed 0)))
   "executes the given tests. 'results is a hash with
    keys 'passed and 'failed"
@@ -58,8 +60,11 @@
 (def execute-single-test (desc test results)
 	(with (expected (test 2) result (on-err [+ "Error thrown: " (details _)] (fn () (eval (cadr test)))))
 	      (if (iso result expected)
-	          (do (if (is show-failed-only nil) (prn desc " - " (car test) " - ok")) (++ results!passed))
-	          (do (prn desc " - " (car test) " - FAILED: expected " expected ", got " result) (++ results!failed)))))
+	          (do (if (is show-failed-only nil)
+	                  (prn desc " - " (car test) " - ok"))
+	              (++ results!passed))
+	          (do (prn desc " - " (car test) " - FAILED: expected " expected ", got " result)
+	              (++ results!failed)))))
 
 (def execute-tests (desc tests results)
   (execute-test desc (car tests) results)

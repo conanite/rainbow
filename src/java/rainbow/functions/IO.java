@@ -1,13 +1,11 @@
 package rainbow.functions;
 
-import rainbow.*;
-import rainbow.types.*;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.CallWStdinContinuation;
-import rainbow.vm.continuations.CallWStdoutContinuation;
+import rainbow.ArcError;
+import rainbow.types.ArcObject;
+import rainbow.types.Input;
+import rainbow.types.Output;
 
-public class IO {
+public abstract class IO {
   public static Output STD_OUT = new Output(System.out) {
     public void close() {
     }
@@ -33,90 +31,27 @@ public class IO {
     }
   };
 
-  public static void collect(Environment top) {
-    top.add(new Builtin[]{
-      new Builtin("call-w/stdin") {
-        public void invoke(LexicalClosure lc, final Continuation caller, Pair args) {
-          final Input previous = caller.thread().swapStdIn(Input.cast(args.car(), this));
-          final Function thunk = Builtin.cast(args.cdr().car(), this);
-          thunk.invoke(lc, new CallWStdinContinuation(lc, caller, previous), NIL);
-        }
-      }, new Builtin("call-w/stdout") {
-        public void invoke(LexicalClosure lc, final Continuation caller, Pair args) {
-          final Output previous = caller.thread().swapStdOut(Output.cast(args.car(), this));
-          final Function thunk = Builtin.cast(args.cdr().car(), this);
-          thunk.invoke(lc, new CallWStdoutContinuation(lc, caller, previous), NIL);
-        }
-      }, new Builtin("stdin") {
-        public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-          caller.receive(caller.thread().stdIn());
-        }
-      }, new Builtin("stdout") {
-        public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-          caller.receive(caller.thread().stdOut());
-        }
-      }, new Builtin("stderr") {
-        public ArcObject invoke(Pair args) {
-          return STD_ERR;
-        }
-      }, new Builtin("disp") {
-        public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-          Output out = chooseOutputPort(args.cdr().car(), caller.thread(), this);
-          ArcObject o = args.car();
-          if (o instanceof ArcString) {
-            out.write(((ArcString) o).value());
-          } else if (o instanceof ArcCharacter) {
-            out.writeChar((ArcCharacter) o);
-          } else {
-            out.write(o);
-          }
-          caller.receive(NIL);
-        }
-      }, new Builtin("write") {
-        public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-          chooseOutputPort(args.cdr().car(), caller.thread(), this).write(args.car());
-          caller.receive(NIL);
-        }
-      }, new Builtin("sread") {
-        public ArcObject invoke(Pair args) {
-          return Input.cast(args.car(), this).readObject(args.cdr().car());
-        }
-      }, new Builtin("writeb") {
-        public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-          chooseOutputPort(args.cdr().car(), caller.thread(), this).writeByte(Rational.cast(args.car(), this));
-          caller.receive(NIL);
-        }
-      }, new Builtin("writec") {
-        public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-          chooseOutputPort(args.cdr().car(), caller.thread(), this).writeChar(ArcCharacter.cast(args.car(), this));
-          caller.receive(NIL);
-        }
-      }, new Builtin("readb") {
-        public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-          caller.receive(chooseInputPort(args.car(), caller.thread(), this).readByte());
-        }
-      }, new Builtin("readc") {
-        public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-          caller.receive(chooseInputPort(args.car(), caller.thread(), this).readCharacter());
-        }
-      }, new Builtin("flushout") {
-        public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-          caller.thread().stdOut().flush();
-          caller.receive(T);
-        }
-      }, new Builtin("close") {
-        public ArcObject invoke(Pair args) {
-          while (!args.isNil()) {
-            close(args.car());
-            args = (Pair) args.cdr();
-          }
-          return NIL;
-        }
-      },
-    });
+  public static final ThreadLocal<Input> stdIn = new ThreadLocal() {
+    protected Object initialValue() {
+      return STD_IN;
+    }
+  };
+
+  public static final ThreadLocal<Output> stdOut = new ThreadLocal() {
+    protected Object initialValue() {
+      return STD_OUT;
+    }
+  };
+
+  public static Input stdIn() {
+    return stdIn.get();
   }
 
-  private static void close(ArcObject port) {
+  public static Output stdOut() {
+    return stdOut.get();
+  }
+
+  public static void close(ArcObject port) {
     if (port instanceof Input) {
       ((Input) port).close();
     } else if (port instanceof Output) {
@@ -126,24 +61,20 @@ public class IO {
     }
   }
 
-  private static Output chooseOutputPort(ArcObject port, ArcThread thread, Object caller) {
-    Output out;
+  public static Output chooseOutputPort(ArcObject port, Object caller) {
     if (!port.isNil()) {
-      out = Output.cast(port, caller);
+      return Output.cast(port, caller);
     } else {
-      out = thread.stdOut();
+      return stdOut();
     }
-    return out;
   }
 
-  private static Input chooseInputPort(ArcObject port, ArcThread thread, Object caller) {
-    Input in;
+  public static Input chooseInputPort(ArcObject port, Object caller) {
     if (!port.isNil()) {
-      in = Input.cast(port, caller);
+      return Input.cast(port, caller);
     } else {
-      in = thread.stdIn();
+      return stdIn();
     }
-    return in;
   }
 
 }

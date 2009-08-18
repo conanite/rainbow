@@ -1,11 +1,12 @@
 package rainbow.vm.interpreter;
 
+import rainbow.ArcError;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.ArcError;
-import rainbow.LexicalClosure;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.AssignmentContinuation;
+import rainbow.vm.instructions.assign.bound.Assign_Lex;
+import rainbow.vm.instructions.assign.free.Assign_Free;
+
+import java.util.List;
 
 public class LastAssignment extends SingleAssignment {
 
@@ -23,8 +24,15 @@ public class LastAssignment extends SingleAssignment {
     }
   }
 
-  public void assign(LexicalClosure lc, Continuation caller, AssignmentContinuation assigning, ArcObject value) {
-    name.setSymbolValue(lc, value);
-    caller.receive(value);
+  public String toString() {
+    return name + " " + expression;
+  }
+
+  public void addInstructions(List i) {
+    if (name instanceof BoundSymbol) {
+      Assign_Lex.addInstructions(i, (BoundSymbol) name, expression, true);
+    } else if (name instanceof Symbol) {
+      Assign_Free.addInstructions(i, (Symbol) name, expression, true);
+    }
   }
 }

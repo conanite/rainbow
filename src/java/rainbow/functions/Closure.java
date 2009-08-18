@@ -1,22 +1,21 @@
 package rainbow.functions;
 
+import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
-import rainbow.Function;
-import rainbow.LexicalClosure;
-import rainbow.vm.Continuation;
+import rainbow.vm.VM;
 
 public class Closure extends ArcObject {
-  private Function expression;
+  private InterpretedFunction expression;
   private LexicalClosure lc;
 
-  public Closure(Function expression, LexicalClosure lc) {
+  public Closure(InterpretedFunction expression, LexicalClosure lc) {
     this.expression = expression;
     this.lc = lc;
   }
 
-  public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-    expression.invoke(this.lc, caller, args);
+  public void invoke(VM vm, Pair args) {
+    expression.invoke(vm, lc, args);
   }
 
   public ArcObject type() {

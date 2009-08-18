@@ -1,31 +1,50 @@
 package rainbow.functions;
 
 import rainbow.ArcError;
-import rainbow.Function;
 import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.FunctionEvaluator;
+import rainbow.vm.VM;
 import rainbow.vm.continuations.NamespaceBuilder;
+import rainbow.vm.instructions.Close;
+import rainbow.vm.instructions.Literal;
+import rainbow.vm.instructions.PopArg;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public abstract class InterpretedFunction extends ArcObject implements Function {
+public abstract class InterpretedFunction extends ArcObject {
   protected Map lexicalBindings;
   ArcObject[] body;
+  protected final Pair instructions;
 
   public InterpretedFunction(Map lexicalBindings, Pair body) {
     this.lexicalBindings = lexicalBindings;
     this.body = body.toArray();
+    List i = new ArrayList();
+    if (this.body.length > 0) {
+      Pair b = body;
+      while (!b.isNil()) {
+        b.car().addInstructions(i);
+        b = (Pair) b.cdr();
+        if (!b.isNil()) {
+          i.add(new PopArg("intermediate-fn-expression"));
+        }
+      }
+    } else {
+      i.add(new Literal(NIL));
+    }
+    instructions = Pair.buildFrom(i);
   }
 
-  public void interpret(LexicalClosure lc, Continuation caller) {
-    caller.receive(new Closure(this, lc));
+  public abstract void invoke(VM vm, LexicalClosure lc, Pair args);
+
+  public Pair instructions() {
+    return instructions;
+  }
+
+  public void addInstructions(List i) {
+    i.add(new Close(this));
   }
 
   public int compareTo(ArcObject right) {
@@ -34,7 +53,7 @@ public abstract class InterpretedFunction extends ArcObject implements Function 
 
   public String toString() {
     List<ArcObject> fn = new LinkedList<ArcObject>();
-    fn.add(Symbol.make("fn"));
+    fn.add(Symbol.mkSym("fn"));
     fn.add(parameterList());
     fn.addAll(Arrays.asList(body));
     return Pair.buildFrom(fn, NIL).toString();
@@ -52,8 +71,8 @@ public abstract class InterpretedFunction extends ArcObject implements Function 
     return body[index];
   }
 
-  public boolean last(int index) {
-    return index >= body.length;
+  public ArcObject last() {
+    return body[body.length - 1];
   }
 
   public int length() {
@@ -65,8 +84,8 @@ public abstract class InterpretedFunction extends ArcObject implements Function 
       super(lexicalBindings, body);
     }
 
-    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-      FunctionEvaluator.evaluate(lc, caller, this);
+    public void invoke(VM vm, LexicalClosure lc, Pair args) {
+      vm.pushFrame(lc, this.instructions);
     }
   }
 
@@ -78,8 +97,10 @@ public abstract class InterpretedFunction extends ArcObject implements Function 
       this.parameterList = parameterList;
     }
 
-    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-      new NamespaceBuilder(new LexicalClosure(lexicalBindings.size(), lc), caller, parameterList, args, this);
+    public void invoke(VM vm, LexicalClosure lc, Pair args) {
+      lc = new LexicalClosure(lexicalBindings.size(), lc);
+      NamespaceBuilder.complex(vm, lc, parameterList, args);
+      vm.pushFrame(lc, this.instructions);
     }
 
     public ArcObject parameterList() {
@@ -95,10 +116,10 @@ public abstract class InterpretedFunction extends ArcObject implements Function 
       this.parameterList = parameterList;
     }
 
-    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
+    public void invoke(VM vm, LexicalClosure lc, Pair args) {
       lc = new LexicalClosure(lexicalBindings.size(), lc);
       NamespaceBuilder.simple(lc, parameterList, args);
-      FunctionEvaluator.evaluate(lc, caller, this);
+      vm.pushFrame(lc, this.instructions);
     }
 
     public ArcObject parameterList() {

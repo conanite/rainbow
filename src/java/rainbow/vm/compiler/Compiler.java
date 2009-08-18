@@ -1,76 +1,76 @@
 package rainbow.vm.compiler;
 
-import rainbow.Function;
-import rainbow.LexicalClosure;
 import rainbow.functions.Evaluation;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.types.Tagged;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.ContinuationSupport;
+import rainbow.vm.VM;
 import rainbow.vm.interpreter.BoundSymbol;
 import rainbow.vm.interpreter.Invocation;
+import rainbow.vm.interpreter.QuasiQuotation;
 import rainbow.vm.interpreter.Quotation;
 
 import java.util.Map;
 
-public class Compiler extends ContinuationSupport {
-  private Pair expression;
-  private Map[] lexicalBindings;
+public class Compiler {
 
-  public Compiler(LexicalClosure lc, Continuation caller, Pair expression, Map[] lexicalBindings) {
-    super(lc, caller);
-    this.expression = expression;
-    this.lexicalBindings = lexicalBindings;
-    start();
-  }
-
-  public static void compile(LexicalClosure lc, Continuation caller, ArcObject expression, Map[] lexicalBindings) {
+  public static ArcObject compile(VM vm, ArcObject expression, Map[] lexicalBindings) {
     if (expression.isNil()) {
-      caller.receive(expression);
+      return expression;
     } else if (Evaluation.isSpecialSyntax(expression)) {
-      compile(lc, caller, Evaluation.ssExpand(expression), lexicalBindings);
+      return compile(vm, Evaluation.ssExpand(expression), lexicalBindings);
     } else if (expression instanceof Pair) {
-      new Compiler(lc, caller, (Pair) expression, lexicalBindings);
+      return compilePair(vm, (Pair) expression, lexicalBindings);
     } else if (expression instanceof Symbol) {
       for (int i = 0; i < lexicalBindings.length; i++) {
         if (lexicalBindings[i].containsKey(expression)) {
-          caller.receive(new BoundSymbol((Symbol)expression, i, (Integer)lexicalBindings[i].get(expression)));
-          return;
+          return new BoundSymbol((Symbol)expression, i, (Integer)lexicalBindings[i].get(expression));
         }
       }
-      caller.receive(expression);
+      return expression;
     } else {
-      caller.receive(expression);
+      return expression;
     }
   }
 
-  public void start() {
-    Function f = getMacro(expression);
+  protected static ArcObject receive(VM vm, Pair expression, ArcObject expanded, Map[] lexicalBindings) {
+    if (expanded.isNotPair()) {
+      return compile(vm, expanded, lexicalBindings);
+    } else if (expression.equals(expanded)) {
+      return new Invocation((Pair) expanded);
+    } else {
+      return receive(vm, (Pair) expanded, compile(vm, expanded, lexicalBindings), lexicalBindings);
+    }
+  }
+
+  public static ArcObject compilePair(VM vm, Pair expression, Map[] lexicalBindings) {
+    ArcObject f = getMacro(expression);
     if (f != null) {
-      f.invoke(lc, this, (Pair) expression.cdr());
+      ArcObject expanded = f.invokeAndWait(vm, (Pair) expression.cdr());
+      return receive(vm, expression, expanded, lexicalBindings);
     } else {
       ArcObject fun = expression.car();
       if (Symbol.is("quote", fun)) {
-        caller.receive(new Quotation(expression.cdr().car()));
+        return new Quotation(expression.cdr().car());
       } else if (fun == QuasiQuoteCompiler.QUASIQUOTE) {
-        QuasiQuoteBuilder qqb = new QuasiQuoteBuilder(caller);
-        QuasiQuoteCompiler.compile(lc, qqb, expression.cdr().car(), lexicalBindings);
+        return new QuasiQuotation(QuasiQuoteCompiler.compile(vm, expression.cdr().car(), lexicalBindings, 1));
       } else if (Symbol.is("fn", fun)) {
-        new FunctionBodyBuilder(caller, (Pair) expression.cdr(), lexicalBindings).start();
+        return FunctionBodyBuilder.build(vm, (Pair) expression.cdr(), lexicalBindings);
       } else if (Symbol.is("if", fun)) {
-        new IfBuilder(caller, expression.cdr(), lexicalBindings);
+        return IfBuilder.build(vm, expression.cdr(), lexicalBindings);
       } else if (Symbol.is("assign", fun)) {
-        new AssignmentBuilder(caller, expression.cdr(), lexicalBindings);
+        return AssignmentBuilder.build(vm, expression.cdr(), lexicalBindings);
       } else if (Symbol.is("compose", fun.xcar())) {
-        caller.receive(decompose((Pair) fun.cdr(), (Pair) expression.cdr()));
+        return compile(vm, decompose((Pair) fun.cdr(), (Pair) expression.cdr()), lexicalBindings);
       } else if (Symbol.is("complement", fun.xcar())) {
-        caller.receive(decomplement(fun.cdr().car(), (Pair) expression.cdr()));
+        return compile(vm, decomplement(fun.cdr().car(), (Pair) expression.cdr()), lexicalBindings);
       } else if (Evaluation.isSpecialSyntax(fun)) {
-        compile(lc, this, new Pair(Evaluation.ssExpand(fun), expression.cdr()), lexicalBindings);
+        return compile(vm, new Pair(Evaluation.ssExpand(fun), expression.cdr()), lexicalBindings);
       } else {
-        new PairExpander(new MacExpander(this, false), expression, lexicalBindings).start();
+        ArcObject expanded = PairExpander.expand(vm, expression, lexicalBindings); // todo I've no idea if this else clause is even used
+        ArcObject macexed = MacExpander.expand(vm, expanded);
+        return receive(vm, expression, macexed, lexicalBindings);
       }
     }
   }
@@ -80,14 +80,10 @@ public class Compiler extends ContinuationSupport {
   }
 
   private static ArcObject decomplement(ArcObject not, Pair args) {
-    return new Pair(Symbol.make("no"), new Pair(new Pair(not, args), ArcObject.NIL));
+    return new Pair(Symbol.mkSym("no"), new Pair(new Pair(not, args), ArcObject.NIL));
   }
 
-  public static void main(String[] args) {
-    ArcObject o = ArcObject.NIL;
-  }
-
-  private Function getMacro(Pair maybeMacCall) {
+  private static ArcObject getMacro(Pair maybeMacCall) {
     ArcObject first = maybeMacCall.car();
     if (!(first instanceof Symbol)) {
       return null;
@@ -98,21 +94,7 @@ public class Compiler extends ContinuationSupport {
       return null;
     }
 
-    ArcObject maybeTagged = sym.value();
-    return Tagged.ifTagged(maybeTagged, "mac");
+    return Tagged.ifTagged(sym.value(), "mac");
   }
 
-  protected void onReceive(ArcObject returned) {
-    if (expression.equals(returned)) {
-      if (expression.isNotPair()) {
-        caller.receive(expression);
-      } else {
-        Invocation invocation = new Invocation();
-        invocation.buildFrom(expression);
-        caller.receive(invocation);
-      }
-    } else {
-      compile(lc, caller, returned, lexicalBindings);
-    }
-  }
 }

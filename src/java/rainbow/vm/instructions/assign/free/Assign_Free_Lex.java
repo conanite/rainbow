@@ -28,4 +28,8 @@ public class Assign_Free_Lex extends Assign_Free {
       i.add(new Assign_Free_Lex_Intermediate(name, value));
     }
   }
+
+  public String toString() {
+    return "(assign-free " + name + " " + value + ")";
+  }
 }

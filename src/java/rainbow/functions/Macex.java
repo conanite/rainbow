@@ -1,41 +1,48 @@
 package rainbow.functions;
 
-import rainbow.Function;
-import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.types.Tagged;
-import rainbow.vm.Continuation;
-import rainbow.vm.compiler.MacExpander;
+import rainbow.vm.VM;
 
 public class Macex extends Builtin {
-  public void invoke(LexicalClosure lc, final Continuation caller, final Pair args) {
+  public Macex() {
+    super("macex");
+  }
+
+  public void invoke(VM vm, final Pair args) {
     if (args.isNil()) {
-      caller.receive(args);
+      vm.pushA(NIL);
       return;
     }
-    final ArcObject expression = args.car();
+
+    ArcObject expression = args.car();
     if (!(expression instanceof Pair)) {
-      caller.receive(expression);
+      vm.pushA(expression);
       return;
     }
+
     ArcObject macCall = expression.car();
     if (!(macCall instanceof Symbol)) {
-      caller.receive(expression);
+      vm.pushA(expression);
       return;
     }
+
     Symbol macroName = (Symbol) macCall;
     if (!macroName.bound()) {
-      caller.receive(expression);
+      vm.pushA(expression);
       return;
     }
+
     ArcObject macro = macroName.value();
-    Function fn = Tagged.ifTagged(macro, "mac");
+    ArcObject fn = Tagged.ifTagged(macro, "mac");
     if (fn == null) {
-      caller.receive(expression);
-    } else {
-      fn.invoke(lc, new MacExpander(caller, !args.cdr().car().isNil()), (Pair) expression.cdr());
+      vm.pushA(expression);
+      return;
     }
+
+    expression = fn.invokeAndWait(vm, (Pair) expression.cdr());
+    invoke(vm, new Pair(expression, NIL));
   }
 }

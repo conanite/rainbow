@@ -1,6 +1,7 @@
 package rainbow.vm;
 
-public interface VMInterceptor {
+public interface
+        VMInterceptor {
   VMInterceptor NULL = new NullInterceptor();
   VMInterceptor DEBUG = new DebugInterceptor();
   VMInterceptor KILL = new KillInterceptor();

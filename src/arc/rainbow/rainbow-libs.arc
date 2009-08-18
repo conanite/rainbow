@@ -29,8 +29,8 @@
 (def qualified-path (path)
   ((java-new "java.io.File" path) 'getAbsolutePath))
 
-(prn "self-test:")
-(run-all-tests)
+;(prn "self-test:")
+;(run-all-tests)
 
 (require-by-name rainbow/ welder fsb tetris mines)
 (requires start-spiral-app rainbow/spiral)

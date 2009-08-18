@@ -1,113 +1,100 @@
 package rainbow.vm.continuations;
 
-import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
-import rainbow.vm.compiler.QuasiQuoteCompiler;
-import rainbow.vm.compiler.Rebuilder;
+import rainbow.types.Symbol;
+import static rainbow.vm.compiler.QuasiQuoteCompiler.*;
+import rainbow.vm.instructions.*;
 
-import java.util.LinkedList;
 import java.util.List;
 
-public class QuasiQuoteContinuation extends ContinuationSupport {
-  private ArcObject expression;
-  private List<ArcObject> result = new LinkedList<ArcObject>();
-  private ArcObject current;
-  private int nesting;
+public class QuasiQuoteContinuation {
 
-  public QuasiQuoteContinuation(LexicalClosure lc, Continuation caller, ArcObject expression) {
-    this(lc, caller, expression, 1);
+  public static void addInstructions(List i, ArcObject target) {
+    addInstructions(i, target, 1);
   }
 
-  private QuasiQuoteContinuation(LexicalClosure lc, Continuation caller, ArcObject expression, int nesting) {
-    super(lc, caller);
-    this.expression = expression;
-    this.nesting = nesting;
-    start();
-  }
-
-  public void start() {
-    if (expression.isNotPair()) {
-      caller.receive(expression);
-    } else if (isUnQuote(expression)) {
-      current = expression;
-      expression.cdr().car().interpret(lc, caller);
-    } else if (!isPair(expression)) {
-      caller.receive(expression);
-    } else {
-      repeat();
-    }
-  }
-
-  private void repeat() {
-    if (expression.isNotPair()) {
-      caller.receive(Pair.buildFrom(result, expression));
-    } else {
-      current = expression.car();
-      expression = expression.cdr();
-      if (isUnQuote(current)) {
-        if (nesting == 1) {
-          current.cdr().car().interpret(lc, this);
-        } else {
-          Rebuilder rb = new Rebuilder(this, QuasiQuoteCompiler.UNQUOTE);
-          new QuasiQuoteContinuation(lc, rb, current.cdr().car(), nesting - 1);
-        }
-      } else if (isUnQuoteSplicing(current)) {
-        if (nesting == 1) {
-          current.cdr().car().interpret(lc, new UnquoteSplicer(this, result));
-        } else {
-          append(current);
-          repeat();
-        }
-      } else if (isQuasiQuote(current)) {
-        Rebuilder rb = new Rebuilder(this, QuasiQuoteCompiler.QUASIQUOTE);
-        new QuasiQuoteContinuation(lc, rb, current.cdr().car(), nesting + 1);
-      } else if (isPair(current)) {
-        new QuasiQuoteContinuation(lc, this, current, nesting);
+  private static void addInstructions(List i, ArcObject expr, int nesting) {
+    if (isUnQuote(expr)) {
+      if (nesting == 1) {
+        expr.cdr().car().addInstructions(i);
       } else {
-        append(current);
-        repeat();
+        i.add(new Literal(UNQUOTE));
+        addInstructions(i, expr.cdr().car(), nesting - 1);
+        i.add(new Listify(2));
+      }
+      return;
+
+    } else if (isUnQuoteSplicing(expr)) {
+      if (nesting == 1) {
+        expr.cdr().car().addInstructions(i);
+        i.add(new AppendAll());
+      } else {
+        i.add(new Literal(UNQUOTE_SPLICING));
+        addInstructions(i, expr.cdr().car(), nesting - 1);
+        i.add(new Listify(2));
+        i.add(new Append());
+      }
+      return;
+
+    } else if (isQuasiQuote(expr)) {
+      i.add(new Literal(QUASIQUOTE));
+      addInstructions(i, expr.cdr().car(), nesting + 1);
+      i.add(new Listify(2));
+      return;
+
+    } else if (expr.isNotPair()) {
+      i.add(new Literal(expr));
+      return;
+    }
+
+    i.add(new NewList());
+
+    while (!expr.isNotPair()) {
+      if (isUnQuote(expr) || isQuasiQuote(expr)) { // catch post-dot unquotes
+        addInstructions(i, expr, nesting);
+        expr = expr.cdr().cdr();
+        i.add(new AppendDot());
+      } else {
+        final ArcObject current = expr.car();
+        expr = expr.cdr();
+        if (isUnQuoteSplicing(current)) {
+          addInstructions(i, current, nesting);
+        } else if (isUnQuote(current) || isQuasiQuote(current) || isPair(current)) {
+            addInstructions(i, current, nesting);
+            i.add(new Append());
+        } else {
+          i.add(new Literal(current));
+          i.add(new Append());
+        }
       }
     }
+
+    if (!expr.isNil()) {
+      i.add(new Literal(expr));
+      i.add(new AppendDot());
+    }
+
+    i.add(new FinishList());
   }
 
-  private void append(ArcObject obj) {
-    result.add(obj);
+  public static boolean isQQPair(ArcObject expression, Symbol car) {
+    return (expression instanceof Pair) && expression.isCar(car) && expression.cdr().cdr().isNil();
   }
 
   public static boolean isUnQuote(ArcObject expression) {
-    return expression.isCar(QuasiQuoteCompiler.UNQUOTE);
+    return isQQPair(expression, UNQUOTE);
   }
 
   public static boolean isUnQuoteSplicing(ArcObject expression) {
-    return expression.isCar(QuasiQuoteCompiler.UNQUOTE_SPLICING);
+    return isQQPair(expression, UNQUOTE_SPLICING);
   }
 
   public static boolean isQuasiQuote(ArcObject expression) {
-    return expression.isCar(QuasiQuoteCompiler.QUASIQUOTE);
+    return isQQPair(expression, QUASIQUOTE);
   }
 
   private static boolean isPair(ArcObject expression) {
     return expression instanceof Pair;
-  }
-
-  public void onReceive(ArcObject o) {
-    if (o != null) {
-      append(o);
-    }
-    repeat();
-  }
-
-  protected ArcObject getCurrentTarget() {
-    return current;
-  }
-
-  public Continuation cloneFor(ArcThread thread) {
-    QuasiQuoteContinuation e = (QuasiQuoteContinuation) super.cloneFor(thread);
-    e.expression = this.expression.copy();
-    e.result = new LinkedList(this.result);
-    return e;
   }
 }

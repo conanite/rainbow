@@ -3,19 +3,31 @@ package rainbow;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.Continuation;
+import rainbow.vm.Instruction;
+import rainbow.vm.VM;
+import rainbow.vm.instructions.Literal;
 
 import java.util.Collection;
+import java.util.List;
 
 public class Nil extends Pair {
   public static final Symbol TYPE = Symbol.TYPE;
   public static final Nil NIL = new Nil("nil");
   public static final Nil EMPTY_LIST = new Nil("()");
+  private static final Instruction LITERAL_NIL = new Literal(NIL);
 
   private String rep;
 
   private Nil(String rep) {
     this.rep = rep;
+  }
+
+  public void addInstructions(List i) {
+    i.add(LITERAL_NIL);
+  }
+
+  public void invoke(VM vm, Pair args) {
+    throw new ArcError("Function dispatch on inappropriate object: " + this);
   }
 
   public void mustBePairOrNil() throws NotPair {
@@ -25,8 +37,8 @@ public class Nil extends Pair {
     return true;
   }
 
-  public void interpret(LexicalClosure lc, Continuation caller) {
-    caller.receive(this);
+  public ArcObject interpret(LexicalClosure lc) {
+    return this;
   }
 
   public long len() {

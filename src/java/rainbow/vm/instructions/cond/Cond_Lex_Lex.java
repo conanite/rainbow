@@ -45,7 +45,7 @@ public class Cond_Lex_Lex extends Cond_Lex {
       if (((Else) next).ifExpression.literal()) {
         Cond_Lex_Lex_Literal.addInstructions(i, ifExpression, thenExpression, ((Else)next).ifExpression);
       } else if (((Else)next).ifExpression instanceof Quotation) {
-        Cond_Lex_Lex_Literal.addInstructions(i, ifExpression, thenExpression, ((Quotation) ((Else) next).ifExpression).getQuoted());
+        Cond_Lex_Lex_Literal.addInstructions(i, ifExpression, thenExpression, ((Quotation) ((Else) next).ifExpression).quoted());
       } else {
         i.add(new Cond_Lex_Lex(ifExpression, thenExpression, next));
       }

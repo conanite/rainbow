@@ -14,11 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VM extends ArcObject {
-  public static final Symbol TYPE = (Symbol) Symbol.make("thread");
+  public static final Symbol TYPE = Symbol.mkSym("thread");
 
   public ArcObject[] args = new ArcObject[1000];
-  public LexicalClosure[] lcs  = new LexicalClosure[1000];
-  public Pair[] ins  = new Pair[1000];
+  public LexicalClosure[] lcs = new LexicalClosure[1000];
+  public Pair[] ins = new Pair[1000];
   public int ap = -1;
   public int ip = -1;
   private LexicalClosure currentLc;
@@ -91,7 +91,7 @@ public class VM extends ArcObject {
     }
 
     for (int i = instructions.size() - 1; i >= 0; i--) {
-      pushFrame((LexicalClosure) lexClosures.get(i), (Pair)instructions.get(i));
+      pushFrame((LexicalClosure) lexClosures.get(i), (Pair) instructions.get(i));
     }
   }
 
@@ -109,7 +109,7 @@ public class VM extends ArcObject {
     }
 
     for (int i = instructions.size() - 1; i >= 0; i--) {
-      pushFrame((LexicalClosure) lexClosures.get(i), (Pair)instructions.get(i));
+      pushFrame((LexicalClosure) lexClosures.get(i), (Pair) instructions.get(i));
     }
   }
 
@@ -227,8 +227,9 @@ public class VM extends ArcObject {
     while (!instructions.isNil()) {
       Instruction i = (Instruction) instructions.car();
       instructions = (Pair) instructions.cdr();
-      System.out.println(i.toString(lc));
+      System.out.print(i.toString(lc));
     }
+    System.out.println();
   }
 
   public LexicalClosure lc() {
@@ -304,11 +305,12 @@ public class VM extends ArcObject {
     }
 
     public ArcObject type() {
-      return Symbol.make("list-builder");
+      return Symbol.mkSym("list-builder");
     }
 
     public String toString() {
-      return list().toString();
+      return "ListBuilder:" + list().toString();
     }
   }
 }
+

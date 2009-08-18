@@ -1,31 +1,18 @@
 package rainbow.vm.interpreter;
 
+import rainbow.ArcError;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.ConditionalContinuation;
-import rainbow.LexicalClosure;
-import rainbow.ArcError;
+import rainbow.vm.instructions.cond.LastCond;
+
+import java.util.List;
 
 public class LastIfThen extends ArcObject implements Conditional {
   public ArcObject ifExpression;
   public ArcObject thenExpression;
 
   public ArcObject type() {
-    return Symbol.make("last-if-then-clause");
-  }
-
-  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller, Continuation conditional) {
-    ifExpression.interpret(lc, conditional);
-  }
-
-  public void execute(ArcThread thread, LexicalClosure lc, Continuation caller) {
-    thenExpression.interpret(lc, caller);
-  }
-
-  public void continueFor(ConditionalContinuation conditionalContinuation, Continuation caller) {
-    caller.receive(NIL);
+    return Symbol.mkSym("last-if-then-clause");
   }
 
   public void add(Conditional c) {
@@ -40,6 +27,11 @@ public class LastIfThen extends ArcObject implements Conditional {
     } else {
       throw new ArcError("Internal error: if clause: unexpected: " + expression);
     }
+  }
+
+  public void addInstructions(List i) {
+    ifExpression.addInstructions(i);
+    i.add(new LastCond(thenExpression));
   }
 
   public String toString() {

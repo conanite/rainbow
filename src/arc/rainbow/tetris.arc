@@ -43,13 +43,13 @@
   (update-score))
 
 (def key (row col)
-  (tostring (pr row "-" col)))
+  (string row "-" col))
 
 (def shape-cell-key (colour rotation row col)
-  (tostring (pr colour "-" rotation "-" row "-" col)))
+  (string colour "-" rotation "-" row "-" col))
 
 (def shape (colour cells)
-  (= colours (cons colour colours))
+  (push colour colours)
   (afnwith (info cells)
     (if info
       (let (rotation row col) (car info)
@@ -183,11 +183,10 @@
           (throw t)))))
 
 (def new-shape ()
-  (= falling (obj
-    colour   (rand-elt colours)
-    x        (- (/ tetris-width* 2) 2)
-    y        0
-    rotation 0)))
+  (= falling (obj colour   (rand-elt colours)
+                  x        (- (/ tetris-width* 2) 2)
+                  y        0
+                  rotation 0)))
 
 (atdef draw-shape ((o colour falling!colour))
   (shape-cells falling!colour falling!rotation row col

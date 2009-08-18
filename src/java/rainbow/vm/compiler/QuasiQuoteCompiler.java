@@ -1,118 +1,67 @@
 package rainbow.vm.compiler;
 
-import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.ContinuationSupport;
+import rainbow.vm.VM;
 import rainbow.vm.continuations.QuasiQuoteContinuation;
 
 import java.util.LinkedList;
 import java.util.Map;
 
-public class QuasiQuoteCompiler extends ContinuationSupport {
-  public static final Symbol QUASIQUOTE = (Symbol) Symbol.make("quasiquote");
-  public static final Symbol UNQUOTE = (Symbol) Symbol.make("unquote");
-  public static final Symbol UNQUOTE_SPLICING = (Symbol) Symbol.make("unquote-splicing");
+public class QuasiQuoteCompiler {
+  public static final Symbol QUASIQUOTE = Symbol.mkSym("quasiquote");
+  public static final Symbol UNQUOTE = Symbol.mkSym("unquote");
+  public static final Symbol UNQUOTE_SPLICING = Symbol.mkSym("unquote-splicing");
 
-  private ArcObject expression;
-  private Map[] lexicalBindings;
-  private LinkedList result = new LinkedList();
-  private Symbol rebuildSymbol;
-  private int nesting;
-
-  private QuasiQuoteCompiler(Continuation caller, ArcObject expression, Map[] lexicalBindings) {
-    this(caller, expression, lexicalBindings, 1);
-  }
-
-  private QuasiQuoteCompiler(Continuation caller, ArcObject expression, Map[] lexicalBindings, int nesting) {
-    super(caller);
-    this.expression = expression;
-    this.lexicalBindings = lexicalBindings;
-    this.nesting = nesting;
-  }
-
-  public static void compile(LexicalClosure lc, Continuation caller, ArcObject expression, Map[] lexicalBindings) {
+  public static ArcObject compile(VM vm, ArcObject expression, Map[] lexicalBindings, int nesting) {
     if (expression.isNotPair()) {
-      caller.receive(expression);
-      return;
+      return expression;
     }
 
     if (QuasiQuoteContinuation.isUnQuote(expression)) {
-      Rebuilder rebuilder = new Rebuilder(caller, UNQUOTE);
-      Compiler.compile(lc, rebuilder, expression.cdr().car(), lexicalBindings);
+      ArcObject compileMe = expression.cdr().car();
+      ArcObject compiled;
+      if (nesting == 1) {
+        compiled = Compiler.compile(vm, compileMe, lexicalBindings);
+      } else {
+        compiled = compile(vm, compileMe, lexicalBindings, nesting - 1);
+      }
+      return Pair.buildFrom(UNQUOTE, compiled);
 
     } else if (QuasiQuoteContinuation.isUnQuoteSplicing(expression)) {
-      QuasiQuoteCompiler qqc = new QuasiQuoteCompiler(caller, ArcObject.NIL, lexicalBindings);
-      qqc.rebuildSymbol = UNQUOTE_SPLICING;
-      Compiler.compile(qqc.lc, qqc, expression.cdr().car(), qqc.lexicalBindings);
+      if (nesting == 1) {
+        return Pair.buildFrom(UNQUOTE_SPLICING, Compiler.compile(vm, expression.cdr().car(), lexicalBindings));
+      } else {
+        return Pair.buildFrom(UNQUOTE_SPLICING, compile(vm, expression.cdr().car(), lexicalBindings, nesting - 1));
+      }
 
     } else if (QuasiQuoteContinuation.isQuasiQuote(expression)) {
-      new QuasiQuoteCompiler(caller, expression, lexicalBindings, 2).start();
+      return Pair.buildFrom(QUASIQUOTE, compile(vm, expression.cdr().car(), lexicalBindings, 2));
 
     } else {
-      new QuasiQuoteCompiler(caller, expression, lexicalBindings).start();
-    }
-  }
+      LinkedList result = new LinkedList();
 
-  private void start() {
-    if (expression.isNotPair()) {
-      caller.receive(Pair.buildFrom(result, expression));
-      return;
-    }
+      while (!expression.isNotPair()) {
+        ArcObject next = expression.car();
+        expression = expression.cdr();
+        if (next.isNotPair()) {
+          result.add(next);
+        } else if (QuasiQuoteContinuation.isUnQuote(next)) {
+          result.add(compile(vm, next, lexicalBindings, nesting));
 
-    ArcObject next = expression.car();
-    expression = expression.cdr();
-    if (next.isNotPair()) {
-      continueWith(next);
-      return;
-    }
+        } else if (QuasiQuoteContinuation.isUnQuoteSplicing(next)) {
+          result.add(compile(vm, next, lexicalBindings, nesting));
 
-    if (QuasiQuoteContinuation.isUnQuote(next)) {
-      if (nesting == 1) {
-        rebuildSymbol = UNQUOTE;
-        Compiler.compile(lc, this, next.cdr().car(), lexicalBindings);
-      } else {
-        new QuasiQuoteCompiler(this, next, lexicalBindings, nesting - 1).start();
+        } else if (QuasiQuoteContinuation.isQuasiQuote(next)) {
+          result.add(compile(vm, next, lexicalBindings, nesting + 1));
+
+        } else {
+          result.add(compile(vm, next, lexicalBindings, nesting));
+        }
       }
-
-    } else if (QuasiQuoteContinuation.isUnQuoteSplicing(next)) {
-      if (nesting == 1) {
-        rebuildSymbol = UNQUOTE_SPLICING;
-        Compiler.compile(lc, this, next.cdr().car(), lexicalBindings);
-      } else {
-        continueWith(next);
-      }
-
-    } else if (QuasiQuoteContinuation.isQuasiQuote(next)) {
-      rebuildSymbol = null;
-      new QuasiQuoteCompiler(this, next, lexicalBindings, nesting + 1).start();
-
-    } else {
-      rebuildSymbol = null;
-      new QuasiQuoteCompiler(this, next, lexicalBindings, nesting).start();
+      return Pair.buildFrom(result, compile(vm, expression, lexicalBindings, nesting));
     }
   }
 
-  private void continueWith(ArcObject next) {
-    result.add(next);
-    start();
-  }
-
-  protected void onReceive(ArcObject returned) {
-    if (rebuildSymbol != null) {
-      continueWith(Pair.buildFrom(rebuildSymbol, returned));
-    } else {
-      continueWith(returned);
-    }
-  }
-
-  public Continuation cloneFor(ArcThread thread) {
-    QuasiQuoteCompiler qqc = (QuasiQuoteCompiler) super.cloneFor(thread);
-    qqc.expression = expression.copy();
-    qqc.result = new LinkedList(result);
-    return qqc;
-  }
 }

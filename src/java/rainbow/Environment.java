@@ -1,67 +1,141 @@
 package rainbow;
 
 import rainbow.functions.*;
+import rainbow.functions.system.*;
+import rainbow.functions.typing.*;
+import rainbow.functions.io.*;
+import rainbow.functions.errors.*;
+import rainbow.functions.network.OpenSocket;
+import rainbow.functions.network.SocketAccept;
+import rainbow.functions.network.ClientIp;
+import rainbow.functions.strings.OutString;
+import rainbow.functions.strings.Inside;
+import rainbow.functions.strings.InString;
+import rainbow.functions.threads.*;
+import rainbow.functions.java.*;
+import rainbow.functions.predicates.*;
+import rainbow.functions.tables.Table;
+import rainbow.functions.tables.MapTable;
+import rainbow.functions.tables.Sref;
+import rainbow.functions.lists.*;
+import rainbow.functions.eval.Apply;
+import rainbow.functions.eval.Eval;
+import rainbow.functions.eval.SSyntax;
+import rainbow.functions.eval.SSExpand;
+import rainbow.functions.fs.*;
 import rainbow.types.*;
 
 public class Environment {
-  public static boolean debugJava = false;
 
-  public Environment() { // todo: macex1, pipe-from, complex numbers, threading
-    Java.collect(this);
-    IO.collect(this);
-    SystemFunctions.collect(this);
+  public Environment() {
+    new MSec();
+    new Seconds();
+    new DateTime();
+    new CurrentProcessMilliseconds();
+    new CurrentGcMilliseconds();
+    new PipeFrom();
+    new ShellInvoke();
+    new WhichOS();
+    new Declare();
+    new Quit();
+
     Maths.collect(this);
-    Typing.collect(this);
     ThreadLocals.collect(this);
-    Threads.collect(this);
-    FileSystem.collect(this);
+    Maths.extra(this);
 
-    addBuiltin("uniq", new Uniq());
-    addBuiltin("newstring", new Lists.NewString());
-    addBuiltin("macex", new Macex());
+    new Type();
+    new Annotate();
+    new Rep();
+    new Coerce();
+    new Ref();
+
+    new JavaNew();
+    new JavaClass();
+    new JavaInvoke();
+    new JavaStaticInvoke();
+    new JavaStaticField();
+    new JavaDebug();
+    new JavaImplement();
+    new RainbowDebug();
+
+    new NewThread();
+    new KillThread();
+    new Sleep();
+    new Dead();
+    new AtomicInvoke();
+    new CCC();
+
+    new Uniq();
+    new Macex();
 
     /* errors */
-    addBuiltin("protect", new Errors.Protect());
-    addBuiltin("err", new Errors.Err());
-    addBuiltin("on-err", new Errors.OnErr());
-    addBuiltin("details", new Errors.Details());
+    new Protect();
+    new Err();
+    new OnErr();
+    new Details();
 
     /* lists */
-    addBuiltin("car", new Lists.Car());
-    addBuiltin("cdr", new Lists.Cdr());
-    addBuiltin("scar", new Lists.Scar());
-    addBuiltin("scdr", new Lists.Scdr());
-    addBuiltin("cons", new Lists.Cons());
-    addBuiltin("len", new Lists.Len());
+    new NewString();
+    new Car();
+    new Cdr();
+    new Scar();
+    new Scdr();
+    new Cons();
+    new Len();
 
     /* predicates */
-    addBuiltin("bound", new Predicates.Bound());
-    addBuiltin("<", new Predicates.LessThan());
-    addBuiltin(">", new Predicates.GreaterThan());
-    addBuiltin("exact", new Predicates.Exact());
-    addBuiltin("is", new Predicates.Is());
+    new Bound();
+    new LessThan();
+    new GreaterThan();
+    new Exact();
+    new Is();
 
     /* evaluation */
-    addBuiltin("apply", new Evaluation.Apply());
-    addBuiltin("eval", new Evaluation.Eval());
-    addBuiltin("ssexpand", new Evaluation.SSExpand());
-    addBuiltin("ssyntax", new Evaluation.SSyntax());
+    new Apply();
+    new Eval();
+    new SSExpand();
+    new SSyntax();
 
     /* tables */
-    addBuiltin("table", new Tables.Table());
-    addBuiltin("maptable", new Tables.MapTable());
-    addBuiltin("sref", new Tables.Sref());
-    addBuiltin("sig", new Hash());
+    new Table();
+    new MapTable();
+    new Sref();
+    new Hash();
 
     /* IO */
-    addBuiltin("instring", new StringIO.InString());
-    addBuiltin("outstring", new StringIO.OutString());
-    addBuiltin("inside", new StringIO.Inside());
-    addBuiltin("rmfile", new FileSystem.RmFile());
-    addBuiltin("open-socket", new Network.OpenSocket());
-    addBuiltin("socket-accept", new Network.SocketAccept());
+    new CallWStdIn();
+    new CallWStdOut();
+    new StdIn();
+    new StdOut();
+    new StdErr();
+    new Disp();
+    new Write();
+    new Sread();
+    new WriteB();
+    new WriteC();
+    new ReadB();
+    new ReadC();
+    new FlushOut();
+    new Close();
 
-    Maths.extra(this);
+    new OpenSocket();
+    new ClientIp();
+    new SocketAccept();
+
+    new OutFile();
+    new InFile();
+
+    new DirExists();
+    new FileExists();
+    new Dir();
+    new RmFile();
+    new MvFile();
+    new MakeDirectory();
+    new MakeDirectories();
+
+    new InString();
+    new OutString();
+    new Inside();
   }
 
   private void addBuiltin(String name, ArcObject o) {

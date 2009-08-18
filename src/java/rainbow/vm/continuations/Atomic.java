@@ -1,40 +1,42 @@
 package rainbow.vm.continuations;
 
 import rainbow.ArcError;
-import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
+import rainbow.vm.Instruction;
+import rainbow.vm.VM;
+import rainbow.vm.instructions.Finally;
 
-public class Atomic extends ContinuationSupport {
+public class Atomic {
   private static final Object lock = new Object();
-  private static ArcThread owner;
+  private static VM owner;
   private static int entryCount;
 
-  public Atomic(LexicalClosure lc, Continuation caller) {
-    super(lc, caller);
+  public static void invoke(VM vm, ArcObject f) {
     synchronized (lock) {
-      while (thread != owner && owner != null) {
+      while (vm != owner && owner != null) {
         try {
           lock.wait();
         } catch (InterruptedException e) {
           throw new ArcError("Thread " + Thread.currentThread() + " interrupted: " + e, e);
         }
       }
-      owner = thread;
+      owner = vm;
       entryCount++;
+      vm.pushFrame(new ReleaseLock());
     }
+
+    f.invoke(vm, ArcObject.NIL);
   }
 
-
-  protected void onReceive(ArcObject returned) {
-    synchronized (lock) {
-      entryCount--;
-      if (entryCount == 0) {
-        owner = null;
-        lock.notifyAll();
+  private static class ReleaseLock extends Instruction implements Finally {
+    public void operate(VM vm) {
+      synchronized (lock) {
+        entryCount--;
+        if (entryCount == 0) {
+          owner = null;
+          lock.notifyAll();
+        }
       }
     }
-    caller.receive(returned);
   }
 }

@@ -1,28 +1,16 @@
 package rainbow.vm.interpreter;
 
+import rainbow.ArcError;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.ConditionalContinuation;
-import rainbow.LexicalClosure;
-import rainbow.ArcError;
+
+import java.util.List;
 
 public class Else extends ArcObject implements Conditional {
   public ArcObject ifExpression;
 
   public ArcObject type() {
-    return Symbol.make("else-clause");
-  }
-
-  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller, Continuation conditional) {
-    ifExpression.interpret(lc, caller);
-  }
-
-  public void execute(ArcThread thread, LexicalClosure lc, Continuation caller) {
-  }
-
-  public void continueFor(ConditionalContinuation conditionalContinuation, Continuation caller) {
+    return Symbol.mkSym("else-clause");
   }
 
   public void add(Conditional c) {
@@ -35,6 +23,14 @@ public class Else extends ArcObject implements Conditional {
     } else {
       throw new ArcError("Internal error: if clause: unexpected: " + expression);
     }
+  }
+
+  public void addInstructions(List i) {
+    ifExpression.addInstructions(i);
+  }
+
+  public String inspect() {
+    return "#<else " + ifExpression + ">";
   }
 
   public String toString() {

@@ -1,25 +1,24 @@
 package rainbow.vm.interpreter;
 
 import rainbow.ArcError;
-import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.AssignmentContinuation;
+
+import java.util.List;
 
 public class Assignment extends ArcObject {
   private SingleAssignment assignment;
 
   public ArcObject type() {
-    return Symbol.make("assignment");
+    return Symbol.mkSym("assignment");
   }
 
   public void add(ArcObject o) {
     assignment.take(o);
   }
 
-  public void interpret(LexicalClosure lc, Continuation caller) {
-    new AssignmentContinuation(lc, caller).continueWith(assignment);
+  public void addInstructions(List i) {
+    assignment.addInstructions(i);
   }
 
   public void prepare(int size) {
@@ -37,5 +36,9 @@ public class Assignment extends ArcObject {
       assignment = new SingleAssignment(assignment);
       size--;
     }
+  }
+
+  public String toString() {
+    return "(assign " + assignment + ")";
   }
 }

@@ -144,30 +144,30 @@ ArcObject expression():       { ArcObject o; } {
 
 ArcObject quote():            { Token tok; ArcObject o; } {
   tok = "'"
-  o = expression()            { return Pair.buildFrom(Symbol.make("quote"), o); }
+  o = expression()            { return Pair.buildFrom(Symbol.mkSym("quote"), o); }
 }
 
 ArcObject unQuote():          { Token tok; ArcObject o; } {
   tok = ","
-  o = expression()            { return Pair.buildFrom(Symbol.make("unquote"), o); }
+  o = expression()            { return Pair.buildFrom(Symbol.mkSym("unquote"), o); }
 }
 
 ArcObject unQuoteSplicing():  { Token tok; ArcObject o; } {
   tok = ",@"
-  o = expression()            { return Pair.buildFrom(Symbol.make("unquote-splicing"), o); }
+  o = expression()            { return Pair.buildFrom(Symbol.mkSym("unquote-splicing"), o); }
 }
 
 ArcObject quasiQuote():       { Token tok; ArcObject o; } {
   tok = "`"
-  o = expression()            { return Pair.buildFrom(Symbol.make("quasiquote"), o); }
+  o = expression()            { return Pair.buildFrom(Symbol.mkSym("quasiquote"), o); }
 }
 
 ArcObject functionShortcut(): {
                                 Token tok;
                                 List list = new LinkedList();
                                 List fn = new LinkedList();
-                                fn.add(Symbol.make("fn"));
-                                fn.add(Pair.buildFrom(Symbol.make("_")));
+                                fn.add(Symbol.mkSym("fn"));
+                                fn.add(Pair.buildFrom(Symbol.mkSym("_")));
                                 ArcObject o;
                               } {
   tok = "[" (

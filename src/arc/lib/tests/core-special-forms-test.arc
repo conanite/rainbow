@@ -85,6 +85,10 @@
         ("nested quasiquote with double unquote"
           ((fn (qqq) `(a b qqq ,qqq `(a b qqq ,qqq ,,qqq))) 'qoo)
           (a b qqq qoo `(a b qqq ,qqq ,qoo)))
+
+        ("more nested quasiquote"
+          ((fn (x) ``,,x) 'y)
+          `,y)
       )
     )
 

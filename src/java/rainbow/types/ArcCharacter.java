@@ -2,8 +2,8 @@ package rainbow.types;
 
 import rainbow.ArcError;
 
-public class ArcCharacter extends ArcObject {
-  public static final Symbol TYPE = (Symbol) Symbol.make("char");
+public class ArcCharacter extends LiteralObject {
+  public static final Symbol TYPE = Symbol.mkSym("char");
   private char value;
 
   public ArcCharacter(char value) {

@@ -23,7 +23,7 @@ public abstract class Assign_Lex extends Instruction {
     } else if (expr.literal()) {
       Assign_Lex_Literal.addInstructions(i, name, expr, last);
     } else if (expr instanceof Quotation) {
-      Assign_Lex_Literal.addInstructions(i, name, ((Quotation) expr).getQuoted(), last);
+      Assign_Lex_Literal.addInstructions(i, name, ((Quotation) expr).quoted(), last);
     } else {
       Assign_Lex_Other.addInstructions(i, name, expr, last);
     }

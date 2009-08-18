@@ -23,7 +23,7 @@ public abstract class Assign_Free extends Instruction {
     } else if (expr.literal()) {
       Assign_Free_Literal.addInstructions(i, name, expr, last);
     } else if (expr instanceof Quotation) {
-      Assign_Free_Literal.addInstructions(i, name, ((Quotation) expr).getQuoted(), last);
+      Assign_Free_Literal.addInstructions(i, name, ((Quotation) expr).quoted(), last);
     } else {
       Assign_Free_Other.addInstructions(i, name, expr, last);
     }

@@ -1,32 +1,19 @@
 package rainbow.types;
 
+import rainbow.ArcError;
 import rainbow.Function;
 import rainbow.LexicalClosure;
-import rainbow.ArcError;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.TableMapper;
+import rainbow.vm.VM;
 
 import java.util.*;
 
-public class Hash extends ArcObject implements Function {
-  public static final Symbol TYPE = (Symbol) Symbol.make("table");
-
-  public static final Function REF = new Function() {
-    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-      Hash hash = Hash.cast(args.car(), this);
-      caller.receive(hash.value(args.cdr().car()).or(args.cdr().cdr().car()));
-    }
-
-    public String toString() {
-      return "hash-ref";
-    }
-  };
-
+public class Hash extends LiteralObject {
+  public static final Symbol TYPE = Symbol.mkSym("table");
 
   LinkedHashMap map = new LinkedHashMap();
 
-  public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-    REF.invoke(lc, caller, new Pair(this, args));
+  public void invoke(VM vm, Pair args) {
+    vm.pushA(this.value(args.car()).or(args.cdr().car()));
   }
 
   public String toString() {
@@ -37,18 +24,14 @@ public class Hash extends ArcObject implements Function {
     List pairs = new LinkedList();
     for (Iterator it = map.keySet().iterator(); it.hasNext();) {
       Object o = it.next();
-      Pair keyValue = new Pair((ArcObject) o, (ArcObject) map.get(o));
+      Pair keyValue = new Pair((ArcObject) o, new Pair((ArcObject) map.get(o), NIL));
       pairs.add(keyValue);
     }
-    return Pair.buildFrom(pairs, NIL);
+    return Pair.buildFrom(pairs, EMPTY_LIST);
   }
 
   public long len() {
     return size();
-  }
-
-  public Function refFn() {
-    return Hash.REF;
   }
 
   public ArcObject sref(Pair args) {
@@ -98,8 +81,14 @@ public class Hash extends ArcObject implements Function {
     return map.size();
   }
 
-  public void map(Function f, LexicalClosure lc, Continuation caller) {
-    new TableMapper(lc, caller, f, this).receive(null);
+  public ArcObject map(Function f, LexicalClosure lc) {
+    Pair kvs = toList();
+    while (!kvs.isNil()) {
+      Pair args = (Pair) kvs.car();
+      f.invoke(lc, Pair.buildFrom(args.car(), args.cdr()));
+      kvs = (Pair) kvs.cdr();
+    }
+    return this;
   }
 
   public static Hash cast(ArcObject argument, Object caller) {

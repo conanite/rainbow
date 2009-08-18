@@ -1,12 +1,14 @@
 package rainbow.vm.interpreter;
 
 import rainbow.LexicalClosure;
-import rainbow.vm.Continuation;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
+import rainbow.vm.instructions.LexSym;
+
+import java.util.List;
 
 public class BoundSymbol extends ArcObject {
-  public static final Symbol TYPE = (Symbol) Symbol.make("bound-symbol");
+  public static final Symbol TYPE = Symbol.mkSym("bound-symbol");
   private final int nesting;
   private final int index;
   private final Symbol name;
@@ -21,8 +23,12 @@ public class BoundSymbol extends ArcObject {
     lc.nth(nesting).set(index, value);
   }
 
-  public void interpret(LexicalClosure lc, Continuation caller) {
-    caller.receive(lc.nth(nesting).at(index));
+  public ArcObject interpret(LexicalClosure lc) {
+    return lc.nth(nesting).at(index);
+  }
+
+  public void addInstructions(List i) {
+    i.add(new LexSym(this));
   }
 
   public ArcObject type() {

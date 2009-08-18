@@ -70,10 +70,7 @@ public class Invoke_N {
     }
 
     public void operate(VM vm) {
-//      System.out.println("operating " + this);
       ArcObject f = vm.popA();
-//      System.out.println("operating " + this + " f is " + f);
-//      vm.show();
       f.invoke(vm, vm.popArgs(argCount));
     }
 

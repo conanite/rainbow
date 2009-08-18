@@ -2,9 +2,9 @@ package rainbow.vm.interpreter;
 
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.vm.Continuation;
 import rainbow.vm.continuations.QuasiQuoteContinuation;
-import rainbow.LexicalClosure;
+
+import java.util.List;
 
 public class QuasiQuotation extends ArcObject {
   private ArcObject target;
@@ -14,11 +14,11 @@ public class QuasiQuotation extends ArcObject {
   }
 
   public ArcObject type() {
-    return Symbol.make("quasiquotation");
+    return Symbol.mkSym("quasiquotation");
   }
 
-  public void interpret(LexicalClosure lc, Continuation caller) {
-    new QuasiQuoteContinuation(lc, caller, target);
+  public void addInstructions(List i) {
+    QuasiQuoteContinuation.addInstructions(i, target);
   }
 
   public String toString() {

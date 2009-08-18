@@ -27,4 +27,8 @@ public class Assign_Free_Free extends Assign_Free {
       i.add(new Assign_Free_Free_Intermediate(name, value));
     }
   }
+
+  public String toString() {
+    return "(assign-free " + name + " " + value + ")";
+  }
 }

@@ -1,11 +1,8 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.Environment;
-import rainbow.Function;
-import rainbow.functions.Java;
-import rainbow.vm.ArcThread;
-import rainbow.vm.continuations.TopLevelContinuation;
+import rainbow.Console;
+import rainbow.vm.VM;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -17,7 +14,7 @@ public class JavaProxy implements InvocationHandler {
   private Hash functions;
   private boolean strict;
   private Pair interfaces;
-  private static final ArcObject WILDCARD = Symbol.make("*");
+  private static final ArcObject WILDCARD = Symbol.mkSym("*");
 
   public JavaProxy(boolean strict, Hash functions, Pair interfaces) {
     this.functions = functions;
@@ -26,7 +23,7 @@ public class JavaProxy implements InvocationHandler {
   }
 
   public Object invoke(Object target, Method method, Object[] arguments) throws Throwable {
-    if (Environment.debugJava) {
+    if (Console.debugJava) {
       if (arguments != null) {
         System.out.println("JavaProxy: invoking " + method + " with " + new ArrayList(Arrays.asList(arguments)));
       } else {
@@ -35,7 +32,7 @@ public class JavaProxy implements InvocationHandler {
     }
     try {
       Object o = invoke2(target, method, arguments);
-      if (Environment.debugJava) {
+      if (Console.debugJava) {
         System.out.println("return value for " + method + " is " + o);
       }
       return o;
@@ -45,15 +42,15 @@ public class JavaProxy implements InvocationHandler {
   }
 
   public Object invoke2(Object target, Method method, Object[] arguments) throws Throwable {
-    ArcThread thread = new ArcThread();
-    TopLevelContinuation topLevel = new TopLevelContinuation(thread);
+//    ArcThread thread = new ArcThread();
+//    TopLevelContinuation topLevel = new TopLevelContinuation(thread);
     ArcObject methodImplementation = functions.value(Symbol.make(method.getName()));
     if (methodImplementation.isNil()) {
       methodImplementation = functions.value(WILDCARD);
     }
 
     if (methodImplementation.isNil()) {
-      if (Environment.debugJava) {
+      if (Console.debugJava) {
         System.out.println("no implementation found for " + method);
       }
       if (method.getName().equals("toString")) {
@@ -66,11 +63,11 @@ public class JavaProxy implements InvocationHandler {
         }
       }
     }
-    Function f = methodImplementation;
-    Pair args = (Pair) Java.wrap(arguments);
-    f.invoke(null, topLevel, args);
-    thread.run();
-    return JavaObject.unwrap(thread.finalValue(), method.getReturnType());
+    ArcObject f = methodImplementation;
+    Pair args = (Pair) JavaObject.wrap(arguments);
+    VM vm = new VM();
+    f.invoke(vm, args);
+    return JavaObject.unwrap(vm.thread(), method.getReturnType());
   }
 
   public static ArcObject create(Pair interfaceNames, ArcObject functions, ArcObject strict) {

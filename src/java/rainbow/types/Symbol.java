@@ -2,17 +2,18 @@ package rainbow.types;
 
 import rainbow.ArcError;
 import rainbow.LexicalClosure;
-import rainbow.vm.Continuation;
+import rainbow.vm.instructions.FreeSym;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Symbol extends ArcObject {
   private static final Map<String, Symbol> map = new HashMap();
-  public static final Symbol TYPE = (Symbol) Symbol.make("sym");
-  public static final Symbol EMPTY_STRING = (Symbol) Symbol.make("||");
-  public static final Symbol DOT = (Symbol) Symbol.make(".");
-  public static final Symbol BANG = (Symbol) Symbol.make("!");
+  public static final Symbol TYPE = Symbol.mkSym("sym");
+  public static final Symbol EMPTY_STRING = Symbol.mkSym("||");
+  public static final Symbol DOT = Symbol.mkSym(".");
+  public static final Symbol BANG = Symbol.mkSym("!");
   private String name;
   private int hash;
   private ArcObject value;
@@ -20,6 +21,19 @@ public class Symbol extends ArcObject {
   protected Symbol(String name) {
     this.name = name;
     this.hash = name.hashCode();
+  }
+
+  public void addInstructions(List i) {
+    i.add(new FreeSym(this));
+  }
+
+  public static Symbol mkSym(String name) {
+    if ("t".equals(name)) {
+      return T;
+    } else if ("nil".equals(name)) {
+      throw new ArcError("can't make symbol 'nil");
+    }
+    return nu(name);
   }
 
   public static ArcObject make(String name) {
@@ -70,14 +84,6 @@ public class Symbol extends ArcObject {
     return this == object;
   }
 
-  public void interpret(LexicalClosure lc, Continuation caller) {
-    try {
-      caller.receive(value());
-    } catch (Unbound e) {
-      caller.error(e);
-    }
-  }
-
   public static boolean is(String s, ArcObject o) {
     return (o instanceof Symbol) && ((Symbol)o).name().equals(s);
   }
@@ -92,19 +98,13 @@ public class Symbol extends ArcObject {
 
   public ArcObject value() {
     if (value == null) {
-      throw new Unbound(this);
+      throw new ArcError("Symbol " + name + " is not bound");
     }
     return value;
   }
 
   public boolean bound() {
     return value != null;
-  }
-
-  private class Unbound extends ArcError {
-    public Unbound(Symbol name) {
-      super("Symbol " + name + " is not bound");
-    }
   }
 
   public static Symbol cast(ArcObject argument, Object caller) {

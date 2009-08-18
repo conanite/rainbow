@@ -1,52 +1,65 @@
 package rainbow.vm.interpreter;
 
-import rainbow.ArcError;
-import rainbow.LexicalClosure;
+import rainbow.functions.InterpretedFunction;
+import rainbow.functions.InterpretedFunction.ZeroArgs;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.InvocationContinuation;
-import rainbow.vm.interpreter.invocation.*;
+import rainbow.vm.instructions.invoke.*;
+
+import java.util.List;
 
 public class Invocation extends ArcObject {
-  private InvocationComponent invocationComponent;
+  private final Pair parts;
 
-  public void interpret(LexicalClosure lc, Continuation caller) {
-    caller.thread().continueWith(new InvocationContinuation(lc, caller, invocationComponent));
-  }
-
-  public void buildFrom(Pair args) {
-    switch ((int) args.len()) {
-      case 0:
-        throw new ArcError("Invocation: internal error: empty list: not allowed!");
-      case 1:
-        invocationComponent = new NoArgs();
-        break;
-      case 2:
-        invocationComponent = new FunctionInvocation();
-        invocationComponent.add(new SingleArg());
-        break;
-      default:
-        invocationComponent = new FunctionInvocation();
-        invocationComponent.add(new FirstArg());
-        for (int i = 0; i < args.len() - 3; i++) {
-          invocationComponent.add(new IntermediateArg());
-        }
-        invocationComponent.add(new LastArg());
-    }
-
-    while (!args.isNil()) {
-      invocationComponent.take(args.car());
-      args = (Pair) args.cdr();
-    }
+  public Invocation(Pair parts) {
+    this.parts = parts;
   }
 
   public ArcObject type() {
-    return Symbol.make("function-invocation");
+    return Symbol.mkSym("function-invocation");
   }
 
   public String toString() {
-    return invocationComponent.toString();
+    return parts.toString();
+  }
+
+  public void addInstructions(List i) {
+    if (parts.len() == 1L && parts.car() instanceof ZeroArgs) {
+      ((InterpretedFunction) parts.car()).instructions().copyTo(i);
+      return;
+    }
+
+    switch ((int) parts.len()) {
+      case 1:
+        Invoke_0.addInstructions(i,
+                parts.car());
+        break;
+      case 2:
+        Invoke_1.addInstructions(i,
+                parts.car(),
+                parts.cdr().car()
+        );
+        break;
+      case 3:
+        Invoke_2.addInstructions(i,
+                parts.car(),
+                parts.cdr().car(),
+                parts.cdr().cdr().car()
+        );
+        break;
+      case 4:
+        Invoke_3.addInstructions(i,
+                parts.car(),
+                parts.cdr().car(),
+                parts.cdr().cdr().car(),
+                parts.cdr().cdr().cdr().car()
+        );
+        break;
+      default:
+        Invoke_N.addInstructions(i,
+                parts.car(),
+                (Pair) parts.cdr());
+    }
   }
 }

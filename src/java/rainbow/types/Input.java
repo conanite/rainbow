@@ -1,13 +1,12 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.functions.Builtin;
 import rainbow.parser.ArcParser;
 
 import java.io.*;
 
-public class Input extends ArcObject {
-  public static Symbol TYPE = (Symbol) Symbol.make("input");
+public class Input extends LiteralObject {
+  public static Symbol TYPE = Symbol.mkSym("input");
   private InputStream original;
   private PushbackInputStream in;
   private PushbackReader reader;

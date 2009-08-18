@@ -14,6 +14,7 @@
 (assign test-do
        (annotate 'mac
                  (fn args `((fn () ,@args)))))
+
 (assign test-mymac
        (annotate 'mac
                  (fn (name parms . body)
@@ -27,16 +28,16 @@
                           0
                           `(+ ,x (test-recursive-mac ,(- x 1)))))))
 
-(assign test-make-pair 
-        (annotate 'mac 
-                  (fn (a b) 
+(assign test-make-pair
+        (annotate 'mac
+                  (fn (a b)
                       `(cons ,a ,b))))
 
-(assign test-alternative-repeat-mac 
-        (annotate 'mac 
-                  (fn (x n) 
-                      (if (is n 0) 
-                          nil 
+(assign test-alternative-repeat-mac
+        (annotate 'mac
+                  (fn (x n)
+                      (if (is n 0)
+                          nil
                           `(test-make-pair ,x (test-alternative-repeat-mac ,x ,(- n 1)))))))
 
 (register-test '(suite "Foundation Tests"
@@ -77,16 +78,16 @@
 
       ("nested expansion"
         (macex '(test-alternative-repeat-mac 'foo 14))
-        (cons (quote foo) (test-alternative-repeat-mac (quote foo) 13)))
+        (cons 'foo (test-alternative-repeat-mac 'foo 13)))
 
       ("more expansion"
         (macex '(test-mymac foo (x y) (prn "foo" x y) `(,x y ,y)))
-        ((fn () 
-             (sref sig (quote (x y)) (quote foo)) 
-             (safeset foo 
-                      (annotate (quote mac) 
-                                (fn (x y) 
-                                    (prn "foo" x y) 
+        ((fn ()
+             (sref sig (quote (x y)) (quote foo))
+             (safeset foo
+                      (annotate (quote mac)
+                                (fn (x y)
+                                    (prn "foo" x y)
                                     (quasiquote ((unquote x) y (unquote y))))))))))
 
     (suite "invocation"

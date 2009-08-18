@@ -1,31 +1,26 @@
 package rainbow.functions;
 
 import rainbow.ArcError;
-import rainbow.Function;
-import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.Continuation;
+import rainbow.vm.VM;
 
-public abstract class Builtin extends ArcObject implements Function {
-  public static final Symbol TYPE = (Symbol) Symbol.make("fn");
+public abstract class Builtin extends ArcObject {
+  public static final Symbol TYPE = Symbol.mkSym("fn");
   protected final String name;
-
-  protected Builtin() {
-    this("");
-  }
 
   protected Builtin(String name) {
     this.name = name;
+    Symbol.mkSym(name).setValue(this);
   }
 
   protected ArcObject invoke(Pair args) {
-    throw new ArcError("Builtin:invoke(args):provide implementation!");
+    throw new ArcError("Builtin:invoke(args):provide implementation! " + name() + " args " + args);
   }
 
-  public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-    caller.receive(invoke(args));
+  public void invoke(VM vm, Pair args) {
+    vm.pushA(invoke(args));
   }
 
   public int compareTo(ArcObject right) {
@@ -61,13 +56,5 @@ public abstract class Builtin extends ArcObject implements Function {
 
   public String name() {
     return "".equals(name) ? getClass().getSimpleName().toLowerCase() : name;
-  }
-
-  public static Function cast(ArcObject argument, Object caller) {
-    try {
-      return argument;
-    } catch (ClassCastException e) {
-      throw new ArcError("Wrong argument type: " + caller + " expected a function, got " + argument);
-    }
   }
 }

@@ -16,6 +16,12 @@
   "#\\return"  #\return))
 
 (def whitespace? (ch)
+  (if (is ch #\space) ch
+      (is ch #\newline) ch
+      (is ch #\tab) ch
+      (is ch #\return) ch))
+
+(def slow-whitespace? (ch)
   (if (in ch #\space #\newline #\tab #\return) ch))
 
 (def make-character (token)

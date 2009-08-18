@@ -88,8 +88,7 @@
 (defweld close "Close"
          "Close this welder window"
          (editor!frame 'dispose)
-         (wipe (open-welders editor!wname))
-         (kill-thread editor!update-thread))
+         (on-close-editor editor))
 
 (defweld save "Save"
          "Save the file in this window"
@@ -563,6 +562,10 @@
   (prn "welder: opening " file)
   (editor!pane 'setText (load-file file)))
 
+(def on-close-editor (editor)
+  (wipe (open-welders editor!wname))
+  (kill-thread editor!update-thread))
+
 (def welder-keystroke (editor keystroke)
   (handle-keystroke welder-key-bindings*
                     welder-actions*
@@ -701,17 +704,22 @@
                                                   (finish start)
                                                   finish))
                         (editor!caret 'moveDot start)))))
+(welder-init (editor)
+  (editor!frame 'addWindowListener (obj
+    windowClosed (fn (ev) (on-close-editor editor)))))
 
 (assign open-welders (table))
 
 (def welder ((o file) (o txt))
-  (let wname (if file file
+  (let wname (if file canonical-path.file
                  txt  "*scratch(#((len open-welders)))*"
                       "*scratch*")
     (aif open-welders.wname
-         (do it!frame!toFront
+         (do it!frame!show
+             it!frame!toFront
              it)
          (let editor (editor-pane)
+           (prn "new welder for " wname)
            (= open-welders.wname editor)
            (= editor!wname wname)
            (map [_ editor] rev.welder-initialisers)

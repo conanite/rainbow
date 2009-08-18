@@ -26,4 +26,8 @@ public class Assign_Lex_Literal extends Assign_Lex {
       i.add(new Assign_Lex_Literal_Intermediate(name, expr));
     }
   }
+
+  public String toString() {
+    return "(assign-lex " + name + " " + expr + ")";
+  }
 }

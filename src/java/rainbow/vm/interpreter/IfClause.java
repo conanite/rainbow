@@ -2,20 +2,15 @@ package rainbow.vm.interpreter;
 
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.ConditionalContinuation;
-import rainbow.LexicalClosure;
+
+import java.util.List;
 
 public class IfClause extends ArcObject {
-  private static final ArcObject TYPE = Symbol.make("if-clause");
+  private static final ArcObject TYPE = Symbol.mkSym("if-clause");
   private Conditional first;
 
   public ArcObject type() {
     return TYPE;
-  }
-
-  public void interpret(LexicalClosure lc, Continuation caller) {
-    new ConditionalContinuation(lc, caller).continueWith(first);
   }
 
   public void add(Conditional c) {
@@ -28,6 +23,10 @@ public class IfClause extends ArcObject {
 
   public void take(ArcObject expression) {
     first.take(expression);
+  }
+
+  public void addInstructions(List i) {
+    first.addInstructions(i);
   }
 
   public String toString() {

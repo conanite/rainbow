@@ -4,3 +4,12 @@
 *.jar
 build
 src/java/rainbow/parser
+.DS_Store
+\#*.arc\#
+src/arc.zip
+src/rainbow.zip
+rainbow.iws
+todo.txt
+out
+arc
+src/arc/arc

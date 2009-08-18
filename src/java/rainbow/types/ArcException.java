@@ -1,10 +1,9 @@
 package rainbow.types;
 
-import rainbow.functions.Errors;
 import rainbow.ArcError;
 
-public class ArcException extends ArcObject {
-  public static Symbol TYPE = (Symbol) Symbol.make("exn");
+public class ArcException extends LiteralObject {
+  public static Symbol TYPE = Symbol.mkSym("exn");
   private static final ArcString NO_MESSAGE = ArcString.make("no message");
   private Throwable original;
 
@@ -29,6 +28,10 @@ public class ArcException extends ArcObject {
 
   public String toString() {
     return message().toString();
+  }
+
+  public Throwable getOriginal() {
+    return original;
   }
 
   public static ArcException cast(ArcObject argument, ArcObject caller) {

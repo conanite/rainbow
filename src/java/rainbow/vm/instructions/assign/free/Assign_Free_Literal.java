@@ -26,4 +26,8 @@ public class Assign_Free_Literal extends Assign_Free{
       i.add(new Assign_Free_Literal_Intermediate(name, expr));
     }
   }
+
+  public String toString() {
+    return "(assign-free " + name + " " + expr + ")";
+  }
 }

@@ -2,78 +2,56 @@ package rainbow.vm.continuations;
 
 import rainbow.ArcError;
 import rainbow.LexicalClosure;
-import rainbow.functions.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
+import rainbow.vm.VM;
 
-public class NamespaceBuilder extends ContinuationSupport {
-  private static final Symbol o = (Symbol) Symbol.make("o");
-  private ArcObject parameters;
-  private Pair args;
-  private InterpretedFunction f;
+import java.util.ArrayList;
+import java.util.List;
 
-  public NamespaceBuilder(LexicalClosure lc, Continuation caller, ArcObject parameters, Pair arguments, InterpretedFunction f) {
-    super(lc, caller);
-    this.parameters = parameters;
-    this.args = arguments;
-    this.f = f;
-    start();
-  }
+public class NamespaceBuilder {
+  private static final Symbol o = Symbol.mkSym("o");
 
-  public void start() {
-    if (parameters.isNil()) {
-      finished();
-      return;
-    } else if (parameters instanceof Symbol) {
-      lc.add(args);
-      finished();
-      return;
-    }
+  public static void complex(VM vm, LexicalClosure lc, ArcObject parameters, Pair args) {
+    while (!parameters.isNotPair()) {
+      ArcObject nextParameter = parameters.car();
+      ArcObject nextArg = args.car();
 
-    ArcObject nextParameter = parameters.car();
-    ArcObject nextArg = args.car();
-    if (nextParameter instanceof Symbol) {
-      lc.add(nextArg);
-    } else if (optional(nextParameter)) {
-      Pair optional = optionalParam(nextParameter);
-      if (!args.isNil()) {
+      if (nextParameter instanceof Symbol) {
         lc.add(nextArg);
+
+      } else if (optional(nextParameter)) {
+        Pair optional = optionalParam(nextParameter);
+        if (!args.isNil()) {
+          lc.add(nextArg);
+        } else {
+          lc.add(evalOptional(vm, lc, optional));
+        }
+
       } else {
-        optional.cdr().car().interpret(lc, this);
-        return;
+        try {
+          nextArg.mustBePairOrNil();
+        } catch (Pair.NotPair e) {
+          throw new ArcError("Expected list argument for destructuring parameter " + nextParameter + ", got " + nextArg);
+        }
+        complex(vm, lc, nextParameter, (Pair) nextArg);
       }
-    } else {
-      shift();
-      try {
-        nextArg.mustBePairOrNil();
-      } catch (Pair.NotPair e) {
-        throw new ArcError("Expected list argument for destructuring parameter " + nextParameter + ", got " + nextArg);
-      }
-      new NamespaceBuilder(lc, this, Pair.cast(nextParameter, this), Pair.cast(nextArg, this), null);
-      return;
+
+      parameters = parameters.cdr();
+      args = (Pair) args.cdr();
     }
 
-    shift();
-    start();
-  }
-
-  private void finished() {
-    if (f == null) {
-      ((NamespaceBuilder)caller).start();
-    } else {
-      if (!lc.finished()) {
-        throw new ArcError("Expected " + lc.size() + " arguments, got " + lc.count() + " for function " + f);
-      }
-      FunctionEvaluator.evaluate(lc, caller, f);
+    if (parameters instanceof Symbol) {
+      lc.add(args);
     }
   }
 
-  private void shift() {
-    parameters = parameters.cdr();
-    args = (Pair) args.cdr();
+  private static ArcObject evalOptional(VM vm, LexicalClosure lc, Pair optional) {
+    List i = new ArrayList();
+    optional.cdr().car().addInstructions(i);
+    vm.pushFrame(lc, Pair.buildFrom(i));
+    return vm.thread();
   }
 
   public static boolean optional(ArcObject nextParameter) {
@@ -85,20 +63,8 @@ public class NamespaceBuilder extends ContinuationSupport {
     return p.car() == o;
   }
 
-  public void onReceive(ArcObject o) {
-    args = new Pair(o, args);
-    start();
-  }
-
-  private Pair optionalParam(ArcObject nextParameter) {
+  private static Pair optionalParam(ArcObject nextParameter) {
     return (Pair) nextParameter.cdr();
-  }
-
-  public Continuation cloneFor(ArcThread thread) {
-    NamespaceBuilder e = (NamespaceBuilder) super.cloneFor(thread);
-    e.parameters = this.parameters.copy();
-    e.args = this.args.copy();
-    return e;
   }
 
   public static void simple(LexicalClosure lc, ArcObject parameterList, ArcObject args) {

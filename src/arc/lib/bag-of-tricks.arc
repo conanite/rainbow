@@ -1,3 +1,7 @@
+(mac afnwith (withses . body)
+  (let w (pair withses)
+    `((afn ,(map car w) ,@body) ,@(map cadr w))))
+
 (def nilfn args nil)
 
 (mac dbg (var)
@@ -14,9 +18,8 @@
 (mac nobj args ; with thanks to http://arclanguage.org/item?id=7478 and http://arclanguage.org/item?id=7480
   `(obj ,@(mappend [list _ _] args)))
 
-(with ((make-def double-each) nil)
-  (= make-def (fn ((name args . body))
-     `(= ,name (fn ,args ,@body))))
+(let make-def (fn ((name args . body))
+                  `(= ,name (fn ,args ,@body)))
   (mac make-obj args
     `(with (,(map car args) nil)
        ,@(map make-def args)
@@ -24,10 +27,13 @@
 
 (def index-of (x xs)
   (catch
-    ((afn (count xs1)
+    (afnwith (count 0 xs1 xs)
       (if (no xs1)      (throw -1)
           (caris xs1 x) (throw count)
-                        (self (+ 1 count) (cdr xs1)))) 0 xs)))
+                        (self (+ 1 count) (cdr xs1))))))
+
+(def mksym args
+  (sym (apply string args)))
 
 (def sym+ args
   (sym (apply + (map [string _] args))))
@@ -78,8 +84,27 @@
   (if (acons exprs)
       (do (eval (car exprs)) (eval-these (cdr exprs)))))
 
-(mac afnwith (withses . body)
-  (let w (pair withses)
-    `((afn ,(map car w) ,@body) ,@(map cadr w))))
+(def benchmark (times fun (o verbose nil))
+  (pr "warm-up ")
+  (repeat 3 (do (fun) (pr ".")))
+  (prn)
+  (with (mintime 2000000000 maxtime 0 totaltime 0 now nil)
+    (for i 0 (- times 1)
+      (= now (msec))
+      (fun)
+      (let elapsed (- (msec) now)
+        (if verbose (prn i " . " elapsed))
+        (zap [min _ elapsed] mintime)
+        (zap [max _ elapsed] maxtime)
+        (zap [+ _ elapsed] totaltime)))
+    (prn)
+    (prn "avg " (/ totaltime times 1.0))
+    (prn "min " mintime)
+    (prn "max " maxtime)
+    (/ totaltime times 1.0)))
 
+(mac bm (times . body)
+  `(benchmark ,times (fn () ,@body)))
 
+(mac bmv (times . body)
+  `(benchmark ,times (fn () ,@body) t))

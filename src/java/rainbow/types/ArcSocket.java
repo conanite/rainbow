@@ -8,8 +8,8 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class ArcSocket extends ArcObject {
-  public static final ArcObject TYPE = Symbol.make("socket");
+public class ArcSocket extends LiteralObject {
+  public static final ArcObject TYPE = Symbol.mkSym("socket");
   private ServerSocket ss;
 
   public ArcObject type() {

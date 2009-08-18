@@ -27,4 +27,8 @@ public class Assign_Lex_Lex extends Assign_Lex {
       i.add(new Assign_Lex_Lex_Intermediate(name, value));
     }
   }
+
+  public String toString() {
+    return "(assign-lex " + name + " " + value + ")";
+  }
 }

@@ -3,7 +3,7 @@ package rainbow.vm.instructions;
 import rainbow.vm.Instruction;
 import rainbow.vm.VM;
 
-public class SetThreadLocal extends Instruction {
+public class SetThreadLocal extends Instruction implements Finally {
   private final ThreadLocal tl;
   private final Object value;
 

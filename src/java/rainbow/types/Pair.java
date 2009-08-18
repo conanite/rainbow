@@ -1,27 +1,14 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.Function;
 import rainbow.LexicalClosure;
 import rainbow.functions.Builtin;
-import rainbow.vm.Continuation;
+import rainbow.vm.VM;
 
 import java.util.*;
 
-public class Pair extends ArcObject implements Function {
-  public static final Symbol TYPE = (Symbol) Symbol.make("cons");
-
-  public static final Function REF = new Function() {
-    public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-      Pair pair = Pair.cast(args.car(), this);
-      ArcNumber index = ArcNumber.cast(args.cdr().car(), this);
-      caller.receive(pair.nth(index.toInt()).car());
-    }
-
-    public String toString() {
-      return "pair-ref";
-    }
-  };
+public class Pair extends ArcObject {
+  public static final Symbol TYPE = Symbol.mkSym("cons");
 
   private static final Map specials = new HashMap();
 
@@ -49,6 +36,11 @@ public class Pair extends ArcObject implements Function {
     this.cdr = cdr;
   }
 
+  public void invoke(VM vm, Pair args) {
+    ArcNumber index = ArcNumber.cast(args.car(), this);
+    vm.pushA(this.nth(index.toInt()).car());
+  }
+
   public ArcObject xcar() {
     return car;
   }
@@ -61,14 +53,6 @@ public class Pair extends ArcObject implements Function {
     return cdr;
   }
 
-  public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-    REF.invoke(lc, caller, new Pair(this, args));
-  }
-
-  public Function refFn() {
-    return Pair.REF;
-  }
-
   public void mustBeNil() throws NotNil {
     if (car != null) {
       throw new NotNil();
@@ -79,7 +63,7 @@ public class Pair extends ArcObject implements Function {
     return false;
   }
 
-  public void interpret(LexicalClosure lc, Continuation caller) {
+  public ArcObject interpret(LexicalClosure lc) {
     throw new ArcError("can't interpret a cons cell!!! " + this);
   }
 

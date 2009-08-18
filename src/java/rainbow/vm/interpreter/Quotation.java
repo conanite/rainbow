@@ -1,9 +1,11 @@
 package rainbow.vm.interpreter;
 
 import rainbow.LexicalClosure;
+import rainbow.vm.instructions.Literal;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.vm.Continuation;
+
+import java.util.List;
 
 public class Quotation extends ArcObject {
   private ArcObject quoted;
@@ -12,12 +14,20 @@ public class Quotation extends ArcObject {
     this.quoted = quoted;
   }
 
-  public ArcObject type() {
-    return Symbol.make("quoatation");
+  public void addInstructions(List i) {
+    i.add(new Literal(quoted));
   }
 
-  public void interpret(LexicalClosure lc, Continuation caller) {
-    caller.receive(quoted);
+  public ArcObject quoted() {
+    return quoted;
+  }
+
+  public ArcObject type() {
+    return Symbol.mkSym("quoatation");
+  }
+
+  public ArcObject interpret(LexicalClosure lc) {
+    return quoted;
   }
 
   public String toString() {

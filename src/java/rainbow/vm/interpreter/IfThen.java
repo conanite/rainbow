@@ -2,10 +2,10 @@ package rainbow.vm.interpreter;
 
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.ConditionalContinuation;
-import rainbow.LexicalClosure;
+import rainbow.vm.instructions.cond.Cond;
+import rainbow.vm.instructions.cond.Cond_Lex;
+
+import java.util.List;
 
 public class IfThen extends ArcObject implements Conditional {
   public ArcObject ifExpression;
@@ -13,19 +13,7 @@ public class IfThen extends ArcObject implements Conditional {
   public Conditional next;
 
   public ArcObject type() {
-    return Symbol.make("if-then-clause");
-  }
-
-  public void interpret(ArcThread thread, LexicalClosure lc, Continuation caller, Continuation conditional) {
-    ifExpression.interpret(lc, conditional);
-  }
-
-  public void execute(ArcThread thread, LexicalClosure lc, Continuation caller) {
-    thenExpression.interpret(lc, caller);
-  }
-
-  public void continueFor(ConditionalContinuation cc, Continuation caller) {
-    cc.continueWith(next);
+    return Symbol.mkSym("if-then-clause");
   }
 
   public void add(Conditional c) {
@@ -43,6 +31,15 @@ public class IfThen extends ArcObject implements Conditional {
       thenExpression = expression;
     } else {
       next.take(expression);
+    }
+  }
+
+  public void addInstructions(List i) {
+    if (ifExpression instanceof BoundSymbol) {
+      Cond_Lex.addInstructions(i, (BoundSymbol) ifExpression, thenExpression, next);
+    } else {
+      ifExpression.addInstructions(i);
+      i.add(new Cond(thenExpression, (ArcObject) next));
     }
   }
 

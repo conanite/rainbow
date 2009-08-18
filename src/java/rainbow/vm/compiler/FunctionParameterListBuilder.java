@@ -3,65 +3,48 @@ package rainbow.vm.compiler;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.continuations.ContinuationSupport;
+import rainbow.vm.VM;
 import rainbow.vm.continuations.NamespaceBuilder;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class FunctionParameterListBuilder extends ContinuationSupport {
-  private static final Symbol O = (Symbol) Symbol.make("o");
-  private ArcObject parameters;
-  private Map[] lexicalBindings;
-  List result = new LinkedList();
-  private ArcObject optionalParamName;
-  ArcObject complexParams = ArcObject.NIL;
+public class FunctionParameterListBuilder {
+  private static final Symbol O = Symbol.mkSym("o");
 
-  public FunctionParameterListBuilder(FunctionBodyBuilder caller, ArcObject parameters, Map[] lexicalBindings) {
-    super(caller);
-    this.parameters = parameters;
-    this.lexicalBindings = lexicalBindings;
+  public static ArcObject build(VM vm, ArcObject parameters, Map[] lexicalBindings) {
     index(parameters, lexicalBindings[0], new int[]{0}, false);
-  }
+    ArcObject complexParams = ArcObject.NIL;
+    List result = new LinkedList();
 
-  public void start() {
-    if (parameters.isNotPair()) {
-      if (result.size() == 0) {
-        returnParams(parameters);
+    while (!parameters.isNotPair()) {
+      ArcObject first = parameters.car();
+      parameters = parameters.cdr();
+      if (!(first instanceof Pair)) {
+        result.add(first);
       } else {
-        returnParams(Pair.buildFrom(result, parameters));
+        complexParams = ArcObject.T;
+        Pair maybeOptional = (Pair) first;
+        if (NamespaceBuilder.optional(maybeOptional)) {
+          ArcObject optionalParamName = maybeOptional.cdr().car();
+          ArcObject compiledOptionalExpression = Compiler.compile(vm, maybeOptional.cdr().cdr().car(), lexicalBindings);
+          result.add(Pair.buildFrom(O, optionalParamName, compiledOptionalExpression));
+        } else {
+          result.add(first);
+        }
       }
-      return;
     }
 
-    ArcObject first = parameters.car();
-    parameters = parameters.cdr();
-    if (!(first instanceof Pair)) {
-      continueWith(first);
+    if (result.size() == 0) {
+      return returnParams(complexParams, parameters);
     } else {
-      complexParams = ArcObject.T;
-      Pair maybeOptional = (Pair) first;
-      if (NamespaceBuilder.optional(maybeOptional)) {
-        optionalParamName = maybeOptional.cdr().car();
-        rainbow.vm.compiler.Compiler.compile(lc, this, maybeOptional.cdr().cdr().car(), lexicalBindings);
-      } else {
-        continueWith(first);
-      }
+      return returnParams(complexParams, Pair.buildFrom(result, parameters));
     }
   }
 
-  private void returnParams(ArcObject params) {
-    caller.receive(new Pair(complexParams, params));
-  }
-
-  private void continueWith(ArcObject first) {
-    result.add(first);
-    start();
-  }
-
-  protected void onReceive(ArcObject compiledOptionalExpression) {
-    continueWith(Pair.buildFrom(O, optionalParamName, compiledOptionalExpression));
+  private static ArcObject returnParams(ArcObject complexParams, ArcObject params) {
+    return new Pair(complexParams, params);
   }
 
   private static void index(ArcObject parameterList, Map map, int[] i, boolean optionable) {

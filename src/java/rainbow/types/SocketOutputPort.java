@@ -1,6 +1,5 @@
 package rainbow.types;
 
-import rainbow.functions.Network;
 import rainbow.ArcError;
 
 import java.io.OutputStream;

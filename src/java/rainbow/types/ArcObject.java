@@ -2,12 +2,14 @@ package rainbow.types;
 
 import rainbow.*;
 import rainbow.types.Pair.NotPair;
-import rainbow.vm.Continuation;
+import rainbow.vm.VM;
+import rainbow.vm.instructions.invoke.Invoke_N;
 
 import java.util.Collection;
+import java.util.List;
 
-public abstract class ArcObject implements Function {
-  public static final Symbol TYPE_DISPATCHER_TABLE = (Symbol) Symbol.make("call*");
+public abstract class ArcObject {
+  public static final Symbol TYPE_DISPATCHER_TABLE = Symbol.mkSym("call*");
   public static final Nil NIL = Nil.NIL;
   public static final Nil EMPTY_LIST = Nil.EMPTY_LIST;
   public static final Truth T = Truth.T;
@@ -16,12 +18,12 @@ public abstract class ArcObject implements Function {
     return false;
   }
 
-  public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-    ((Hash) TYPE_DISPATCHER_TABLE.value()).value(type()).invoke(lc, caller, new Pair(this, args));
+  public void addInstructions(List i) {
+    throw new ArcError("addInstructions not defined on " + this + ", a " + getClass());
   }
 
-  public void interpret(LexicalClosure lc, Continuation caller) {
-    caller.receive(this);
+  public void invoke(VM vm, Pair args) {
+    ((Hash) TYPE_DISPATCHER_TABLE.value()).value(type()).invoke(vm, new Pair(this, args));
   }
 
   public long len() {
@@ -100,6 +102,18 @@ public abstract class ArcObject implements Function {
 
   public ArcObject or(ArcObject other) {
     return this;
+  }
+
+  public ArcObject invokeAndWait(VM vm, Pair args) {
+    int len = (int) args.len();
+//    System.out.println("invoke and wait: " + this + " args " + args);
+    while (!args.isNil()) {
+      vm.pushA(args.car());
+      args = (Pair) args.cdr();
+    }
+    vm.pushA(this);
+    vm.pushFrame(new Invoke_N.Other(len));
+    return vm.thread();
   }
 
   public static class NotNil extends Throwable {

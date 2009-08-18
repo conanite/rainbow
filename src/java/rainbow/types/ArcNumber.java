@@ -2,9 +2,9 @@ package rainbow.types;
 
 import rainbow.ArcError;
 
-public abstract class ArcNumber extends ArcObject {
-  public static final Symbol INT_TYPE = (Symbol) Symbol.make("int");
-  public static final Symbol NUM_TYPE = (Symbol) Symbol.make("num");
+public abstract class ArcNumber extends LiteralObject {
+  public static final Symbol INT_TYPE = Symbol.mkSym("int");
+  public static final Symbol NUM_TYPE = Symbol.mkSym("num");
 
   public abstract boolean isInteger();
 

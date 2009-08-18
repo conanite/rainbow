@@ -1,16 +1,15 @@
 package rainbow.types;
 
-import rainbow.functions.Builtin;
 import rainbow.ArcError;
 
-public class ArcThreadLocal extends ArcObject {
-  public static final Symbol TYPE = (Symbol) Symbol.make("thread-local");
+public class ArcThreadLocal extends LiteralObject {
+  public static final Symbol TYPE = Symbol.mkSym("thread-local");
   private final ThreadLocal tl = new ThreadLocal();
-  
+
   public void set(ArcObject value) {
     tl.set(value);
   }
-  
+
   public ArcObject get() {
     return (ArcObject) tl.get();
   }

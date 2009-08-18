@@ -133,7 +133,7 @@ public abstract class Maths {
   }
 
   public static void extra(Environment bindings) {
-    ((Symbol) Symbol.make("pi")).setValue(new Real(Math.PI));
+    (Symbol.mkSym("pi")).setValue(new Real(Math.PI));
 
     bindings.add(new Builtin[] {
       new Builtin("sin") {

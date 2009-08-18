@@ -6,6 +6,7 @@ import rainbow.types.Symbol;
 import rainbow.vm.Instruction;
 import rainbow.vm.VM;
 import rainbow.vm.interpreter.BoundSymbol;
+import rainbow.LexicalClosure;
 
 import java.util.List;
 
@@ -40,6 +41,10 @@ public class Invoke_2 {
     public String toString() {
       return "(invoke " + fn + " <2>)";
     }
+
+    public String toString(LexicalClosure lc) {
+      return "(invoke " + fn + " -> " + fn.interpret(lc) + " <2>)";
+    }
   }
 
   private static class Free extends Instruction {
@@ -57,6 +62,10 @@ public class Invoke_2 {
 
     public String toString() {
       return "(invoke " + fn + " <2>)";
+    }
+
+    public String toString(LexicalClosure lc) {
+      return "(invoke " + fn + " -> " + fn.value() + " <2>)";
     }
   }
 

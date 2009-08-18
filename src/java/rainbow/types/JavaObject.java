@@ -1,15 +1,15 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.Environment;
-import rainbow.functions.InterpretedFunction;
+import rainbow.Console;
 import rainbow.functions.Closure;
+import rainbow.functions.InterpretedFunction;
 
 import java.lang.reflect.*;
 import java.util.*;
 
-public class JavaObject extends ArcObject {
-  public static final Symbol TYPE = (Symbol) Symbol.make("java-object");
+public class JavaObject extends LiteralObject {
+  public static final Symbol TYPE = Symbol.mkSym("java-object");
   private Object object;
 
   public JavaObject(Object object) {
@@ -67,7 +67,7 @@ public class JavaObject extends ArcObject {
   }
 
   public static Object staticInvoke(String className, String methodName, Pair args) {
-    if (Environment.debugJava) {
+    if (Console.debugJava) {
       System.out.println("java: static-invoke " + methodName + " on " + className + " with args " + truncateString(args));
     }
     Class c = toClass(className);
@@ -299,5 +299,61 @@ public class JavaObject extends ArcObject {
 
   private static boolean isPrimitiveNumber(Class p) {
     return p == Integer.TYPE || p == Long.TYPE || p == Double.TYPE || p == Float.TYPE;
+  }
+
+  public static ArcObject wrap(Object o) {
+    if (o == null) {
+      return NIL;
+    } else if (o instanceof ArcObject) {
+      return (ArcObject) o;
+    } else if (o instanceof Integer || o instanceof Long) {
+      return Rational.make(((Number) o).longValue());
+    } else if (o instanceof Float || o instanceof Double) {
+      return Real.make(((Number) o).doubleValue());
+    } else if (o instanceof String) {
+      return ArcString.make(o.toString());
+    } else if (o instanceof Character) {
+      return ArcCharacter.make((Character) o);
+    } else if (o.getClass().isArray()) {
+      return wrapList((Object[]) o);
+    } else if (o instanceof List) {
+      return wrapList((List) o);
+    } else if (o instanceof Map) {
+      return wrapMap((Map) o);
+    } else if (o instanceof Boolean) {
+      if ((Boolean) o) {
+        return T;
+      } else {
+        return NIL;
+      }
+    } else {
+      return new JavaObject(o);
+    }
+  }
+
+  private static ArcObject wrapList(Object[] objects) {
+    List result = new ArrayList(objects.length);
+    for (int i = 0; i < objects.length; i++) {
+      result.add(wrap(objects[i]));
+    }
+    return Pair.buildFrom(result);
+  }
+
+  private static ArcObject wrapList(List list) {
+    List result = new ArrayList(list.size());
+    for (Iterator it = list.iterator(); it.hasNext();) {
+      result.add(wrap(it.next()));
+    }
+    return Pair.buildFrom(result);
+  }
+
+  private static ArcObject wrapMap(Map map) {
+    Hash hash = new Hash();
+    for (Iterator it = map.keySet().iterator(); it.hasNext();) {
+      Object key = it.next();
+      Object value = map.get(key);
+      hash.sref(wrap(key), wrap(value));
+    }
+    return hash;
   }
 }

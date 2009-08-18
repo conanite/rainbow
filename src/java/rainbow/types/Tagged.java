@@ -1,23 +1,20 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.LexicalClosure;
-import rainbow.vm.ArcThread;
-import rainbow.vm.Continuation;
-import rainbow.vm.continuations.TopLevelContinuation;
+import rainbow.vm.VM;
 
-public class Tagged extends ArcObject {
+public class Tagged extends LiteralObject {
   private ArcObject type;
   private ArcObject rep;
-  private static final Symbol TAGGED_WRITE_FN = (Symbol) Symbol.make("tagged-writers");
+  private static final Symbol TAGGED_WRITE_FN = Symbol.mkSym("tagged-writers");
 
   public Tagged(ArcObject type, ArcObject rep) {
     this.type = type;
     this.rep = rep;
   }
 
-  public void invoke(LexicalClosure lc, Continuation caller, Pair args) {
-    ((Hash) TYPE_DISPATCHER_TABLE.value()).value(type).invoke(lc, caller, new Pair(rep, args));
+  public void invoke(VM vm, Pair args) {
+    ((Hash) TYPE_DISPATCHER_TABLE.value()).value(type).invoke(vm, new Pair(rep, args));
   }
 
   public ArcObject getType() {
@@ -71,11 +68,9 @@ public class Tagged extends ArcObject {
       return defaultToString();
     }
 
-    ArcThread thread = new ArcThread();
-    TopLevelContinuation topLevel = new TopLevelContinuation(thread);
-    fn.invoke(null, topLevel, Pair.buildFrom(rep));
-    thread.run();
-    return (String) JavaObject.unwrap(thread.finalValue(), String.class);
+    VM vm = new VM();
+    fn.invoke(vm, Pair.buildFrom(rep));
+    return (String) JavaObject.unwrap(vm.thread(), String.class);
   }
 
 

@@ -1,8 +1,8 @@
 package rainbow;
 
+import rainbow.types.ArcObject;
 import rainbow.types.Pair;
-import rainbow.vm.Continuation;
 
 public interface Function {
-  void invoke(LexicalClosure lc, Continuation caller, Pair args);
+  ArcObject invoke(LexicalClosure lc, Pair args);
 }
