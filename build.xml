@@ -14,19 +14,35 @@
   <property name="classes" value="${build}/classes"/>
   <property name="jarfile" value="${arc-src}/rainbow.jar"/>
 
+  <condition property="rainbow-available"><available file="${jarfile}"/></condition>
+
   <target name="clean">
     <delete dir="${build}"/>
     <delete dir="${src}${opt-dir}"/>
     <delete file="${jarfile}"/>
   </target>
 
-  <target name="compile-parser">
+  <target name="generate-parser">
     <mkdir dir="${src}/rainbow/parser"/>
     <javacc target="${compiler-src}/ArcParser.jj" javacchome="lib" outputdirectory="${src}/rainbow/parser"/>
     <javacc target="${compiler-src}/ComplexParser.jj" javacchome="lib" outputdirectory="${src}/rainbow/parser"/>
   </target>
 
-  <target name="compile" depends="compile-parser">
+  <target name="suggest-generate-optimisations" unless="rainbow-available">
+    <echo>rebuild rainbow in order to generate and compile optimised invocation classes</echo>
+  </target>
+
+  <target name="generate-optimisations" if="rainbow-available">
+    <java classpath="${jarfile}" classname="rainbow.Console" dir="src/arc" fork="true">
+      <arg value="-f"/>
+      <arg value="rainbow/build/optimisers.arc"/>
+      <arg value="-e"/>
+      <arg value="(optimiser-generator)"/>
+      <arg value="-q"/>
+    </java>
+  </target>
+
+  <target name="compile" depends="generate-parser, generate-optimisations, suggest-generate-optimisations">
     <mkdir dir="${classes}"/>
     <javac srcdir="${src}" destdir="${classes}" debug="on" source="1.5" target="1.5" failonerror="true"/>
     <copy todir="${classes}">
