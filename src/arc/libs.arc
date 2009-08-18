@@ -4,4 +4,5 @@
             "html.arc"
             "srv.arc"
             "app.arc"
-            "prompt.arc"))
+            "prompt.arc"
+            "lib/bag-of-tricks.arc"))

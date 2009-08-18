@@ -1,3 +1,6 @@
+; we don't have to worry about scheme's nil-terminators
+(def list args args)
+
 ; java's toString() on a tagged object delegates to
 ; the corresponding function in this table if present
 (assign tagged-writers (table))

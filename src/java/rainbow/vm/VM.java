@@ -55,14 +55,10 @@ public class VM extends ArcObject {
       instructions = peekI();
       currentLc = peekL();
 
-      if (instructions.isNil()) {
-        popFrame();
-      } else {
-        try {
-          step(instructions);
-        } catch (Throwable e) {
-          handleError(e);
-        }
+      try {
+        step(instructions);
+      } catch (Throwable e) {
+        handleError(e);
       }
     }
   }
@@ -129,7 +125,6 @@ public class VM extends ArcObject {
     }
 
     try {
-//      System.out.println("VM.step: " + i);
       i.operate(this);
     } catch (ArcError e) {
       throw e;
@@ -214,8 +209,8 @@ public class VM extends ArcObject {
   }
 
   private void showInstructions() {
-    int start = (ip > 3) ? (ip - 3) : 0;
-    for (int i = start; i < ip + 1; i++) {
+    int end = (ip > 4) ? (ip - 4) : 0;
+    for (int i = ip; i >= end; i--) {
       showFrame(i);
     }
   }
@@ -223,11 +218,12 @@ public class VM extends ArcObject {
   private void showFrame(int frame) {
     Pair instructions = ins[frame];
     LexicalClosure lc = lcs[frame];
-    System.out.println("Instruction Frame " + frame + ".");
+    System.out.print("\nInstruction Frame " + frame + ":");
     while (!instructions.isNil()) {
       Instruction i = (Instruction) instructions.car();
       instructions = (Pair) instructions.cdr();
       System.out.print(i.toString(lc));
+      System.out.print(" ");
     }
     System.out.println();
   }

@@ -26,8 +26,12 @@ public class Cond_Lex_Lex_Literal extends Cond_Lex {
     }
   }
 
+  public String toString() {
+    return "(cond lex:" + ifExpr + " lex:" + then + " lit:" + els + ")";
+  }
+
   public static void addInstructions(List i, BoundSymbol ifExpression, BoundSymbol thenExpression, ArcObject elseExpression) {
-    if (ifExpression == thenExpression && elseExpression.isNil()) {
+    if ((ifExpression.isSameBoundSymbol(thenExpression)) && elseExpression.isNil()) {
       ifExpression.addInstructions(i);
     } else {
       i.add(new Cond_Lex_Lex_Literal(ifExpression, thenExpression, elseExpression));

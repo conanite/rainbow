@@ -38,4 +38,8 @@ public class BoundSymbol extends ArcObject {
   public String toString() {
     return name.name();
   }
+
+  public boolean isSameBoundSymbol(BoundSymbol other) {
+    return nesting == other.nesting && name == other.name && index == other.index;
+  }
 }

@@ -4,6 +4,7 @@
   <property name="src" value="src/java"/>
   <property name="compiler-src" value="src/cc"/>
   <property name="arc-src" value="src/arc"/>
+  <property name="opt-dir" value="/rainbow/vm/instructions/invoke/optimise"/>
   <property name="sh-src" value="src/sh"/>
   <property name="test-src" value="src/test"/>
 
@@ -15,6 +16,7 @@
 
   <target name="clean">
     <delete dir="${build}"/>
+    <delete dir="${src}${opt-dir}"/>
     <delete file="${jarfile}"/>
   </target>
 
