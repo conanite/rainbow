@@ -16,9 +16,9 @@ import java.util.List;
 public class VM extends ArcObject {
   public static final Symbol TYPE = Symbol.mkSym("thread");
 
-  public ArcObject[] args = new ArcObject[1000];
-  public LexicalClosure[] lcs = new LexicalClosure[1000];
-  public Pair[] ins = new Pair[1000];
+  public ArcObject[] args = new ArcObject[100];
+  public LexicalClosure[] lcs = new LexicalClosure[100];
+  public Pair[] ins = new Pair[100];
   public int ap = -1;
   public int ip = -1;
   private LexicalClosure currentLc;
@@ -50,16 +50,39 @@ public class VM extends ArcObject {
   }
 
   private void loop() {
-    Pair instructions;
     while (ip >= ipThreshold) {
-      instructions = peekI();
       currentLc = peekL();
-
       try {
-        step(instructions);
+        step(peekI());
       } catch (Throwable e) {
         handleError(e);
       }
+    }
+  }
+
+  private void step(Pair instructions) {
+    interceptor.check(this);
+    Instruction i = (Instruction) instructions.car();
+
+    Pair rest = (Pair) instructions.cdr();
+    if (rest.isNil()) {
+      popFrame();
+    } else {
+      pokeI(rest);
+    }
+
+    try {
+      i.operate(this);
+    } catch (ArcError e) {
+      throw e;
+    } catch (Exception e) {
+      String msg = "failed to execute instruction " + i +
+              "\nremaining instructions in this frame: " + rest +
+              "\nlast arg: " + (ap > -1 ? peekA() : null) +
+              "\nLC: " + currentLc +
+              "\nmessage: " + e.getMessage();
+      System.out.println(msg);
+      throw new ArcError(msg, e);
     }
   }
 
@@ -113,36 +136,11 @@ public class VM extends ArcObject {
     return error;
   }
 
-  private void step(Pair instructions) {
-    interceptor.check(this);
-    Instruction i = (Instruction) instructions.car();
-
-    Pair rest = (Pair) instructions.cdr();
-    if (rest.isNil()) {
-      popFrame();
-    } else {
-      pokeI(rest);
-    }
-
-    try {
-      i.operate(this);
-    } catch (ArcError e) {
-      throw e;
-    } catch (Exception e) {
-      String msg = "failed to execute instruction " + i +
-              "\nremaining instructions in this frame: " + rest +
-              "\nlast arg: " + (ap > -1 ? peekA() : null) +
-              "\nLC: " + currentLc +
-              "\nmessage: " + e.getMessage();
-      System.out.println(msg);
-      throw new ArcError(msg, e);
-    }
-  }
-
   public void show() {
-    System.out.println("args: " + ap);
+    System.out.println("" + (ap + 1) + " args");
     showArgs();
-    System.out.println("instructions: " + ip);
+    System.out.println();
+    System.out.println("" + (ip + 1) + " instruction frames");
     showInstructions();
   }
 
@@ -156,8 +154,16 @@ public class VM extends ArcObject {
 
   public void pushFrame(LexicalClosure lc, Pair instructions) {
     ++ip;
-    ins[ip] = instructions;
-    lcs[ip] = lc;
+    try {
+      ins[ip] = instructions;
+      lcs[ip] = lc;
+    } catch (ArrayIndexOutOfBoundsException e) {
+      newInstructionArray(ins.length * 2);
+      newClosureArray(lcs.length * 2);
+      ip--;
+      System.out.println("expanded instruction stack to " + (ins.length));
+      pushFrame(lc, instructions);
+    }
   }
 
   public void pokeI(Pair instructions) {
@@ -173,10 +179,14 @@ public class VM extends ArcObject {
   }
 
   public void pushA(ArcObject arg) {
+    ++ap;
     try {
-      args[++ap] = arg;
-    } catch (Exception e) {
-      e.printStackTrace(System.out);
+      args[ap] = arg;
+    } catch (ArrayIndexOutOfBoundsException e) {
+      newArgArray(args.length * 2);
+      ap--;
+      System.out.println("expanded arg stack to " + (args.length));
+      pushA(arg);
     }
   }
 
@@ -259,6 +269,7 @@ public class VM extends ArcObject {
   }
 
   public void copyTo(VM vm) {
+    compact();
     vm.ap = this.ap;
     vm.ip = this.ip;
     vm.ins = this.ins.clone();
@@ -271,6 +282,12 @@ public class VM extends ArcObject {
     vm.ipThreshold = this.ipThreshold;
   }
 
+  private void compact() {
+    if (ins.length > (ip * 2)) {
+
+    }
+  }
+
   public boolean dead() {
     return dead;
   }
@@ -279,34 +296,28 @@ public class VM extends ArcObject {
     return "[thread: instruction stack " + ip + "; arg stack " + ap + "]";
   }
 
-
-  public static class ListBuilder extends ArcObject {
-    private final List list = new ArrayList();
-    private ArcObject last = NIL;
-
-    public void append(ArcObject o) {
-      list.add(o);
-    }
-
-    public void appendAll(Pair p) {
-      p.copyTo(list);
-    }
-
-    public void last(ArcObject o) {
-      last = o;
-    }
-
-    public Pair list() {
-      return Pair.buildFrom(list, last);
-    }
-
-    public ArcObject type() {
-      return Symbol.mkSym("list-builder");
-    }
-
-    public String toString() {
-      return "ListBuilder:" + list().toString();
-    }
+  private void newArgArray(int newLength) {
+    ArcObject[] newArgs = new ArcObject[newLength];
+    copy(args, newArgs);
+    this.args = newArgs;
   }
+
+  private void newClosureArray(int newLength) {
+    LexicalClosure[] newL = new LexicalClosure[newLength];
+    copy(lcs, newL);
+    this.lcs = newL;
+  }
+
+  private void newInstructionArray(int newLength) {
+    Pair[] newI = new Pair[newLength];
+    copy(ins, newI);
+    this.ins = newI;
+  }
+
+  private void copy(Object[] src, Object[] dest) {
+    System.arraycopy(src, 0, dest, 0, src.length);
+  }
+
+
 }
 

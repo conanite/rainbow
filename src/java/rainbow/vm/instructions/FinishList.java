@@ -5,7 +5,7 @@ import rainbow.vm.VM;
 
 public class FinishList extends Instruction {
   public void operate(VM vm) {
-    VM.ListBuilder builder = (VM.ListBuilder) vm.popA();
+    ListBuilder builder = (ListBuilder) vm.popA();
     vm.pushA(builder.list());
   }
 

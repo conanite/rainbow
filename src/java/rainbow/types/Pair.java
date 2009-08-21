@@ -2,7 +2,6 @@ package rainbow.types;
 
 import rainbow.ArcError;
 import rainbow.LexicalClosure;
-import rainbow.functions.Builtin;
 import rainbow.vm.VM;
 
 import java.util.*;
@@ -71,13 +70,14 @@ public class Pair extends ArcObject {
     return this.car = newCar;
   }
 
-  public ArcObject sref(Pair args) {
-    Rational index = Rational.cast(args.cdr().car(), this);
+  public ArcObject sref(ArcObject value, ArcObject idx) {
+    Rational index = Rational.cast(idx, this);
     long n = index.toInt();
-    if (n >= size()) {
-      throw new ArcError("sref: cannot set index " + index + " of list with " + size() + " elements");
-    }
-    return nth(n).scar(args.car());
+    return nth(n).scar(value);
+  }
+
+  public ArcObject sref(Pair args) {
+    return sref(args.car(), args.cdr().car());
   }
 
   public boolean isCar(Symbol s) {
@@ -94,28 +94,24 @@ public class Pair extends ArcObject {
   }
 
   private String internalToString() {
-    if (isNil()) {
-      return "";
-    }
-    if (car == null) {
-      throw new Error("Can't have null car and non-null cdr: " + cdr);
-    }
-    if (cdr instanceof Pair) {
-      Pair rest = (Pair) cdr;
-      if (rest.isNil()) {
-        return toString(car);
-      } else {
-        return toString(car) + " " + rest.internalToString();
-      }
-    } else if (cdr.isNil()) {
-      return toString(car);
-    } else {
-      return toString(car) + " . " + toString(cdr);
-    }
+    return internalToString(this);
   }
 
-  private String toString(ArcObject object) {
-    return (car instanceof Builtin ? car.getClass().getSimpleName() : object.toString());
+  private static String internalToString(ArcObject o) {
+    StringBuffer result = new StringBuffer();
+    while (!o.isNotPair()) {
+      result.append(o.car());
+      if (!o.cdr().isNotPair()) {
+        result.append(" ");
+      }
+      o = o.cdr();
+    }
+
+    if (!o.isNil()) {
+      result.append(" . ");
+      result.append(o);
+    }
+    return result.toString();
   }
 
   public void setCdr(ArcObject cdr) {
@@ -190,6 +186,19 @@ public class Pair extends ArcObject {
     return size();
   }
 
+  public int improperLen() {
+    return improperLen(this);
+  }
+
+  public static int improperLen(ArcObject o) {
+    int count = 0;
+    while (!o.isNotPair()) {
+      count++;
+      o = o.cdr();
+    }
+    return count;
+  }
+
   public int size() {
     if (isNil()) {
       return 0;
@@ -250,11 +259,25 @@ public class Pair extends ArcObject {
   }
 
   public Pair nth(long index) {
-    if (index == 0) {
-      return this;
-    } else {
-      return ((Pair) cdr()).nth(index - 1);
+    try {
+      return (Pair) nth(this, index);
+    } catch (OOB oob) {
+      throw new ArcError("Error: index " + index + " too large for list " + this);
     }
+  }
+
+  private static ArcObject nth(ArcObject p, long index) {
+    while (index > 0) {
+      if (p.cdr().isNil()) {
+        throw new OOB();
+      }
+      p = p.cdr();
+      index--;
+    }
+    return p;
+  }
+
+  static class OOB extends RuntimeException {
   }
 
   public boolean isSpecial() {
@@ -331,6 +354,17 @@ public class Pair extends ArcObject {
 
   public ArcObject rev() {
     return null;
+  }
+
+  public boolean isProper() {
+    return isProper(this);
+  }
+
+  public static boolean isProper(ArcObject pair) {
+    while (!pair.isNotPair()) {
+      pair = pair.cdr();
+    }
+    return pair.isNil();
   }
 
   public static class NotPair extends Throwable {

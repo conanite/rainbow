@@ -68,11 +68,15 @@ public class ArcString extends LiteralObject {
     return character;
   }
 
-  public ArcObject sref(Pair args) {
-    ArcCharacter value = ArcCharacter.cast(args.car(), ArcCharacter.class);
-    Rational index = Rational.cast(args.cdr().car(), this);
-    sref(index, value);
+  public ArcObject sref(ArcObject value, ArcObject index) {
+    ArcCharacter v = ArcCharacter.cast(value, ArcCharacter.class);
+    Rational i = Rational.cast(index, this);
+    srefChar(i, v);
     return value;
+  }
+
+  public ArcObject sref(Pair args) {
+    return sref(args.car(), args.cdr().car());
   }
 
   public ArcObject type() {
@@ -99,7 +103,7 @@ public class ArcString extends LiteralObject {
     return this == object || object instanceof ArcString && ((ArcString) object).value.equals(this.value);
   }
 
-  public void sref(Rational index, ArcCharacter value) {
+  public void srefChar(Rational index, ArcCharacter value) {
     StringBuilder b = new StringBuilder(this.value);
     b.setCharAt((int) index.toInt(), value.value());
     this.value = b.toString();

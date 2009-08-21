@@ -10,26 +10,26 @@
 (def optimiser-generator ()
   (make-directory package-dir)
   (each f fn-types
-    (write-class f))
+    (write-class faster-operate-method f))
   (each f fn-types
     (each a1 arg-types
-      (write-class f a1)))
+      (write-class faster-operate-method f a1)))
   (each f fn-types
     (each a1 arg-types
       (each a2 arg-types
-        (write-class f a1 a2))))
+        (write-class faster-operate-method f a1 a2))))
   (each f fn-types
     (each a1 arg-types
       (each a2 arg-types
         (each a3 arg-types
-          (write-class f a1 a2 a3))))))
+          (write-class operate-method f a1 a2 a3))))))
 
-(def write-class types
+(def write-class (operator . types)
   (prn "generating #((classname types))")
   (w/stdout (outfile "#(package-dir)#((classname types)).java")
-    (generate-class types)))
+    (generate-class operator types)))
 
-(def generate-class (types)
+(def generate-class (operator types)
   (let args (map list (range 0 len.types) types)
     (prn "package " opt-package ";")
     (prn)
@@ -40,7 +40,9 @@
     (prn)
     (constructor args)
     (prn)
-    (operate-method args)
+    (operator args)
+    (prn)
+    (simple-to-string args)
     (prn)
     (to-string args)
     (prn "}")))
@@ -80,6 +82,31 @@
       (prn "    fn" (type-getter fn-type) ".invoke(vm, " arg-list "NIL" (newstring (- len.args 1) #\)) ");")))
   (prn "  }"))
 
+(def faster-operate-method (args)
+  (prn "  public void operate(VM vm) {")
+  (let (n fn-type) car.args
+    (if (is fn-type 'other)
+        (prn "    ArcObject fn = vm.popA();"))
+    (each (n type) (rev cdr.args)
+      (if (is type 'other)
+          (prn "    ArcObject arg#(n) = vm.popA();")))
+
+    (let arg-list (apply string
+                         (map (fn ((n type)) ", arg#(n)#((type-getter type))") cdr.args))
+      (prn "    fn" (type-getter fn-type) ".invokef(vm#(arg-list));")))
+  (prn "  }"))
+
+(def simple-to-string (args)
+  (prn "  public String toString() {")
+  (let (n fn-type) car.args
+    (prn "    return \"(invocation:\" + " (simple-to-stringify "fn" fn-type)))
+  (each (n type) cdr.args
+    (prn "        + " (simple-to-stringify "arg#(n)" type))
+  )
+  (prn "        + \")\";")
+  (prn "  }")
+)
+
 (def to-string (args)
   (prn "  public String toString(LexicalClosure lc) {")
   (let (n fn-type) car.args
@@ -97,6 +124,14 @@
     free     "\"[free:\"  + #(name) + \"->\" + #(name).value()       + \"]\""
     literal  "\"[lit:\"   + #(name)                                  + \"]\""
     quote    "\"[quote:\" + #(name)                                  + \"]\""
+    other    "\"[other]\""))
+
+(def simple-to-stringify (name type)
+  (case type
+    bound    "\"[bound:\" + #(name)                            + \"]\""
+    free     "\"[free:\"  + #(name) + \"->\" + #(name).value() + \"]\""
+    literal  "\"[lit:\"   + #(name)                            + \"]\""
+    quote    "\"[quote:\" + #(name)                            + \"]\""
     other    "\"[other]\""))
 
 (def classname (types)

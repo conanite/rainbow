@@ -7,7 +7,7 @@ import rainbow.types.ArcObject;
 public class AppendDot extends Instruction {
   public void operate(VM vm) {
     ArcObject arg = vm.popA();
-    VM.ListBuilder builder = (VM.ListBuilder) vm.peekA();
+    ListBuilder builder = (ListBuilder) vm.peekA();
     builder.last(arg);
   }
 

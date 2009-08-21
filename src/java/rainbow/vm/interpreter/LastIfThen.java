@@ -34,6 +34,10 @@ public class LastIfThen extends ArcObject implements Conditional {
     i.add(new LastCond(thenExpression));
   }
 
+  public Conditional reduce() {
+    return this;
+  }
+
   public String toString() {
     return ifExpression + " " + thenExpression;
   }

@@ -1,10 +1,10 @@
 package rainbow.vm.compiler;
 
+import rainbow.functions.interpreted.ComplexArgs;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.VM;
-import rainbow.vm.continuations.NamespaceBuilder;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -26,7 +26,7 @@ public class FunctionParameterListBuilder {
       } else {
         complexParams = ArcObject.T;
         Pair maybeOptional = (Pair) first;
-        if (NamespaceBuilder.optional(maybeOptional)) {
+        if (ComplexArgs.optional(maybeOptional)) {
           ArcObject optionalParamName = maybeOptional.cdr().car();
           ArcObject compiledOptionalExpression = Compiler.compile(vm, maybeOptional.cdr().cdr().car(), lexicalBindings);
           result.add(Pair.buildFrom(O, optionalParamName, compiledOptionalExpression));
@@ -53,7 +53,7 @@ public class FunctionParameterListBuilder {
     }
 
     if (parameterList instanceof Pair) {
-      if (optionable && NamespaceBuilder.optional(parameterList)) {
+      if (optionable && ComplexArgs.optional(parameterList)) {
         index(parameterList.cdr().car(), map, i, true);
       } else {
         index(parameterList.car(), map, i, true);

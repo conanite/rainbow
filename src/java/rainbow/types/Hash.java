@@ -35,23 +35,20 @@ public class Hash extends LiteralObject {
   }
 
   public ArcObject sref(Pair args) {
-    ArcObject value = args.car();
-    ArcObject key = args.cdr().car();
+    return sref(args.car(), args.cdr().car());
+  }
+
+  public ArcObject sref(ArcObject value, ArcObject key) {
     if (value.isNil()) {
       unref(key);
     } else {
-      sref(key, value);
+      map.put(key, value);
     }
     return value;
   }
 
-
   public void unref(ArcObject key) {
     map.remove(key);
-  }
-
-  public void sref(ArcObject key, ArcObject value) {
-    map.put(key, value);
   }
 
   public ArcObject value(ArcObject key) {

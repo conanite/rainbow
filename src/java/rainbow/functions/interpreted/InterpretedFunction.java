@@ -1,12 +1,12 @@
-package rainbow.functions;
+package rainbow.functions.interpreted;
 
 import rainbow.ArcError;
 import rainbow.LexicalClosure;
+import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.VM;
-import rainbow.vm.continuations.NamespaceBuilder;
 import rainbow.vm.instructions.Close;
 import rainbow.vm.instructions.Literal;
 import rainbow.vm.instructions.PopArg;
@@ -14,11 +14,13 @@ import rainbow.vm.instructions.PopArg;
 import java.util.*;
 
 public abstract class InterpretedFunction extends ArcObject {
-  protected Map lexicalBindings;
-  ArcObject[] body;
+  protected final ArcObject parameterList;
+  protected final Map lexicalBindings;
+  final ArcObject[] body;
   protected final Pair instructions;
 
-  public InterpretedFunction(Map lexicalBindings, Pair body) {
+  protected InterpretedFunction(ArcObject parameterList, Map lexicalBindings, Pair body) {
+    this.parameterList = parameterList;
     this.lexicalBindings = lexicalBindings;
     this.body = body.toArray();
     List i = new ArrayList();
@@ -35,6 +37,18 @@ public abstract class InterpretedFunction extends ArcObject {
       i.add(new Literal(NIL));
     }
     instructions = Pair.buildFrom(i);
+  }
+
+  public void invokeN(VM vm, LexicalClosure lc) {
+    invoke(vm, lc, NIL);
+  }
+
+  public void invokeN(VM vm, LexicalClosure lc, ArcObject arg) {
+    invoke(vm, lc, new Pair(arg, NIL));
+  }
+
+  public void invokeN(VM vm, LexicalClosure lc, ArcObject arg1, ArcObject arg2) {
+    invoke(vm, lc, new Pair(arg1, new Pair(arg2, NIL)));
   }
 
   public abstract void invoke(VM vm, LexicalClosure lc, Pair args);
@@ -60,7 +74,7 @@ public abstract class InterpretedFunction extends ArcObject {
   }
 
   public ArcObject parameterList() {
-    return ArcObject.EMPTY_LIST;
+    return parameterList;
   }
 
   public ArcObject type() {
@@ -79,51 +93,4 @@ public abstract class InterpretedFunction extends ArcObject {
     return body.length;
   }
 
-  public static class ZeroArgs extends InterpretedFunction {
-    public ZeroArgs(Map lexicalBindings, Pair body) {
-      super(lexicalBindings, body);
-    }
-
-    public void invoke(VM vm, LexicalClosure lc, Pair args) {
-      vm.pushFrame(lc, this.instructions);
-    }
-  }
-
-  public static class ComplexArgs extends InterpretedFunction {
-    private ArcObject parameterList;
-
-    public ComplexArgs(ArcObject parameterList, Map lexicalBindings, Pair body) {
-      super(lexicalBindings, body);
-      this.parameterList = parameterList;
-    }
-
-    public void invoke(VM vm, LexicalClosure lc, Pair args) {
-      lc = new LexicalClosure(lexicalBindings.size(), lc);
-      NamespaceBuilder.complex(vm, lc, parameterList, args);
-      vm.pushFrame(lc, this.instructions);
-    }
-
-    public ArcObject parameterList() {
-      return parameterList;
-    }
-  }
-
-  public static class SimpleArgs extends InterpretedFunction {
-    private ArcObject parameterList;
-
-    public SimpleArgs(ArcObject parameterList, Map lexicalBindings, Pair body) {
-      super(lexicalBindings, body);
-      this.parameterList = parameterList;
-    }
-
-    public void invoke(VM vm, LexicalClosure lc, Pair args) {
-      lc = new LexicalClosure(lexicalBindings.size(), lc);
-      NamespaceBuilder.simple(lc, parameterList, args);
-      vm.pushFrame(lc, this.instructions);
-    }
-
-    public ArcObject parameterList() {
-      return parameterList;
-    }
-  }
 }

@@ -662,7 +662,7 @@
 
 (welder-init (editor)
   (on-doc-update editor!doc  (event)
-    (on-update editor event)))
+    (on-update editor)))
 
 (welder-init (editor)
   (let f (frame 360 100 1200 800 "Arc Welder")

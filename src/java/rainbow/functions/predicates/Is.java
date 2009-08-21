@@ -1,12 +1,26 @@
 package rainbow.functions.predicates;
 
+import rainbow.Truth;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
+import rainbow.vm.VM;
 
 public class Is extends Builtin {
   public Is() {
     super("is");
+  }
+
+  public void invokef(VM vm) {
+    vm.pushA(T);
+  }
+
+  public void invokef(VM vm, ArcObject arg) {
+    vm.pushA(T);
+  }
+
+  public void invokef(VM vm, ArcObject arg1, ArcObject arg2) {
+    vm.pushA(Truth.valueOf(arg1.isSame(arg2)));
   }
 
   public ArcObject invoke(Pair args) {

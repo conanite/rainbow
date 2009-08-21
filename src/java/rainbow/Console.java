@@ -171,7 +171,7 @@ public class Console {
     Hash env = new Hash();
     Map<String, String> s = System.getenv();
     for (String k : s.keySet()) {
-      env.sref(ArcString.make(k), ArcString.make(s.get(k)));
+      env.sref(ArcString.make(s.get(k)), ArcString.make(k));
     }
     return env;
   }

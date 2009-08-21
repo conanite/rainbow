@@ -26,12 +26,28 @@ public abstract class ArcObject {
     ((Hash) TYPE_DISPATCHER_TABLE.value()).value(type()).invoke(vm, new Pair(this, args));
   }
 
+  public void invokef(VM vm) {
+    invoke(vm, NIL);
+  }
+
+  public void invokef(VM vm, ArcObject arg) {
+    invoke(vm, new Pair(arg, NIL));
+  }
+
+  public void invokef(VM vm, ArcObject arg1, ArcObject arg2) {
+    invoke(vm, new Pair(arg1, new Pair(arg2, NIL)));
+  }
+
   public long len() {
     throw new ArcError("len: expects one string, list or hash argument, got " + this.type());
   }
 
   public ArcObject scar(ArcObject newCar) {
     throw new ArcError("Can't set car of " + this.type());
+  }
+
+  public ArcObject sref(ArcObject value, ArcObject index) {
+    throw new ArcError("Can't sref " + this.type() + ", other args were " + value + ", " + index);
   }
 
   public ArcObject sref(Pair args) {

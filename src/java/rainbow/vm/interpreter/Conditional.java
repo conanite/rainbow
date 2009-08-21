@@ -8,4 +8,5 @@ public interface Conditional {
   void add(Conditional c);
   void take(ArcObject expression);
   void addInstructions(List i);
+  Conditional reduce();
 }

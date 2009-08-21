@@ -3,7 +3,7 @@ package rainbow.types;
 import rainbow.ArcError;
 import rainbow.Console;
 import rainbow.functions.Closure;
-import rainbow.functions.InterpretedFunction;
+import rainbow.functions.interpreted.InterpretedFunction;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -352,7 +352,7 @@ public class JavaObject extends LiteralObject {
     for (Iterator it = map.keySet().iterator(); it.hasNext();) {
       Object key = it.next();
       Object value = map.get(key);
-      hash.sref(wrap(key), wrap(value));
+      hash.sref(wrap(value), wrap(key));
     }
     return hash;
   }

@@ -1,8 +1,8 @@
 package rainbow.vm.interpreter;
 
 import rainbow.ArcError;
-import rainbow.functions.InterpretedFunction;
-import rainbow.functions.InterpretedFunction.ZeroArgs;
+import rainbow.functions.interpreted.ZeroArgs;
+import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
@@ -30,14 +30,16 @@ public class Invocation extends ArcObject {
   }
 
   public void addInstructions(List i) {
+    // java stupidly insists on assigning the result to a variable
+    boolean v = inlineDoForm(i) || addOptimisedHandler(i) || defaultAddInstructions(i); 
+  }
+
+  private boolean inlineDoForm(List i) {
     if (parts.len() == 1L && parts.car() instanceof ZeroArgs) {
       ((InterpretedFunction) parts.car()).instructions().copyTo(i);
-      return;
+      return true;
     }
-
-    if (!addOptimisedHandler(i)) {
-      defaultAddInstructions(i);
-    }
+    return false;
   }
 
   private Map<String, Constructor<Instruction>> constructors = new HashMap();
@@ -110,7 +112,7 @@ public class Invocation extends ArcObject {
     }
   }
 
-  private void defaultAddInstructions(List i) {
+  private boolean defaultAddInstructions(List i) {
     switch ((int) parts.len()) {
       case 1:
         Invoke_0.addInstructions(i,
@@ -142,5 +144,6 @@ public class Invocation extends ArcObject {
                 parts.car(),
                 (Pair) parts.cdr());
     }
+    return true;
   }
 }

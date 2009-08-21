@@ -75,7 +75,7 @@ public class JavaProxy implements InvocationHandler {
     getClasses(interfaceNames, targets, 0);
     if (!(functions instanceof Hash)) {
       Hash h = new Hash();
-      h.sref(WILDCARD, functions);
+      h.sref(functions, WILDCARD);
       functions = h;
     }
     return new JavaObject(Proxy.newProxyInstance(JavaProxy.class.getClassLoader(), targets, new JavaProxy(!strict.isNil(), (Hash)functions, interfaceNames)));

@@ -1,7 +1,7 @@
 package rainbow.vm.instructions;
 
 import rainbow.functions.Closure;
-import rainbow.functions.InterpretedFunction;
+import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.vm.Instruction;
 import rainbow.vm.VM;
 

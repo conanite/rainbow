@@ -29,6 +29,10 @@ public class Else extends ArcObject implements Conditional {
     ifExpression.addInstructions(i);
   }
 
+  public Conditional reduce() {
+    return this;
+  }
+
   public String inspect() {
     return "#<else " + ifExpression + ">";
   }

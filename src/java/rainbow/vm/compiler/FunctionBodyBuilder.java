@@ -1,6 +1,9 @@
 package rainbow.vm.compiler;
 
-import rainbow.functions.InterpretedFunction;
+import rainbow.functions.interpreted.ComplexArgs;
+import rainbow.functions.interpreted.SimpleArgs;
+import rainbow.functions.interpreted.ZeroArgs;
+import rainbow.functions.interpreted.optimise.*;
 import rainbow.types.ArcObject;
 import static rainbow.types.ArcObject.NIL;
 import rainbow.types.Pair;
@@ -43,11 +46,27 @@ public class FunctionBodyBuilder {
 
   private static ArcObject buildFunctionBody(ArcObject parameterList, Map lexicalBindings, Pair expandedBody, ArcObject complexParams) {
     if (parameterList.isNil()) {
-      return new InterpretedFunction.ZeroArgs(lexicalBindings, expandedBody);
+      return new ZeroArgs(lexicalBindings, expandedBody);
     } else if (!complexParams.isNil()) {
-      return new InterpretedFunction.ComplexArgs(parameterList, lexicalBindings, expandedBody);
+      return new ComplexArgs(parameterList, lexicalBindings, expandedBody);
+    } else if (parameterList instanceof Pair) {
+      Pair params = (Pair) parameterList;
+//      System.out.println("param list is " + params);
+      if (params.isProper()) {
+        switch ((int) params.len()) {
+          case 1: return new Bind_A(parameterList, lexicalBindings, expandedBody);
+          case 2: return new Bind_AA(parameterList, lexicalBindings, expandedBody);
+          default: return new SimpleArgs(parameterList, lexicalBindings, expandedBody);
+        }
+      } else {
+        switch (params.improperLen()) {
+          case 1: return new Bind_AR(parameterList, lexicalBindings, expandedBody);
+          case 2: return new Bind_AAR(parameterList, lexicalBindings, expandedBody);
+          default: return new SimpleArgs(parameterList, lexicalBindings, expandedBody);
+        }
+      }
     } else {
-      return new InterpretedFunction.SimpleArgs(parameterList, lexicalBindings, expandedBody);
+      return new Bind_R(parameterList, lexicalBindings, expandedBody);
     }
   }
 }

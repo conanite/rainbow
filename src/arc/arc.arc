@@ -204,7 +204,8 @@
 
 (def empty (seq)
   (or (no seq)
-      (and (no (acons seq)) (is (len seq) 0))))
+      (and (or (is (type seq) 'string) (is (type seq) 'table))
+           (is (len seq) 0))))
 
 (def reclist (f xs)
   (and xs (or (f xs) (reclist f (cdr xs)))))
@@ -218,6 +219,9 @@
 
 (def testify (x)
   (if (isa x 'fn) x [is _ x]))
+
+; Like keep, seems like some shouldn't testify.  But find should,
+; and all probably should.
 
 (def some (test seq)
   (let f (testify test)
@@ -511,6 +515,11 @@
                             (cons (car s) (self (cdr s)))))
           seq)
         (coerce (rem test (coerce seq 'cons)) 'string))))
+
+; Seems like keep doesn't need to testify-- would be better to
+; be able to use tables as fns.  But rem does need to, because
+; often want to rem a table from a list.  So maybe the right answer
+; is to make keep the more primitive, not rem.
 
 (def keep (test seq)
   (rem (complement (testify test)) seq))
@@ -1225,7 +1234,7 @@
 
 (def inst (tem . args)
   (let x (table)
-    (each (k v) (templates* tem)
+    (each (k v) (if (acons tem) tem (templates* tem))
       (unless (no v) (= (x k) (v))))
     (each (k v) (pair args)
       (= (x k) v))
@@ -1240,7 +1249,7 @@
 ; Note: discards fields not defined by the template.
 
 (def templatize (tem raw)
-  (with (x (inst tem) fields (templates* tem))
+  (with (x (inst tem) fields (if (acons tem) tem (templates* tem)))
     (each (k v) raw
       (when (assoc k fields)
         (= (x k) v)))
@@ -1531,10 +1540,13 @@
       sym    (sym (map upc (coerce x 'string)))
              (err "Can't upcase" x))))
 
+(def inc (x (o n 1))
+  (coerce (+ (coerce x 'int) n) (type x)))
+
 (def range (start end)
   (if (> start end)
       nil
-      (cons start (range (+ start 1) end))))
+      (cons start (range (inc start) end))))
 
 (def mismatch (s1 s2)
   (catch
@@ -1634,7 +1646,7 @@
 (def ratio (test xs)
   (if (empty xs)
       0
-      (/ (count (testify test) xs) (len xs))))
+      (/ (count test xs) (len xs))))
 
 
 ; any logical reason I can't say (push x (if foo y z)) ?
@@ -1681,7 +1693,7 @@
 ;  foo_bar means [foo _ bar]
 ;  what does foo:_:bar mean?
 ; matchcase
+; idea: atable that binds it to table, assumes input is a list
 ; crazy that finding the top 100 nos takes so long:
 ;  (let bb (n-of 1000 (rand 50)) (time10 (bestn 100 > bb)))
 ;  time: 2237 msec.  -> now down to 850 msec
-

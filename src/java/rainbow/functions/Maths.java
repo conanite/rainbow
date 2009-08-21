@@ -3,6 +3,7 @@ package rainbow.functions;
 import rainbow.ArcError;
 import rainbow.Environment;
 import rainbow.Nil;
+import rainbow.functions.typing.Typing;
 import rainbow.types.*;
 
 import java.util.LinkedList;
@@ -215,7 +216,15 @@ public abstract class Maths {
   }
 
   private static String concatStrings(Pair args) {
-    return (args.isNil()) ? "" : ((ArcString) args.car()).value() + concatStrings((Pair) args.cdr());
+    return (args.isNil()) ? "" : coerceString(args.car()) + concatStrings((Pair) args.cdr());
+  }
+
+  private static String coerceString(ArcObject o) {
+    if (o instanceof ArcString) {
+      return ((ArcString) o).value();
+    } else {
+      return ((ArcString) Typing.coerce(o, ArcString.TYPE, null)).value();
+    }
   }
 
   private static Pair joinLists(Pair args) {

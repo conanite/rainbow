@@ -9,8 +9,8 @@
 (mac shape-cells (colour-var rotation row-var col-var . body)
   `(for ,row-var 0 3
     (for ,col-var 0 3
-      (if (shape-info (shape-cell-key ,colour-var ,rotation ,row-var ,col-var))
-        (do ,@body)))))
+      (when (shape-info (shape-cell-key ,colour-var ,rotation ,row-var ,col-var))
+        ,@body))))
 
 (mac tetrisop (name args . body)
   (w/uniq (gv)
@@ -128,8 +128,8 @@
   (draw-shape)
   (collapse-full-rows)
   (zap [/ _ acceleration*] delay*)
-  (if (no (full)
-      (new-shape))))
+  (unless (full)
+    (new-shape)))
 
 (def bottom ()
   (illegal falling!colour falling!rotation falling!x (+ 1 falling!y)))
@@ -174,13 +174,14 @@
       (set-cell (universe (key (- row 1) col)) row col))))
 
 (def illegal (c rot x y)
-  (catch
+  (let prohibited nil
     (shape-cells c rot row column
       (if (or (> (+ x column 1) tetris-width*)
               (> (+ y row 1) tetris-height*)
               (< (+ x column) 0)
               (universe (key (+ y row) (+ x column))))
-          (throw t)))))
+          (set prohibited)))
+     prohibited))
 
 (def new-shape ()
   (= falling (obj colour   (rand-elt colours)

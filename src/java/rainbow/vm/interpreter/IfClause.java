@@ -26,6 +26,7 @@ public class IfClause extends ArcObject {
   }
 
   public void addInstructions(List i) {
+    first = first.reduce();
     first.addInstructions(i);
   }
 

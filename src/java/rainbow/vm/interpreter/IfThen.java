@@ -43,6 +43,28 @@ public class IfThen extends ArcObject implements Conditional {
     }
   }
 
+  public Conditional reduce() {
+    next = next.reduce();
+    if (reduceToIfExpr()) {
+      Else e = new Else();
+      e.take(ifExpression);
+      return e;
+    } else {
+      return this;      
+    }
+  }
+
+  private boolean reduceToIfExpr() {
+    if (!(ifExpression instanceof BoundSymbol) || !(thenExpression instanceof BoundSymbol) || !(next instanceof Else)) {
+      return false;
+    } else {
+      BoundSymbol b1 = (BoundSymbol) ifExpression;
+      BoundSymbol b2 = (BoundSymbol) thenExpression;
+      Else e = (Else) next;
+      return b1.isSameBoundSymbol(b2) && e.ifExpression.isNil();
+    }
+  }
+
   public String toString() {
     return ifExpression + " " + thenExpression + " " + next;
   }

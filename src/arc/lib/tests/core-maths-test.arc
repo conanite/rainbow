@@ -31,7 +31,11 @@
 
       ("simplifies fractions"
         (+ 1/10 1/15)
-        1/6 ))
+        1/6 )
+
+      ("concatenates strings"
+        (+ "foo" 'bar 21)
+        "foobar21"))
 
     (suite "-"
       ("subtracts second arg from first"

@@ -5,6 +5,7 @@
   <property name="compiler-src" value="src/cc"/>
   <property name="arc-src" value="src/arc"/>
   <property name="opt-dir" value="/rainbow/vm/instructions/invoke/optimise"/>
+  <property name="opt-script" value="rainbow/build/optimisers.arc"/>
   <property name="sh-src" value="src/sh"/>
   <property name="test-src" value="src/test"/>
 
@@ -13,6 +14,15 @@
   <property name="build" value="build/"/>
   <property name="classes" value="${build}/classes"/>
   <property name="jarfile" value="${arc-src}/rainbow.jar"/>
+
+  <condition property="do-generate-optimisations">
+    <and>
+      <available file="${jarfile}"/>
+      <not>
+        <uptodate srcfile="${arc-src}/${opt-script}" targetfile="${src}${opt-dir}/Invoke_bound.java"/>
+      </not>
+    </and>
+  </condition>
 
   <condition property="rainbow-available"><available file="${jarfile}"/></condition>
 
@@ -32,10 +42,10 @@
     <echo>rebuild rainbow in order to generate and compile optimised invocation classes</echo>
   </target>
 
-  <target name="generate-optimisations" if="rainbow-available">
-    <java classpath="${jarfile}" classname="rainbow.Console" dir="src/arc" fork="true">
+  <target name="generate-optimisations" if="do-generate-optimisations">
+    <java classpath="${jarfile}" classname="rainbow.Console" dir="${arc-src}" fork="true">
       <arg value="-f"/>
-      <arg value="rainbow/build/optimisers.arc"/>
+      <arg value="${opt-script}"/>
       <arg value="-e"/>
       <arg value="(optimiser-generator)"/>
       <arg value="-q"/>
