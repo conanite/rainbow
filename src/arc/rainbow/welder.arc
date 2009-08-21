@@ -531,7 +531,9 @@
                  t)))))
 
 (def colourise (editor)
-  (with (pane editor!pane doc editor!doc (vis-start vis-finish) (visible-text editor!pane))
+  (with (pane                   editor!pane 
+         doc                    editor!doc 
+         (vis-start vis-finish) (visible-text editor!pane))
     (colourise-interval editor!index doc vis-start vis-finish)
     (highlight-match editor (dot))
     (editor!search!hilite)))

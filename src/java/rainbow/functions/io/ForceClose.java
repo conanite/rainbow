@@ -5,9 +5,9 @@ import rainbow.functions.IO;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 
-public class Close extends Builtin {
-  public Close() {
-    super("close");
+public class ForceClose extends Builtin {
+  public ForceClose() {
+    super("force-close");
   }
 
   public ArcObject invoke(Pair args) {

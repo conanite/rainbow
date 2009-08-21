@@ -2,9 +2,7 @@ package rainbow.functions;
 
 import rainbow.ArcError;
 import rainbow.Nil;
-import rainbow.types.ArcObject;
-import rainbow.types.Input;
-import rainbow.types.Output;
+import rainbow.types.*;
 
 public abstract class IO {
   public static Output STD_OUT = new Output(System.out) {
@@ -57,6 +55,8 @@ public abstract class IO {
       ((Input) port).close();
     } else if (port instanceof Output) {
       ((Output) port).close();
+    } else if (port instanceof ArcSocket) {
+      ((ArcSocket) port).close();
     } else {
       throw new ArcError("close: expected Input or Output object; got " + port);
     }
@@ -78,4 +78,11 @@ public abstract class IO {
     }
   }
 
+  public static ArcObject closeAll(Pair args) {
+    while (!(args instanceof Nil)) {
+      close(args.car());
+      args = (Pair) args.cdr();
+    }
+    return ArcObject.NIL;
+  }
 }

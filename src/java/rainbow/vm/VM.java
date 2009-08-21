@@ -16,6 +16,14 @@ import java.util.List;
 
 public class VM extends ArcObject {
   public static final Symbol TYPE = Symbol.mkSym("thread");
+  private static long threadCount = 0;
+
+  private final long threadId;
+  {
+    synchronized(VM.class) {
+      threadId = threadCount++;
+    }
+  }
 
   public ArcObject[] args = new ArcObject[100];
   public LexicalClosure[] lcs = new LexicalClosure[100];
@@ -44,7 +52,7 @@ public class VM extends ArcObject {
     if (error != null) {
       ArcException ae = error;
       error = null;
-      throw new ArcError("Unhandled exception: " + ae.getOriginal().getMessage(), ae.getOriginal());
+      throw new ArcError("Unhandled exception on thread#" + threadId + ": " + ae.getOriginal().getMessage(), ae.getOriginal());
     }
     interceptor.end(this);
     return popA();
@@ -54,15 +62,19 @@ public class VM extends ArcObject {
     while (ip >= ipThreshold) {
       currentLc = peekL();
       try {
-        step(peekI());
+        step();
+        interceptor.check(this);
       } catch (Throwable e) {
         handleError(e);
       }
     }
   }
 
-  private void step(Pair instructions) {
-    interceptor.check(this);
+  private void step() {
+    if (ip < 0) {
+      throw new Error("step: ip can't possibly be below 0!");
+    }
+    Pair instructions = peekI();
     Instruction i = (Instruction) instructions.car();
 
     Pair rest = (Pair) instructions.cdr();
@@ -138,6 +150,7 @@ public class VM extends ArcObject {
   }
 
   public void show() {
+    System.out.println("Thread Dump for thread#" + threadId);
     System.out.println("" + (ap + 1) + " args");
     showArgs();
     System.out.println();
@@ -168,6 +181,9 @@ public class VM extends ArcObject {
   }
 
   public void pokeI(Pair instructions) {
+    if (ip < 0) {
+      throw new Error("pokeI: ip can't possibly be below 0!");
+    }
     ins[ip] = instructions;
   }
 
@@ -294,7 +310,7 @@ public class VM extends ArcObject {
   }
 
   public String toString() {
-    return "[thread: instruction stack " + ip + "; arg stack " + ap + "]";
+    return "[thread#" + threadId + ": instruction stack " + ip + "; arg stack " + ap + "]";
   }
 
   private void newArgArray(int newLength) {

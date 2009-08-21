@@ -5,6 +5,7 @@ import rainbow.LexicalClosure;
 import rainbow.Nil;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
+import rainbow.types.ArcString;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.VM;
@@ -92,6 +93,24 @@ public abstract class InterpretedFunction extends ArcObject {
 
   public int length() {
     return body.length;
+  }
+
+  protected void requireNil(ArcObject test, ArcObject info) {
+    try {
+      test.cdr().mustBeNil();
+    } catch (NotNil notNil) {
+      throwArgMismatchError(info);
+    }
+  }
+
+  protected void requireNotNil(Pair destructured, ArcObject arg) {
+    if (destructured instanceof Nil) {
+      throwArgMismatchError(arg);
+    }
+  }
+
+  protected void throwArgMismatchError(ArcObject args) {
+    throw new ArcError("args " + args + " doesn't match signature for " + this);
   }
 
 }

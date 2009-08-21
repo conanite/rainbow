@@ -43,6 +43,14 @@ public class ArcSocket extends LiteralObject {
     }
   }
 
+  public void close() {
+    try {
+      this.ss.close();
+    } catch (IOException e) {
+      throw new ArcError("error closing socket " + ss + ": " + e.getMessage(), e);
+    }
+  }
+
   public String toString() {
     return TYPE + " " + ss;
   }

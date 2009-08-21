@@ -6,13 +6,16 @@ import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.VM;
+import rainbow.vm.compiler.FunctionBodyBuilder;
 
 import java.util.Map;
 
 public class SimpleArgs extends InterpretedFunction {
+  private String sig;
 
   public SimpleArgs(ArcObject parameterList, Map lexicalBindings, Pair body) {
     super(parameterList, lexicalBindings, body);
+    this.sig = FunctionBodyBuilder.sig(parameterList, false);
   }
 
   public void invoke(VM vm, LexicalClosure lc, Pair args) {

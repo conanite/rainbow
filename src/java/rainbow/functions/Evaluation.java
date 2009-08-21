@@ -32,12 +32,12 @@ public class Evaluation {
   public static boolean isAndf(String symbol) {
     if (symbol.length() == 0) {
       return false;
-    } else if (symbol.charAt(0) == '+') {
+    } else if (symbol.charAt(0) == SSExpand.ANDF_INTRASYM_CHAR) {
       return isAndf(symbol.substring(1));
-    } else if (symbol.charAt(symbol.length() - 1) == '+') {
+    } else if (symbol.charAt(symbol.length() - 1) == SSExpand.ANDF_INTRASYM_CHAR) {
       return isAndf(symbol.substring(0, symbol.length() - 1));
     } else {
-      return symbol.indexOf("+") != -1;
+      return symbol.indexOf(SSExpand.ANDF_INTRASYM) != -1;
     }
   }
 

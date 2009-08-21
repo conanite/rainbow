@@ -62,19 +62,19 @@
         t )
 
       ("andf"
-        (ssyntax 'a+b)
+        (ssyntax 'a&b)
         t)
 
       ("andf"
-        (ssyntax '+a+b+)
+        (ssyntax '&a&b&)
         t)
 
-      ("andf - ignore +"
-        (ssyntax '+)
+      ("andf - ignore &"
+        (ssyntax '&)
         nil)
 
-      ("andf - ignore ++"
-        (ssyntax '++)
+      ("andf - ignore &&"
+        (ssyntax '&&)
         nil)
     )
 
@@ -139,7 +139,7 @@
     (((get (quote a)) b) c))
 
   ("andf"
-    (ssexpand 'a+b)
+    (ssexpand 'a&b)
     (andf a b))
 ))
 
@@ -149,11 +149,11 @@
     #\o)
 
   ("everything at once, in functional position"
-    ((fn (x p) (tostring (pr:odd+~x.p 7) (pr:odd+~x.p 8) (pr:odd+~x.p 9))) (fn (n) (fn (p) (is (mod p n) 0))) 3)
+    ((fn (x p) (tostring (pr:odd&~x.p 7) (pr:odd&~x.p 8) (pr:odd&~x.p 9))) (fn (n) (fn (p) (is (mod p n) 0))) 3)
     "tnilnil")
 
   ("everything at once, as argument"
-    ((fn (y p) (tostring:map pr:odd+~y.p '(7 8 9))) (fn (n) (fn (p) (is (mod p n) 0))) 3)
+    ((fn (y p) (tostring:map pr:odd&~y.p '(7 8 9))) (fn (n) (fn (p) (is (mod p n) 0))) 3)
     "tnilnil")
 
   ("everything at once, as argument"
@@ -161,7 +161,7 @@
     "ttnil")
 
   ("everything at once, as argument"
-    ((fn (y p) (tostring:map odd+pr '(7 8 9))) (fn (n) (fn (p) (is (mod p n) 0))) 3)
+    ((fn (y p) (tostring:map odd&pr '(7 8 9))) (fn (n) (fn (p) (is (mod p n) 0))) 3)
     "79")
 
     ))

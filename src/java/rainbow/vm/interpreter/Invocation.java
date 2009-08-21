@@ -2,7 +2,7 @@ package rainbow.vm.interpreter;
 
 import rainbow.ArcError;
 import rainbow.Nil;
-import rainbow.functions.interpreted.ZeroArgs;
+import rainbow.functions.interpreted.optimise.Bind;
 import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
@@ -36,7 +36,7 @@ public class Invocation extends ArcObject {
   }
 
   private boolean inlineDoForm(List i) {
-    if (parts.len() == 1L && parts.car() instanceof ZeroArgs) {
+    if (parts.len() == 1L && parts.car() instanceof Bind) {
       ((InterpretedFunction) parts.car()).instructions().copyTo(i);
       return true;
     }

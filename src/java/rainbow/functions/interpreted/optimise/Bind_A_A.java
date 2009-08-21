@@ -9,8 +9,8 @@ import rainbow.ArcError;
 
 import java.util.Map;
 
-public class Bind_AA extends InterpretedFunction {
-  public Bind_AA(ArcObject parameterList, Map lexicalBindings, Pair body) {
+public class Bind_A_A extends InterpretedFunction {
+  public Bind_A_A(ArcObject parameterList, Map lexicalBindings, Pair body) {
     super(parameterList, lexicalBindings, body);
   }
 
@@ -33,7 +33,7 @@ public class Bind_AA extends InterpretedFunction {
     try {
       args.cdr().cdr().mustBeNil();
     } catch (NotNil notNil) {
-      throw new ArcError("expected 1 arg, got " + args);
+      throw new ArcError("expected 2 args, got " + args);
     }
     invokeN(vm, lc, args.car(), args.cdr().car());
   }

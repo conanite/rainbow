@@ -9,19 +9,21 @@ import rainbow.vm.VM;
 
 import java.util.Map;
 
-public class Bind_AR extends InterpretedFunction {
-  public Bind_AR(ArcObject parameterList, Map lexicalBindings, Pair body) {
+public class Bind extends InterpretedFunction {
+  public Bind(ArcObject parameterList, Map lexicalBindings, Pair body) {
     super(parameterList, lexicalBindings, body);
   }
 
   public void invokeN(VM vm, LexicalClosure lc) {
-    throw new ArcError("error: expected at least 1 arg, got none");
+    vm.pushFrame(lc, this.instructions);
   }
 
   public void invoke(VM vm, LexicalClosure lc, Pair args) {
-    lc = new LexicalClosure(lexicalBindings.size(), lc);
-    lc.add(args.car());
-    lc.add(args.cdr());
+    try {
+      args.mustBeNil();
+    } catch (NotNil notNil) {
+      throw new ArcError("expected 1 arg, got " + args);
+    }
     vm.pushFrame(lc, this.instructions);
   }
 }

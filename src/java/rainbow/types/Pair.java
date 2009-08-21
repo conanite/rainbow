@@ -119,10 +119,6 @@ public class Pair extends ArcObject {
     this.cdr = cdr;
   }
 
-  public boolean isNil() {
-    return false;
-  }
-
   public static Pair parse(List items) {
     if (items == null || items.size() == 0) {
       return NIL;

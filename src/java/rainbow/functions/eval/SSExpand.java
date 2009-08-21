@@ -12,6 +12,9 @@ import rainbow.parser.ParseException;
 import java.util.*;
 
 public class SSExpand extends Builtin {
+  public static final String ANDF_INTRASYM = "&";
+  public static final char ANDF_INTRASYM_CHAR = '&';
+
   public SSExpand() {
     super("ssexpand");
   }
@@ -46,16 +49,16 @@ public class SSExpand extends Builtin {
   private static String[] andToks(String symbol) {
     if (symbol.length() == 0) {
       return new String[] { "" };
-    } else if (symbol.charAt(0) == '+') {
+    } else if (symbol.charAt(0) == ANDF_INTRASYM_CHAR) {
       String[] result = andToks(symbol.substring(1));
-      result[0] = "+" + result[0];
+      result[0] = ANDF_INTRASYM + result[0];
       return result;
-    } else if (symbol.charAt(symbol.length() - 1) == '+') {
+    } else if (symbol.charAt(symbol.length() - 1) == ANDF_INTRASYM_CHAR) {
       String[] result = andToks(symbol.substring(0, symbol.length() - 1));
-      result[result.length - 1] = result[result.length - 1] + "+";
+      result[result.length - 1] = result[result.length - 1] + ANDF_INTRASYM;
       return result;
     } else {
-      return symbol.split("\\+");
+      return symbol.split(ANDF_INTRASYM);
     }
   }
 

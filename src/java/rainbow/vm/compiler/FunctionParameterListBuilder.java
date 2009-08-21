@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public class FunctionParameterListBuilder {
-  private static final Symbol O = Symbol.mkSym("o");
+  public static final Symbol O = Symbol.mkSym("o");
 
   public static ArcObject build(VM vm, ArcObject parameters, Map[] lexicalBindings) {
     index(parameters, lexicalBindings[0], new int[]{0}, false);

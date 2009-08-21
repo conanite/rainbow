@@ -100,10 +100,6 @@ public abstract class ArcObject {
     return true;
   }
 
-  public Function refFn() {
-    throw new ArcError("ref: expects string or hash or cons");
-  }
-
   public void mustBePairOrNil() throws NotPair {
     throw new Pair.NotPair();
   }
@@ -122,7 +118,6 @@ public abstract class ArcObject {
 
   public ArcObject invokeAndWait(VM vm, Pair args) {
     int len = (int) args.len();
-//    System.out.println("invoke and wait: " + this + " args " + args);
     while (!(args instanceof Nil)) {
       vm.pushA(args.car());
       args = (Pair) args.cdr();

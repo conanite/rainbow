@@ -10,9 +10,9 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Date;
 
-public class DateTime extends Builtin {
-  public DateTime() {
-    super("datetime");
+public class TimeDate extends Builtin {
+  public TimeDate() {
+    super("timedate");
   }
 
   public ArcObject invoke(Pair args) {

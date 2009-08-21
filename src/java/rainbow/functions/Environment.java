@@ -35,13 +35,15 @@ public class Environment {
     /* system */
     new MSec();
     new Seconds();
-    new DateTime();
+    new TimeDate();
     new CurrentProcessMilliseconds();
     new CurrentGcMilliseconds();
     new PipeFrom();
     new ShellInvoke();
     new WhichOS();
     new Declare();
+    new SetUID();
+    new Memory();
     new Quit();
 
     /* maths */
@@ -70,7 +72,6 @@ public class Environment {
     new Annotate();
     new Rep();
     new Coerce();
-    new Ref();
 
     /* java integration */
     new JavaNew();
@@ -85,6 +86,7 @@ public class Environment {
     /* threading */
     new NewThread();
     new KillThread();
+    new BreakThread(); // todo just duplicates kill-thread, should do something else
     new Sleep();
     new Dead();
     new AtomicInvoke();
@@ -145,6 +147,7 @@ public class Environment {
     new ReadC();
     new FlushOut();
     new Close();
+    new ForceClose();
 
     new OpenSocket();
     new ClientIp();

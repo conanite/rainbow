@@ -1,9 +1,9 @@
 
 (register-test '(suite "Foundation Tests"
 
-  ("datetime breaks date into calendar components"
+  ("timedate breaks date into calendar components"
     ((fn (d)
-      (list d.5 d.4 d.3)) (datetime 1203450000))
+      (list d.5 d.4 d.3)) (timedate 1203450000))
     (2008 01 19))
 
   (suite "Strings"
