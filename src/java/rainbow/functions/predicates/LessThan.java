@@ -3,6 +3,7 @@ package rainbow.functions.predicates;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
+import rainbow.Nil;
 
 public class LessThan extends Builtin {
   public LessThan() {
@@ -12,7 +13,7 @@ public class LessThan extends Builtin {
   public ArcObject invoke(Pair args) {
     ArcObject left = args.car();
     Pair others = (Pair) args.cdr();
-    while (!others.isNil()) {
+    while (!(others instanceof Nil)) {
       ArcObject right = others.car();
       int comparison = left.compareTo(right);
       if (comparison >= 0) {

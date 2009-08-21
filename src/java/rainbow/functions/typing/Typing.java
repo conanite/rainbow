@@ -1,6 +1,7 @@
 package rainbow.functions.typing;
 
 import rainbow.ArcError;
+import rainbow.Nil;
 import rainbow.parser.ParseException;
 import rainbow.types.*;
 
@@ -17,7 +18,7 @@ public class Typing {
     ArcObject arg = args.car();
     ArcObject toType = args.cdr().car();
     ArcNumber base = null;
-    if (!args.cdr().cdr().isNil()) {
+    if (!(args.cdr().cdr() instanceof Nil)) {
       base = (ArcNumber) args.cdr().cdr().car();
     }
     return coerce(arg, toType, base);
@@ -54,7 +55,7 @@ public class Typing {
       public ArcObject coerce(ArcObject original, ArcNumber base) {
         StringBuilder result = new StringBuilder();
         Pair chars = (Pair) original;
-        while (!chars.isNil()) {
+        while (!(chars instanceof Nil)) {
           result.append(((ArcCharacter) chars.car()).value());
           chars = (Pair) chars.cdr();
         }
@@ -94,7 +95,7 @@ public class Typing {
 
     coercion.put("sym-string", new Coercer() {
       public ArcObject coerce(ArcObject original, ArcNumber base) {
-        if (original.isNil()) {
+        if (original instanceof Nil) {
           return ArcString.make("");
         }
         String source = original.toString();

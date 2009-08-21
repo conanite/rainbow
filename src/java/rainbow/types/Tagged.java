@@ -1,6 +1,7 @@
 package rainbow.types;
 
 import rainbow.ArcError;
+import rainbow.Nil;
 import rainbow.vm.VM;
 
 public class Tagged extends LiteralObject {
@@ -64,7 +65,7 @@ public class Tagged extends LiteralObject {
 
     Hash dispatchers = (Hash) writer.value();
     ArcObject fn = dispatchers.value(type);
-    if (fn.isNil()) {
+    if (fn instanceof Nil) {
       return defaultToString();
     }
 

@@ -4,6 +4,7 @@ import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.vm.Instruction;
 import rainbow.vm.VM;
+import rainbow.Nil;
 
 public class TableMapper extends Instruction {
   private final ArcObject fn;
@@ -14,7 +15,7 @@ public class TableMapper extends Instruction {
 
   public void operate(VM vm) {
     Pair list = (Pair) vm.popA();
-    if (!list.isNil()) {
+    if (!(list instanceof Nil)) {
       vm.pushA(list.cdr());
       vm.pushFrame(this);
       Pair args = (Pair) list.car();

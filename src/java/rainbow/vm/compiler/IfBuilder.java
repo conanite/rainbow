@@ -1,6 +1,7 @@
 package rainbow.vm.compiler;
 
 import rainbow.ArcError;
+import rainbow.Nil;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair.NotPair;
 import rainbow.vm.VM;
@@ -26,7 +27,7 @@ public class IfBuilder {
     }
 
     body = original;
-    while (!body.isNil()) {
+    while (!(body instanceof Nil)) {
       try {
         body.mustBePairOrNil();
       } catch (NotPair notPair) {

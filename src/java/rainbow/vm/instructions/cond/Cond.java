@@ -4,6 +4,7 @@ import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.vm.Instruction;
 import rainbow.vm.VM;
+import rainbow.Nil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,7 @@ public class Cond extends Instruction {
   }
 
   public void operate(VM vm) {
-    if (vm.popA().isNil()) {
+    if (vm.popA() instanceof Nil) {
       vm.pushFrame(vm.lc(), elseInstructions);
     } else {
       vm.pushFrame(vm.lc(), thenInstructions);

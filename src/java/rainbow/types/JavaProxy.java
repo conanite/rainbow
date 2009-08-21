@@ -2,6 +2,7 @@ package rainbow.types;
 
 import rainbow.ArcError;
 import rainbow.Console;
+import rainbow.Nil;
 import rainbow.vm.VM;
 
 import java.lang.reflect.InvocationHandler;
@@ -42,14 +43,12 @@ public class JavaProxy implements InvocationHandler {
   }
 
   public Object invoke2(Object target, Method method, Object[] arguments) throws Throwable {
-//    ArcThread thread = new ArcThread();
-//    TopLevelContinuation topLevel = new TopLevelContinuation(thread);
     ArcObject methodImplementation = functions.value(Symbol.make(method.getName()));
-    if (methodImplementation.isNil()) {
+    if ((methodImplementation instanceof Nil)) {
       methodImplementation = functions.value(WILDCARD);
     }
 
-    if (methodImplementation.isNil()) {
+    if ((methodImplementation instanceof Nil)) {
       if (Console.debugJava) {
         System.out.println("no implementation found for " + method);
       }
@@ -78,7 +77,7 @@ public class JavaProxy implements InvocationHandler {
       h.sref(functions, WILDCARD);
       functions = h;
     }
-    return new JavaObject(Proxy.newProxyInstance(JavaProxy.class.getClassLoader(), targets, new JavaProxy(!strict.isNil(), (Hash)functions, interfaceNames)));
+    return new JavaObject(Proxy.newProxyInstance(JavaProxy.class.getClassLoader(), targets, new JavaProxy(!(strict instanceof Nil), (Hash)functions, interfaceNames)));
   }
 
   private static void getClasses(Pair interfaceNames, Class[] classes, int i) {

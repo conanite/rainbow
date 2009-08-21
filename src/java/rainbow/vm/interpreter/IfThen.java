@@ -4,6 +4,7 @@ import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 import rainbow.vm.instructions.cond.Cond;
 import rainbow.vm.instructions.cond.Cond_Lex;
+import rainbow.Nil;
 
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class IfThen extends ArcObject implements Conditional {
       e.take(ifExpression);
       return e;
     } else {
-      return this;      
+      return this;
     }
   }
 
@@ -61,7 +62,7 @@ public class IfThen extends ArcObject implements Conditional {
       BoundSymbol b1 = (BoundSymbol) ifExpression;
       BoundSymbol b2 = (BoundSymbol) thenExpression;
       Else e = (Else) next;
-      return b1.isSameBoundSymbol(b2) && e.ifExpression.isNil();
+      return b1.isSameBoundSymbol(b2) && (e.ifExpression instanceof Nil);
     }
   }
 

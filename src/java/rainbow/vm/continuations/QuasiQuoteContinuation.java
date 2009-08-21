@@ -5,6 +5,7 @@ import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import static rainbow.vm.compiler.QuasiQuoteCompiler.*;
 import rainbow.vm.instructions.*;
+import rainbow.Nil;
 
 import java.util.List;
 
@@ -70,7 +71,7 @@ public class QuasiQuoteContinuation {
       }
     }
 
-    if (!expr.isNil()) {
+    if (!(expr instanceof Nil)) {
       i.add(new Literal(expr));
       i.add(new AppendDot());
     }
@@ -79,7 +80,7 @@ public class QuasiQuoteContinuation {
   }
 
   public static boolean isQQPair(ArcObject expression, Symbol car) {
-    return (expression instanceof Pair) && expression.isCar(car) && expression.cdr().cdr().isNil();
+    return (expression instanceof Pair) && expression.isCar(car) && (expression.cdr().cdr() instanceof Nil);
   }
 
   public static boolean isUnQuote(ArcObject expression) {

@@ -5,6 +5,7 @@ import rainbow.types.Pair;
 import rainbow.vm.VM;
 import rainbow.vm.interpreter.BoundSymbol;
 import rainbow.LexicalClosure;
+import rainbow.Nil;
 
 public class Cond_Lex_Literal extends Cond_Lex {
   private ArcObject thenExpr;
@@ -20,7 +21,7 @@ public class Cond_Lex_Literal extends Cond_Lex {
 
   public void operate(VM vm) {
     LexicalClosure lc = vm.lc();
-    if (ifExpr.interpret(lc).isNil()) {
+    if (ifExpr.interpret(lc) instanceof Nil) {
       vm.pushFrame(lc, elseInstructions);
     } else {
       vm.pushA(thenExpr);

@@ -1,6 +1,7 @@
 package rainbow.functions.predicates;
 
 import rainbow.Truth;
+import rainbow.Nil;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
@@ -28,7 +29,7 @@ public class Is extends Builtin {
   }
 
   private ArcObject checkIs(ArcObject test, ArcObject args) {
-    if (args.isNil()) {
+    if (args instanceof Nil) {
       return T;
     }
 

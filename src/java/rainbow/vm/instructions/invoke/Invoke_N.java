@@ -6,13 +6,14 @@ import rainbow.types.Symbol;
 import rainbow.vm.Instruction;
 import rainbow.vm.VM;
 import rainbow.vm.interpreter.BoundSymbol;
+import rainbow.Nil;
 
 import java.util.List;
 
 public class Invoke_N {
   public static void addInstructions(List i, ArcObject fn, Pair args) {
     int argCount = (int) args.len();
-    while (!args.isNil()) {
+    while (!(args instanceof Nil)) {
       args.car().addInstructions(i);
       args = (Pair) args.cdr();
     }

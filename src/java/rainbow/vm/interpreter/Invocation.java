@@ -1,6 +1,7 @@
 package rainbow.vm.interpreter;
 
 import rainbow.ArcError;
+import rainbow.Nil;
 import rainbow.functions.interpreted.ZeroArgs;
 import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.types.ArcObject;
@@ -31,7 +32,7 @@ public class Invocation extends ArcObject {
 
   public void addInstructions(List i) {
     // java stupidly insists on assigning the result to a variable
-    boolean v = inlineDoForm(i) || addOptimisedHandler(i) || defaultAddInstructions(i); 
+    boolean v = inlineDoForm(i) || addOptimisedHandler(i) || defaultAddInstructions(i);
   }
 
   private boolean inlineDoForm(List i) {
@@ -74,7 +75,7 @@ public class Invocation extends ArcObject {
 
   private void addOptimisedInstructions(List i, Instruction in) {
     Pair p = (Pair) this.parts.cdr();
-    while (!p.isNil()) {
+    while (!(p instanceof Nil)) {
       if ("other".equals(sig(p.car()))) {
         p.car().addInstructions(i);
       }
@@ -90,7 +91,7 @@ public class Invocation extends ArcObject {
   private String sig() {
     String s = "";
     Pair p = this.parts;
-    while (!p.isNil()) {
+    while (!(p instanceof Nil)) {
       s += "_";
       s += sig(p.car());
       p = (Pair) p.cdr();

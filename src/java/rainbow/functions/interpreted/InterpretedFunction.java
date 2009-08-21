@@ -2,6 +2,7 @@ package rainbow.functions.interpreted;
 
 import rainbow.ArcError;
 import rainbow.LexicalClosure;
+import rainbow.Nil;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
@@ -26,10 +27,10 @@ public abstract class InterpretedFunction extends ArcObject {
     List i = new ArrayList();
     if (this.body.length > 0) {
       Pair b = body;
-      while (!b.isNil()) {
+      while (!(b instanceof Nil)) {
         b.car().addInstructions(i);
         b = (Pair) b.cdr();
-        if (!b.isNil()) {
+        if (!(b instanceof Nil)) {
           i.add(new PopArg("intermediate-fn-expression"));
         }
       }

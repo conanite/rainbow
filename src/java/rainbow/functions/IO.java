@@ -1,6 +1,7 @@
 package rainbow.functions;
 
 import rainbow.ArcError;
+import rainbow.Nil;
 import rainbow.types.ArcObject;
 import rainbow.types.Input;
 import rainbow.types.Output;
@@ -62,7 +63,7 @@ public abstract class IO {
   }
 
   public static Output chooseOutputPort(ArcObject port, Object caller) {
-    if (!port.isNil()) {
+    if (!(port instanceof Nil)) {
       return Output.cast(port, caller);
     } else {
       return stdOut();
@@ -70,7 +71,7 @@ public abstract class IO {
   }
 
   public static Input chooseInputPort(ArcObject port, Object caller) {
-    if (!port.isNil()) {
+    if (!(port instanceof Nil)) {
       return Input.cast(port, caller);
     } else {
       return stdIn();

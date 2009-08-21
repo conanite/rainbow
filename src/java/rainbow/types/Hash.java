@@ -3,6 +3,7 @@ package rainbow.types;
 import rainbow.ArcError;
 import rainbow.Function;
 import rainbow.LexicalClosure;
+import rainbow.Nil;
 import rainbow.vm.VM;
 
 import java.util.*;
@@ -39,7 +40,7 @@ public class Hash extends LiteralObject {
   }
 
   public ArcObject sref(ArcObject value, ArcObject key) {
-    if (value.isNil()) {
+    if (value instanceof Nil) {
       unref(key);
     } else {
       map.put(key, value);
@@ -80,7 +81,7 @@ public class Hash extends LiteralObject {
 
   public ArcObject map(Function f, LexicalClosure lc) {
     Pair kvs = toList();
-    while (!kvs.isNil()) {
+    while (!(kvs instanceof Nil)) {
       Pair args = (Pair) kvs.car();
       f.invoke(lc, Pair.buildFrom(args.car(), args.cdr()));
       kvs = (Pair) kvs.cdr();

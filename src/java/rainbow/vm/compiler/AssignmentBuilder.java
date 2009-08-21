@@ -1,6 +1,7 @@
 package rainbow.vm.compiler;
 
 import rainbow.ArcError;
+import rainbow.Nil;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair.NotPair;
 import rainbow.vm.VM;
@@ -13,7 +14,7 @@ public class AssignmentBuilder {
   public static ArcObject build(VM vm, ArcObject body, Map[] lexicalBindings) {
     Assignment assignment = new Assignment();
     assignment.prepare((int) body.len());
-    while (!body.isNil()) {
+    while (!(body instanceof Nil)) {
       try {
         body.mustBePairOrNil();
       } catch (NotPair notPair) {

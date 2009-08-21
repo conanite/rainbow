@@ -22,7 +22,7 @@
     (each a1 arg-types
       (each a2 arg-types
         (each a3 arg-types
-          (write-class operate-method f a1 a2 a3))))))
+          (write-class faster-operate-method f a1 a2 a3))))))
 
 (def write-class (operator . types)
   (prn "generating #((classname types))")

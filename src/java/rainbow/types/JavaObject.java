@@ -2,6 +2,7 @@ package rainbow.types;
 
 import rainbow.ArcError;
 import rainbow.Console;
+import rainbow.Nil;
 import rainbow.functions.Closure;
 import rainbow.functions.interpreted.InterpretedFunction;
 
@@ -27,7 +28,7 @@ public class JavaObject extends LiteralObject {
   public static JavaObject instantiate(String className, Pair types, Pair args) {
     try {
       Class target = Class.forName(className);
-      if (args.isNil()) {
+      if (args instanceof Nil) {
         return new JavaObject(target.newInstance());
       } else if (types != null) {
         if (types.len() != args.len()) {
@@ -76,7 +77,7 @@ public class JavaObject extends LiteralObject {
     } catch (Exception e) {
       try {
         Field field = c.getField(methodName);
-        if (!args.isNil()) {
+        if (!(args instanceof Nil)) {
           field.set(null, unwrap(args.car(), field.getType()));
           return null;
         } else {
@@ -176,7 +177,7 @@ public class JavaObject extends LiteralObject {
 
   private static void unwrapList(Object[] result, Class<?>[] parameterTypes, Pair args, int i) {
     result[i] = unwrap(args.car(), parameterTypes[i]);
-    if (!args.cdr().isNil()) {
+    if (!(args.cdr() instanceof Nil)) {
       unwrapList(result, parameterTypes, (Pair) args.cdr(), i + 1);
     }
   }
@@ -249,7 +250,7 @@ public class JavaObject extends LiteralObject {
   }
 
   private static String types(ArcObject args) {
-    if (args.isNil()) {
+    if (args instanceof Nil) {
       return "";
     } else if (args instanceof Pair) {
       return typeOf(args.car()) + types(args.cdr());
@@ -267,7 +268,7 @@ public class JavaObject extends LiteralObject {
   }
 
   private static boolean match(Class[] parameterTypes, Pair args, int i) {
-    return i == parameterTypes.length && args.isNil() || match(parameterTypes[i], args.car()) && match(parameterTypes, (Pair) args.cdr(), i + 1);
+    return i == parameterTypes.length && (args instanceof Nil) || match(parameterTypes[i], args.car()) && match(parameterTypes, (Pair) args.cdr(), i + 1);
   }
 
   private static boolean match(Class parameterType, ArcObject arcObject) {
@@ -285,7 +286,7 @@ public class JavaObject extends LiteralObject {
       return true;
     } else if (parameterType == Map.class && arcObject instanceof Hash) {
       return true;
-    } else if (!parameterType.isPrimitive() && arcObject.isNil()) {
+    } else if (!parameterType.isPrimitive() && (arcObject instanceof Nil)) {
       return true;
     } else if (parameterType.isInterface() && (arcObject instanceof Hash || arcObject instanceof InterpretedFunction || arcObject instanceof Closure)) {
       return true;

@@ -1,5 +1,6 @@
 package rainbow.functions;
 
+import rainbow.Nil;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
@@ -12,7 +13,7 @@ public class Macex extends Builtin {
   }
 
   public void invoke(VM vm, final Pair args) {
-    if (args.isNil()) {
+    if (args instanceof Nil) {
       vm.pushA(NIL);
       return;
     }

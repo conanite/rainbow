@@ -12,7 +12,14 @@ public class MapTable extends Builtin {
     super("maptable");
   }
 
+  public void invokef(VM vm, ArcObject f, ArcObject hash) {
+    vm.pushA(hash);
+    vm.pushA(((Hash) hash).toList());
+    vm.pushFrame(new TableMapper(f));
+  }
+
   public void invoke(VM vm, Pair args) {
+    checkExactArgsCount(args, 2, getClass());
     ArcObject f = args.car();
     Hash h = (Hash) args.cdr().car();
     vm.pushA(h);

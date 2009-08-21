@@ -8,6 +8,7 @@ import rainbow.types.ArcObject;
 import static rainbow.types.ArcObject.NIL;
 import rainbow.types.Pair;
 import rainbow.vm.VM;
+import rainbow.Nil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +23,7 @@ public class FunctionBodyBuilder {
     ArcObject parameters = args.car();
     ArcObject complexParams;
     ArcObject parameterList;
-    if (parameters.isNil()) {
+    if (parameters instanceof Nil) {
       complexParams = NIL;
       parameterList = NIL;
     } else {
@@ -45,9 +46,9 @@ public class FunctionBodyBuilder {
   }
 
   private static ArcObject buildFunctionBody(ArcObject parameterList, Map lexicalBindings, Pair expandedBody, ArcObject complexParams) {
-    if (parameterList.isNil()) {
+    if (parameterList instanceof Nil) {
       return new ZeroArgs(lexicalBindings, expandedBody);
-    } else if (!complexParams.isNil()) {
+    } else if (!(complexParams instanceof Nil)) {
       return new ComplexArgs(parameterList, lexicalBindings, expandedBody);
     } else if (parameterList instanceof Pair) {
       Pair params = (Pair) parameterList;

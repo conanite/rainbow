@@ -4,6 +4,7 @@ import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.vm.Instruction;
 import rainbow.vm.VM;
+import rainbow.Nil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,7 @@ public class LastCond extends Instruction {
   }
 
   public void operate(VM vm) {
-    if (!vm.peekA().isNil()) {
+    if (!(vm.peekA() instanceof Nil)) {
       vm.popA();
       vm.pushFrame(vm.lc(), thenInstructions);
     }

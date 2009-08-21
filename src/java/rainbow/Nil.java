@@ -52,10 +52,6 @@ public class Nil extends Pair {
   public void mustBeNil() {
   }
 
-  public boolean isNil() {
-    return true;
-  }
-
   public String toString() {
     return rep;
   }
@@ -101,7 +97,7 @@ public class Nil extends Pair {
   }
 
   public boolean equals(Object other) {
-    return this == other || ((ArcObject)other).isNil();
+    return (this == other) || (((ArcObject) other) instanceof Nil);
   }
 
   public Object unwrap() {
@@ -109,7 +105,7 @@ public class Nil extends Pair {
   }
 
   public boolean isSame(ArcObject other) {
-    return other.isNil();
+    return other instanceof Nil;
   }
 
   public ArcObject or(ArcObject other) {

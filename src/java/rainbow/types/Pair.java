@@ -2,6 +2,7 @@ package rainbow.types;
 
 import rainbow.ArcError;
 import rainbow.LexicalClosure;
+import rainbow.Nil;
 import rainbow.vm.VM;
 
 import java.util.*;
@@ -107,7 +108,7 @@ public class Pair extends ArcObject {
       o = o.cdr();
     }
 
-    if (!o.isNil()) {
+    if (!(o instanceof Nil)) {
       result.append(" . ");
       result.append(o);
     }
@@ -200,12 +201,12 @@ public class Pair extends ArcObject {
   }
 
   public int size() {
-    if (isNil()) {
+    if (this instanceof Nil) {
       return 0;
     } else {
       int result = 1;
       ArcObject rest = cdr;
-      while (!rest.isNil()) {
+      while (!(rest instanceof Nil)) {
         if (rest.isNotPair()) {
           throw new ArcError("cannot take size: not a proper list: " + this);
         }
@@ -222,7 +223,7 @@ public class Pair extends ArcObject {
 
   public Collection copyTo(Collection c) {
     c.add(car());
-    if (cdr().isNil()) {
+    if (cdr() instanceof Nil) {
       return c;
     } else if (!(cdr() instanceof Pair)) {
       throw new ArcError("Not a list: " + this);
@@ -235,8 +236,8 @@ public class Pair extends ArcObject {
     if ((this == other)) {
       return true;
     } else {
-      boolean iAmNil = isNil();
-      boolean itIsNil = ((ArcObject) other).isNil();
+      boolean iAmNil = this instanceof Nil;
+      boolean itIsNil = ((ArcObject) other) instanceof Nil;
       if ((iAmNil != itIsNil)) {
         return false;
       } else if (iAmNil && itIsNil) {
@@ -268,7 +269,7 @@ public class Pair extends ArcObject {
 
   private static ArcObject nth(ArcObject p, long index) {
     while (index > 0) {
-      if (p.cdr().isNil()) {
+      if (p.cdr() instanceof Nil) {
         throw new OOB();
       }
       p = p.cdr();
@@ -288,7 +289,7 @@ public class Pair extends ArcObject {
   }
 
   public Pair copy() {
-    if (isNil()) {
+    if (this instanceof Nil) {
       return this;
     }
     return new Pair(car(), cdr().copy());
@@ -301,11 +302,11 @@ public class Pair extends ArcObject {
   }
 
   public boolean isSame(ArcObject other) {
-    return super.isSame(other) || isNil() && other.isNil();
+    return super.isSame(other) || ((this instanceof Nil) && (other instanceof Nil));
   }
 
   private static void unwrapList(List result, Pair list) {
-    if (list.isNil()) {
+    if (list instanceof Nil) {
       return;
     }
     result.add(list.car().unwrap());
@@ -322,7 +323,7 @@ public class Pair extends ArcObject {
   private void toArray(ArcObject[] result, int i) {
     if (i < result.length) {
       result[i] = car;
-      if (!cdr.isNil()) {
+      if (!(cdr instanceof Nil)) {
         ((Pair)cdr).toArray(result, i + 1);
       }
     }
@@ -344,7 +345,7 @@ public class Pair extends ArcObject {
       return new Pair(value, NIL);
     } else {
       Pair test = pair;
-      while (!test.cdr.isNil()) {
+      while (!(test.cdr instanceof Nil)) {
         test = (Pair) test.cdr;
       }
       test.cdr = new Pair(value, NIL);
@@ -364,7 +365,7 @@ public class Pair extends ArcObject {
     while (!pair.isNotPair()) {
       pair = pair.cdr();
     }
-    return pair.isNil();
+    return pair instanceof Nil;
   }
 
   public static class NotPair extends Throwable {

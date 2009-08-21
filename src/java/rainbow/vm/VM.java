@@ -3,6 +3,7 @@ package rainbow.vm;
 import rainbow.ArcError;
 import rainbow.Console;
 import rainbow.LexicalClosure;
+import rainbow.Nil;
 import rainbow.types.ArcException;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
@@ -65,7 +66,7 @@ public class VM extends ArcObject {
     Instruction i = (Instruction) instructions.car();
 
     Pair rest = (Pair) instructions.cdr();
-    if (rest.isNil()) {
+    if (rest instanceof Nil) {
       popFrame();
     } else {
       pokeI(rest);
@@ -229,7 +230,7 @@ public class VM extends ArcObject {
     Pair instructions = ins[frame];
     LexicalClosure lc = lcs[frame];
     System.out.print("\nInstruction Frame " + frame + ":");
-    while (!instructions.isNil()) {
+    while (!(instructions instanceof Nil)) {
       Instruction i = (Instruction) instructions.car();
       instructions = (Pair) instructions.cdr();
       System.out.print(i.toString(lc));

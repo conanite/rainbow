@@ -6,6 +6,7 @@ import rainbow.types.Symbol;
 import rainbow.vm.VM;
 import rainbow.LexicalClosure;
 import rainbow.ArcError;
+import rainbow.Nil;
 
 import java.util.Map;
 import java.util.List;
@@ -34,7 +35,7 @@ public class ComplexArgs extends InterpretedFunction {
 
       } else if (optional(nextParameter)) {
         Pair optional = optionalParam(nextParameter);
-        if (!args.isNil()) {
+        if (!(args instanceof Nil)) {
           lc.add(nextArg);
         } else {
           lc.add(evalOptional(vm, lc, optional));

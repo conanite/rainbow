@@ -1,6 +1,7 @@
 package rainbow.vm.instructions.cond;
 
 import rainbow.LexicalClosure;
+import rainbow.Nil;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.vm.VM;
@@ -23,7 +24,7 @@ public class Cond_Lex_Other extends Cond_Lex {
 
   public void operate(VM vm) {
     LexicalClosure lc = vm.lc();
-    if (ifExpr.interpret(lc).isNil()) {
+    if (ifExpr.interpret(lc) instanceof Nil) {
       vm.pushFrame(lc, elseInstructions);
     } else {
       vm.pushFrame(lc, thenInstructions);

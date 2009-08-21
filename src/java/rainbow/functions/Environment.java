@@ -1,33 +1,38 @@
-package rainbow;
+package rainbow.functions;
 
-import rainbow.functions.*;
-import rainbow.functions.system.*;
-import rainbow.functions.typing.*;
-import rainbow.functions.io.*;
-import rainbow.functions.errors.*;
-import rainbow.functions.network.OpenSocket;
-import rainbow.functions.network.SocketAccept;
-import rainbow.functions.network.ClientIp;
-import rainbow.functions.strings.OutString;
-import rainbow.functions.strings.Inside;
-import rainbow.functions.strings.InString;
-import rainbow.functions.threads.*;
-import rainbow.functions.java.*;
-import rainbow.functions.predicates.*;
-import rainbow.functions.tables.Table;
-import rainbow.functions.tables.MapTable;
-import rainbow.functions.tables.Sref;
-import rainbow.functions.lists.*;
+import rainbow.functions.errors.Details;
+import rainbow.functions.errors.Err;
+import rainbow.functions.errors.OnErr;
+import rainbow.functions.errors.Protect;
 import rainbow.functions.eval.Apply;
 import rainbow.functions.eval.Eval;
-import rainbow.functions.eval.SSyntax;
 import rainbow.functions.eval.SSExpand;
+import rainbow.functions.eval.SSyntax;
 import rainbow.functions.fs.*;
-import rainbow.types.*;
+import rainbow.functions.io.*;
+import rainbow.functions.java.*;
+import rainbow.functions.lists.*;
+import rainbow.functions.maths.*;
+import rainbow.functions.network.ClientIp;
+import rainbow.functions.network.OpenSocket;
+import rainbow.functions.network.SocketAccept;
+import rainbow.functions.predicates.*;
+import rainbow.functions.strings.InString;
+import rainbow.functions.strings.Inside;
+import rainbow.functions.strings.OutString;
+import rainbow.functions.system.*;
+import rainbow.functions.tables.MapTable;
+import rainbow.functions.tables.Sref;
+import rainbow.functions.tables.Table;
+import rainbow.functions.threads.*;
+import rainbow.functions.typing.*;
+import rainbow.types.Hash;
+import rainbow.types.Real;
+import rainbow.types.Symbol;
 
 public class Environment {
-
-  public Environment() {
+  public static void init() {
+    /* system */
     new MSec();
     new Seconds();
     new DateTime();
@@ -39,16 +44,35 @@ public class Environment {
     new Declare();
     new Quit();
 
-    Maths.collect(this);
-    ThreadLocals.collect(this);
-    Maths.extra(this);
+    /* maths */
+    (Symbol.mkSym("pi")).setValue(new Real(Math.PI));
+    (Symbol.mkSym("e")).setValue(new Real(Math.E));
+    new Trunc();
+    new Expt();
+    new Rand();
+    new Sqrt();
+    new Quotient();
+    new Mod();
+    new Add();
+    new Subtract();
+    new Multiply();
+    new Divide();
+    new Sine();
+    new Cosine();
+    new Tangent();
+    new Logarithm();
+    new ComplexParts();
+    new MakeComplex();
+    new PolarCoordinates();
 
+    /* typing */
     new Type();
     new Annotate();
     new Rep();
     new Coerce();
     new Ref();
 
+    /* java integration */
     new JavaNew();
     new JavaClass();
     new JavaInvoke();
@@ -58,12 +82,16 @@ public class Environment {
     new JavaImplement();
     new RainbowDebug();
 
+    /* threading */
     new NewThread();
     new KillThread();
     new Sleep();
     new Dead();
     new AtomicInvoke();
     new CCC();
+    new NewThreadLocal();
+    new ThreadLocalGet();
+    new ThreadLocalSet();
 
     new Uniq();
     new Macex();
@@ -136,38 +164,5 @@ public class Environment {
     new InString();
     new OutString();
     new Inside();
-  }
-
-  private void addBuiltin(String name, ArcObject o) {
-    ((Symbol) Symbol.make(name)).setValue(o);
-  }
-
-  public void addToNamespace(Symbol s, ArcObject o) {
-    s.setValue(o);
-  }
-
-  public ArcObject lookup(Symbol s) {
-    if (!s.bound()) {
-      return null;
-    }
-    return s.value();
-  }
-
-  public Output stdOut() {
-    return IO.STD_OUT;
-  }
-
-  public Input stdIn() {
-    return IO.STD_IN;
-  }
-
-  public String fullNamespace() {
-    return "Namespace\n" + toString();
-  }
-
-  public void add(Builtin[] builtins) {
-    for (int i = 0; i < builtins.length; i++) {
-      addBuiltin(builtins[i].name(), builtins[i]);
-    }
   }
 }

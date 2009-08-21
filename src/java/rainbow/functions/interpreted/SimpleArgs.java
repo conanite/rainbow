@@ -1,6 +1,7 @@
 package rainbow.functions.interpreted;
 
 import rainbow.LexicalClosure;
+import rainbow.Nil;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
@@ -21,7 +22,7 @@ public class SimpleArgs extends InterpretedFunction {
   }
 
   private static void simple(LexicalClosure lc, ArcObject parameterList, ArcObject args) {
-    while (!parameterList.isNil()) {
+    while (!(parameterList instanceof Nil)) {
       if (parameterList instanceof Symbol) {
         lc.add(args);
         return;

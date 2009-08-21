@@ -10,13 +10,14 @@ import rainbow.vm.interpreter.BoundSymbol;
 import rainbow.vm.interpreter.Invocation;
 import rainbow.vm.interpreter.QuasiQuotation;
 import rainbow.vm.interpreter.Quotation;
+import rainbow.Nil;
 
 import java.util.Map;
 
 public class Compiler {
 
   public static ArcObject compile(VM vm, ArcObject expression, Map[] lexicalBindings) {
-    if (expression.isNil()) {
+    if (expression instanceof Nil) {
       return expression;
     } else if (Evaluation.isSpecialSyntax(expression)) {
       return compile(vm, Evaluation.ssExpand(expression), lexicalBindings);
@@ -76,7 +77,7 @@ public class Compiler {
   }
 
   private static ArcObject decompose(Pair fns, Pair args) {
-    return new Pair(fns.car(), fns.cdr().isNil() ? args : new Pair(decompose((Pair) fns.cdr(), args), ArcObject.NIL));
+    return new Pair(fns.car(), (fns.cdr() instanceof Nil) ? args : new Pair(decompose((Pair) fns.cdr(), args), ArcObject.NIL));
   }
 
   private static ArcObject decomplement(ArcObject not, Pair args) {

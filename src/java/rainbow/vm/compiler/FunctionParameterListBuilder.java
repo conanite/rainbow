@@ -5,6 +5,7 @@ import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.VM;
+import rainbow.Nil;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -48,7 +49,7 @@ public class FunctionParameterListBuilder {
   }
 
   private static void index(ArcObject parameterList, Map map, int[] i, boolean optionable) {
-    if (parameterList.isNil()) {
+    if (parameterList instanceof Nil) {
       return;
     }
 

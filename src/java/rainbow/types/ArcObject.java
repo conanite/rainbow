@@ -38,6 +38,10 @@ public abstract class ArcObject {
     invoke(vm, new Pair(arg1, new Pair(arg2, NIL)));
   }
 
+  public void invokef(VM vm, ArcObject arg1, ArcObject arg2, ArcObject arg3) {
+    invoke(vm, new Pair(arg1, new Pair(arg2, new Pair(arg3, NIL))));
+  }
+
   public long len() {
     throw new ArcError("len: expects one string, list or hash argument, got " + this.type());
   }
@@ -52,10 +56,6 @@ public abstract class ArcObject {
 
   public ArcObject sref(Pair args) {
     throw new ArcError("Can't sref " + this.type());
-  }
-
-  public boolean isNil() {
-    return false;
   }
 
   public int compareTo(ArcObject right) {
@@ -123,7 +123,7 @@ public abstract class ArcObject {
   public ArcObject invokeAndWait(VM vm, Pair args) {
     int len = (int) args.len();
 //    System.out.println("invoke and wait: " + this + " args " + args);
-    while (!args.isNil()) {
+    while (!(args instanceof Nil)) {
       vm.pushA(args.car());
       args = (Pair) args.cdr();
     }

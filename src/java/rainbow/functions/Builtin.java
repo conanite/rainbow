@@ -19,18 +19,6 @@ public abstract class Builtin extends ArcObject {
     throw new ArcError("Builtin:invoke(args):provide implementation! " + name() + " args " + args);
   }
 
-  public void invokef(VM vm) {
-    invoke(vm, NIL);
-  }
-
-  public void invokef(VM vm, ArcObject arg) {
-    invoke(vm, new Pair(arg, NIL));
-  }
-
-  public void invokef(VM vm, ArcObject arg1, ArcObject arg2) {
-    invoke(vm, new Pair(arg1, new Pair(arg2, NIL)));
-  }
-
   public void invoke(VM vm, Pair args) {
     vm.pushA(invoke(args));
   }

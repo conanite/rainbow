@@ -4,6 +4,7 @@ import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Rational;
+import rainbow.Nil;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -16,7 +17,7 @@ public class DateTime extends Builtin {
 
   public ArcObject invoke(Pair args) {
     Calendar c = new GregorianCalendar();
-    if (!args.isNil()) {
+    if (!(args instanceof Nil)) {
       c.setTime(new Date(1000 * Rational.cast(args.car(), this).toInt()));
     }
     return Pair.buildFrom(

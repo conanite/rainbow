@@ -3,7 +3,6 @@ package rainbow.functions.typing;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
-import rainbow.types.Symbol;
 import rainbow.types.Tagged;
 
 public class Annotate extends Builtin {

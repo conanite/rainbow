@@ -1,6 +1,7 @@
 package rainbow.functions.eval;
 
 import rainbow.ArcError;
+import rainbow.Nil;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
@@ -32,7 +33,7 @@ public class Apply extends Builtin {
   }
 
   private Pair constructApplyArgs(Pair args) {
-    if (args.cdr().isNil()) {
+    if (args.cdr() instanceof Nil) {
       return Pair.cast(args.car(), this);
     } else {
       return new Pair(args.car(), constructApplyArgs(Pair.cast(args.cdr(), this)));

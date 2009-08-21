@@ -5,6 +5,7 @@ import rainbow.parser.ParseException;
 import rainbow.types.*;
 import rainbow.util.Argv;
 import rainbow.vm.VM;
+import rainbow.functions.Environment;
 
 import java.io.*;
 import java.util.*;
@@ -23,7 +24,7 @@ public class Console {
       System.exit(0);
     }
 
-    new Environment();
+    Environment.init();
     VM vm = new VM();
 //    vm.setInterceptor(VMInterceptor.DEBUG);
 
