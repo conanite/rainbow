@@ -111,4 +111,8 @@ public class Nil extends Pair {
   public ArcObject or(ArcObject other) {
     return other;
   }
+
+  public boolean hasLen(int i) {
+    return i == 0;
+  }
 }

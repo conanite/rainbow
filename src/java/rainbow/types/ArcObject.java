@@ -127,6 +127,14 @@ public abstract class ArcObject {
     return vm.thread();
   }
 
+  public ArcObject reduce() {
+    return this;
+  }
+
+  public boolean hasLen(int i) {
+    throw new ArcError("has length: not a proper list: ends with " + this);
+  }
+
   public static class NotNil extends Throwable {
   }
 }

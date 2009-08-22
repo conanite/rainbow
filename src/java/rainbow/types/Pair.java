@@ -274,6 +274,10 @@ public class Pair extends ArcObject {
     return p;
   }
 
+  public boolean hasLen(int i) {
+    return cdr().hasLen(i - 1);
+  }
+
   static class OOB extends RuntimeException {
   }
 

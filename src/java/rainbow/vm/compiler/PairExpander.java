@@ -16,9 +16,9 @@ public class PairExpander {
     while (!(body instanceof Nil) && body instanceof Pair) {
       ArcObject next = body.car();
       body = body.cdr();
-      result.add(Compiler.compile(vm, next, lexicalBindings));
+      result.add(Compiler.compile(vm, next, lexicalBindings).reduce());
     }
 
-    return Pair.buildFrom(result, Compiler.compile(vm, body, lexicalBindings));
+    return Pair.buildFrom(result, Compiler.compile(vm, body, lexicalBindings).reduce());
   }
 }

@@ -5,13 +5,13 @@ import rainbow.LexicalClosure;
 import rainbow.Nil;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
-import rainbow.types.ArcString;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.VM;
 import rainbow.vm.instructions.Close;
 import rainbow.vm.instructions.Literal;
 import rainbow.vm.instructions.PopArg;
+import rainbow.vm.interpreter.BoundSymbol;
 
 import java.util.*;
 
@@ -61,6 +61,23 @@ public abstract class InterpretedFunction extends ArcObject {
 
   public void addInstructions(List i) {
     i.add(new Close(this));
+  }
+
+  public boolean isIdFn() {
+    if (parameterList.len() == 1) {
+      if (parameterList.car() instanceof Symbol) {
+        if (body.length == 1) {
+          if (body[0] instanceof BoundSymbol) {
+            Symbol p1 = (Symbol) parameterList.car();
+            BoundSymbol rv = (BoundSymbol) body[0];
+            BoundSymbol equiv = new BoundSymbol(p1, 0, 0);
+            return rv.isSameBoundSymbol(equiv);
+          }
+        }
+
+      }
+    }
+    return false;
   }
 
   public int compareTo(ArcObject right) {

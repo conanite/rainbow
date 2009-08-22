@@ -33,11 +33,11 @@ public class IfBuilder {
       } catch (NotPair notPair) {
         throw new ArcError("if: unexpected: " + body);
       }
-      ArcObject expr = compile(vm, body.car(), lexicalBindings);
+      ArcObject expr = compile(vm, body.car(), lexicalBindings).reduce();
       clause.take(expr);
       body = body.cdr();
     }
 
-    return clause;
+    return clause.reduce();
   }
 }

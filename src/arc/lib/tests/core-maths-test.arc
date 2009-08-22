@@ -35,7 +35,11 @@
 
       ("concatenates strings"
         (+ "foo" 'bar 21)
-        "foobar21"))
+        "foobar21")
+
+      ("string concatenation ignores nil"
+        (+ "a" "b" "c" nil)
+        "abc"))
 
     (suite "-"
       ("subtracts second arg from first"

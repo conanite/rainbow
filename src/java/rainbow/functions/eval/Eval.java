@@ -16,7 +16,7 @@ public class Eval extends Builtin {
 
   public void invoke(VM vm, Pair args) {
     ArcObject expression = args.car();
-    expression = rainbow.vm.compiler.Compiler.compile(vm, expression, new Map[0]);
+    expression = rainbow.vm.compiler.Compiler.compile(vm, expression, new Map[0]).reduce();
     List i = new ArrayList();
     expression.addInstructions(i);
     vm.pushFrame(null, Pair.buildFrom(i));

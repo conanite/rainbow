@@ -162,7 +162,7 @@ public class Console {
   }
 
   private static ArcObject compileAndEval(VM vm, ArcObject expression) {
-    expression = rainbow.vm.compiler.Compiler.compile(vm, expression, new Map[0]);
+    expression = rainbow.vm.compiler.Compiler.compile(vm, expression, new Map[0]).reduce();
     List i = new ArrayList();
     expression.addInstructions(i);
     return vm.thread(null, Pair.buildFrom(i));

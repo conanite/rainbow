@@ -89,7 +89,7 @@ public class VM extends ArcObject {
     } catch (ArcError e) {
       throw e;
     } catch (Exception e) {
-      String msg = "failed to execute instruction " + i +
+      String msg = "failed to execute instruction " + i.toString(currentLc) +
               "\nremaining instructions in this frame: " + rest +
               "\nlast arg: " + (ap > -1 ? peekA() : null) +
               "\nLC: " + currentLc +

@@ -126,6 +126,10 @@
         ( (fn () "foobar") )
         "foobar")
 
+      ("single rest arg"
+        ( (fn args cdr.args) 'a 'b 'c )
+        (b c))
+
       ("a simple addition function"
         ( (fn (x y) (+ x y)) 17 13)
         30)
@@ -217,9 +221,21 @@
           ) (outstring))
         "id=4 class=myclass ")
 
+      ("destructured args are implicitly optional"
+        ( (fn (a (b c d)) (+ a b c d)) "foo" '("bar") )
+        "foobar")
+
+      ("extra destructured args are ignored"
+        ( (fn (a (b c d)) (+ a b c d)) "foo" '("bar" "baz" "toto" "extra" "and some more") )
+        "foobarbaztoto")
+
       ("empty body returns nil"
         ((fn ()))
         nil)
+
+      ("rainbow optimises inline idfn"
+        ( (fn (x) (if x x nil)) "en vacances au sud de france")
+        "en vacances au sud de france")
     )
 
     (suite "assign"

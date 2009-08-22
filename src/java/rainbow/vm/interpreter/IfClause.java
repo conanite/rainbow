@@ -21,12 +21,20 @@ public class IfClause extends ArcObject {
     }
   }
 
+  public ArcObject reduce() {
+    first = first.reduce();
+    if (first instanceof Else) {
+      return ((Else)first).ifExpression;
+    } else {
+      return this;
+    }
+  }
+
   public void take(ArcObject expression) {
     first.take(expression);
   }
 
   public void addInstructions(List i) {
-    first = first.reduce();
     first.addInstructions(i);
   }
 

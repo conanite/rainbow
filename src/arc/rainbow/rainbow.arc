@@ -60,3 +60,6 @@
 (def canonical-path (file)
   ((File new file) 'getCanonicalPath))
 
+(def at-stringify (str)
+  
+)

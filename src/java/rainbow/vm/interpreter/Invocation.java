@@ -35,6 +35,18 @@ public class Invocation extends ArcObject {
     boolean v = inlineDoForm(i) || addOptimisedHandler(i) || defaultAddInstructions(i);
   }
 
+  // reduce ( (fn (x) x) y) to just y
+  public ArcObject reduce() {
+    if (parts.hasLen(2)) {
+      if (parts.car() instanceof InterpretedFunction) {
+        if (((InterpretedFunction) parts.car()).isIdFn()) {
+          return parts.cdr().car();
+        }
+      }
+    }
+    return this;
+  }
+
   private boolean inlineDoForm(List i) {
     if (parts.len() == 1L && parts.car() instanceof Bind) {
       ((InterpretedFunction) parts.car()).instructions().copyTo(i);
