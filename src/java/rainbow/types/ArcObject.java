@@ -104,10 +104,6 @@ public abstract class ArcObject {
     throw new Pair.NotPair();
   }
 
-  public void setSymbolValue(LexicalClosure lc, ArcObject value) {
-    throw new ArcError("set: expects symbol, got " + this);
-  }
-
   public void mustBeNil() throws NotNil {
     throw new NotNil();
   }
@@ -133,6 +129,10 @@ public abstract class ArcObject {
 
   public boolean hasLen(int i) {
     throw new ArcError("has length: not a proper list: ends with " + this);
+  }
+
+  public int highestLexicalScopeReference() {
+    return Integer.MIN_VALUE;
   }
 
   public static class NotNil extends Throwable {

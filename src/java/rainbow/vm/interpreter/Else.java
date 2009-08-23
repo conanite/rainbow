@@ -29,7 +29,7 @@ public class Else extends ArcObject implements Conditional {
     ifExpression.addInstructions(i);
   }
 
-  public Conditional reduce() {
+  public ArcObject reduce() {
     return this;
   }
 
@@ -39,5 +39,9 @@ public class Else extends ArcObject implements Conditional {
 
   public String toString() {
     return ifExpression.toString();
+  }
+
+  public int highestLexicalScopeReference() {
+    return ifExpression.highestLexicalScopeReference();
   }
 }

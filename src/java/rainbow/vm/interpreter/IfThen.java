@@ -44,8 +44,8 @@ public class IfThen extends ArcObject implements Conditional {
     }
   }
 
-  public Conditional reduce() {
-    next = next.reduce();
+  public ArcObject reduce() {
+    next = (Conditional)next.reduce();
     if (reduceToIfExpr()) {
       Else e = new Else();
       e.take(ifExpression);
@@ -68,5 +68,12 @@ public class IfThen extends ArcObject implements Conditional {
 
   public String toString() {
     return ifExpression + " " + thenExpression + " " + next;
+  }
+
+  public int highestLexicalScopeReference() {
+    int hif = ifExpression.highestLexicalScopeReference();
+    int hthen = thenExpression.highestLexicalScopeReference();
+    int helse = next.highestLexicalScopeReference();
+    return Math.max(Math.max(hif, hthen), helse);
   }
 }

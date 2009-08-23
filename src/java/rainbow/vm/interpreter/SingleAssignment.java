@@ -46,4 +46,11 @@ public class SingleAssignment {
     }
     next.addInstructions(i);
   }
+
+  public int highestLexicalScopeReference() {
+    int n = name.highestLexicalScopeReference();
+    int me = expression.highestLexicalScopeReference();
+    int other = next.highestLexicalScopeReference();
+    return Math.max(n, Math.max(me, other));
+  }
 }

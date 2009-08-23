@@ -4,7 +4,7 @@ import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.VM;
-import rainbow.vm.continuations.QuasiQuoteContinuation;
+import rainbow.vm.interpreter.QuasiQuotation;
 
 import java.util.LinkedList;
 import java.util.Map;
@@ -19,7 +19,7 @@ public class QuasiQuoteCompiler {
       return expression;
     }
 
-    if (QuasiQuoteContinuation.isUnQuote(expression)) {
+    if (QuasiQuotation.isUnQuote(expression)) {
       ArcObject compileMe = expression.cdr().car();
       ArcObject compiled;
       if (nesting == 1) {
@@ -29,14 +29,14 @@ public class QuasiQuoteCompiler {
       }
       return Pair.buildFrom(UNQUOTE, compiled);
 
-    } else if (QuasiQuoteContinuation.isUnQuoteSplicing(expression)) {
+    } else if (QuasiQuotation.isUnQuoteSplicing(expression)) {
       if (nesting == 1) {
         return Pair.buildFrom(UNQUOTE_SPLICING, Compiler.compile(vm, expression.cdr().car(), lexicalBindings));
       } else {
         return Pair.buildFrom(UNQUOTE_SPLICING, compile(vm, expression.cdr().car(), lexicalBindings, nesting - 1));
       }
 
-    } else if (QuasiQuoteContinuation.isQuasiQuote(expression)) {
+    } else if (QuasiQuotation.isQuasiQuote(expression)) {
       return Pair.buildFrom(QUASIQUOTE, compile(vm, expression.cdr().car(), lexicalBindings, 2));
 
     } else {
@@ -47,13 +47,13 @@ public class QuasiQuoteCompiler {
         expression = expression.cdr();
         if (next.isNotPair()) {
           result.add(next);
-        } else if (QuasiQuoteContinuation.isUnQuote(next)) {
+        } else if (QuasiQuotation.isUnQuote(next)) {
           result.add(compile(vm, next, lexicalBindings, nesting));
 
-        } else if (QuasiQuoteContinuation.isUnQuoteSplicing(next)) {
+        } else if (QuasiQuotation.isUnQuoteSplicing(next)) {
           result.add(compile(vm, next, lexicalBindings, nesting));
 
-        } else if (QuasiQuoteContinuation.isQuasiQuote(next)) {
+        } else if (QuasiQuotation.isQuasiQuote(next)) {
           result.add(compile(vm, next, lexicalBindings, nesting + 1));
 
         } else {

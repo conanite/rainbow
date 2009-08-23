@@ -35,4 +35,10 @@ public class LastAssignment extends SingleAssignment {
       Assign_Free.addInstructions(i, (Symbol) name, expression, true);
     }
   }
+
+  public int highestLexicalScopeReference() {
+    int n = name.highestLexicalScopeReference();
+    int e = expression.highestLexicalScopeReference();
+    return e > n ? e : n;
+  }
 }

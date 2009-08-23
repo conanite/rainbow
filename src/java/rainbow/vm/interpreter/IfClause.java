@@ -22,7 +22,7 @@ public class IfClause extends ArcObject {
   }
 
   public ArcObject reduce() {
-    first = first.reduce();
+    first = (Conditional) first.reduce();
     if (first instanceof Else) {
       return ((Else)first).ifExpression;
     } else {
@@ -40,5 +40,9 @@ public class IfClause extends ArcObject {
 
   public String toString() {
     return "(if " + first + ")";
+  }
+
+  public int highestLexicalScopeReference() {
+    return first.highestLexicalScopeReference();
   }
 }

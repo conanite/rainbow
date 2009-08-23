@@ -234,7 +234,7 @@
                (< nl text-len)
                (~found nl))
           (zap step nl))
-    (found+fun nl)))
+    (found&fun nl)))
 
 (def previous-line (editor position fun)
   (let text (all-text editor)
@@ -309,6 +309,7 @@
         'meta-delete 'kill-form
         'escape      'dismiss
         'f1          'go-to-source
+        'shift-f1    'help
         'ctrl-k      'keystroke-help
         'ctrl-h      'htmlify
         'meta-s      'save
@@ -373,10 +374,10 @@
   (editor!show-help "<pre>#(token)</pre>"))
 
 (def token-at (editor dot)
-  (catch
-    (each (kind tok start finish) editor!index
-      (if (and (no:is kind 'syntax) (< start dot finish))
-        (throw tok)))))
+  (find (fn ((kind tok start finish)) 
+            (and (no:is kind 'syntax) 
+                 (< start dot finish)) ) 
+        editor!index))
 
 (def up-select (editor)
   (let selected  (find-previous-selectable editor!index (dot))

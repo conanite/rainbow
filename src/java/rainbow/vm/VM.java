@@ -249,7 +249,8 @@ public class VM extends ArcObject {
     while (!(instructions instanceof Nil)) {
       Instruction i = (Instruction) instructions.car();
       instructions = (Pair) instructions.cdr();
-      System.out.print(i.toString(lc));
+      System.out.print(i.toString());
+//      System.out.print(i.toString(lc));
       System.out.print(" ");
     }
     System.out.println();

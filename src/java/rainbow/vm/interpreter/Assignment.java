@@ -41,4 +41,8 @@ public class Assignment extends ArcObject {
   public String toString() {
     return "(assign " + assignment + ")";
   }
+
+  public int highestLexicalScopeReference() {
+    return assignment.highestLexicalScopeReference();
+  }
 }

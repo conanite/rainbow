@@ -8,6 +8,7 @@ import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.VM;
+import rainbow.vm.compiler.FunctionBodyBuilder;
 import rainbow.vm.instructions.Close;
 import rainbow.vm.instructions.Literal;
 import rainbow.vm.instructions.PopArg;
@@ -41,16 +42,32 @@ public abstract class InterpretedFunction extends ArcObject {
     instructions = Pair.buildFrom(i);
   }
 
+  public void invokef(VM vm) {
+    invokeN(vm, null);
+  }
+
   public void invokeN(VM vm, LexicalClosure lc) {
     invoke(vm, lc, NIL);
+  }
+
+  public void invokef(VM vm, ArcObject arg) {
+    invokeN(vm, null, arg);
   }
 
   public void invokeN(VM vm, LexicalClosure lc, ArcObject arg) {
     invoke(vm, lc, new Pair(arg, NIL));
   }
 
+  public void invokef(VM vm, ArcObject arg1, ArcObject arg2) {
+    invokeN(vm, null, arg1, arg2);
+  }
+
   public void invokeN(VM vm, LexicalClosure lc, ArcObject arg1, ArcObject arg2) {
     invoke(vm, lc, new Pair(arg1, new Pair(arg2, NIL)));
+  }
+
+  public void invoke(VM vm, Pair args) {
+    invoke(vm, null, args);
   }
 
   public abstract void invoke(VM vm, LexicalClosure lc, Pair args);
@@ -60,7 +77,34 @@ public abstract class InterpretedFunction extends ArcObject {
   }
 
   public void addInstructions(List i) {
-    i.add(new Close(this));
+    if (requiresClosure()) {
+      i.add(new Close(this));
+    } else {
+      i.add(new Literal(this));
+    }
+  }
+
+  private boolean requiresClosure() {
+    boolean b = highestLexicalScopeReference() > -1;
+    return b;
+  }
+
+  public int highestLexicalScopeReference() {
+    int highest = Integer.MIN_VALUE;
+    for (ArcObject expr : body) {
+      int eh = expr.highestLexicalScopeReference();
+      if (eh > highest) {
+        highest = eh;
+      }
+    }
+
+    highest = FunctionBodyBuilder.highestLexScopeReference(highest, parameterList, false);
+
+    if (parameterList() instanceof Nil) {
+      return highest;
+    } else {
+      return highest - 1;
+    }
   }
 
   public boolean isIdFn() {
@@ -87,9 +131,10 @@ public abstract class InterpretedFunction extends ArcObject {
   public String toString() {
     List<ArcObject> fn = new LinkedList<ArcObject>();
     fn.add(Symbol.mkSym("fn"));
+    fn.add(Symbol.mkSym("[" + highestLexicalScopeReference() + "]"));
     fn.add(parameterList());
     fn.addAll(Arrays.asList(body));
-    return Pair.buildFrom(fn, NIL).toString();
+    return "\n" + Pair.buildFrom(fn, NIL).toString();
   }
 
   public ArcObject parameterList() {

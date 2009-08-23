@@ -1,7 +1,6 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.LexicalClosure;
 import rainbow.Nil;
 import rainbow.vm.VM;
 
@@ -61,10 +60,6 @@ public class Pair extends ArcObject {
 
   public boolean isNotPair() {
     return false;
-  }
-
-  public ArcObject interpret(LexicalClosure lc) {
-    throw new ArcError("can't interpret a cons cell!!! " + this);
   }
 
   public ArcObject scar(ArcObject newCar) {
@@ -359,6 +354,12 @@ public class Pair extends ArcObject {
 
   public boolean isProper() {
     return isProper(this);
+  }
+
+  public int highestLexicalScopeReference() {
+    int hcar = car.highestLexicalScopeReference();
+    int hcdr = cdr.highestLexicalScopeReference();
+    return hcar > hcdr ? hcar : hcdr;
   }
 
   public static boolean isProper(ArcObject pair) {

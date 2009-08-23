@@ -37,10 +37,6 @@ public class Nil extends Pair {
     return true;
   }
 
-  public ArcObject interpret(LexicalClosure lc) {
-    return this;
-  }
-
   public long len() {
     return 0;
   }
@@ -114,5 +110,9 @@ public class Nil extends Pair {
 
   public boolean hasLen(int i) {
     return i == 0;
+  }
+
+  public int highestLexicalScopeReference() {
+    return Integer.MIN_VALUE;
   }
 }

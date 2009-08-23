@@ -159,4 +159,8 @@ public class Invocation extends ArcObject {
     }
     return true;
   }
+
+  public int highestLexicalScopeReference() {
+    return parts.highestLexicalScopeReference();
+  }
 }

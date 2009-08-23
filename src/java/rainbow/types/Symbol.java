@@ -1,7 +1,6 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.LexicalClosure;
 import rainbow.vm.instructions.FreeSym;
 
 import java.util.HashMap;
@@ -86,10 +85,6 @@ public class Symbol extends ArcObject {
 
   public static boolean is(String s, ArcObject o) {
     return (o instanceof Symbol) && ((Symbol)o).name().equals(s);
-  }
-
-  public void setSymbolValue(LexicalClosure lc, ArcObject value) {
-    this.value = value;
   }
 
   public void setValue(ArcObject value) {

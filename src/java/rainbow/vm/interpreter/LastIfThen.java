@@ -34,11 +34,17 @@ public class LastIfThen extends ArcObject implements Conditional {
     i.add(new LastCond(thenExpression));
   }
 
-  public Conditional reduce() {
+  public ArcObject reduce() {
     return this;
   }
 
   public String toString() {
     return ifExpression + " " + thenExpression;
+  }
+
+  public int highestLexicalScopeReference() {
+    int hif = ifExpression.highestLexicalScopeReference();
+    int hthen = thenExpression.highestLexicalScopeReference();
+    return Math.max(hif, hthen);
   }
 }

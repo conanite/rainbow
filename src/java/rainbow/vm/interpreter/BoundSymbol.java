@@ -36,10 +36,15 @@ public class BoundSymbol extends ArcObject {
   }
 
   public String toString() {
-    return name.name();
+    return "BS:" + name + "[nesting:" + nesting + "]";
+//    return name.name();
   }
 
   public boolean isSameBoundSymbol(BoundSymbol other) {
     return nesting == other.nesting && name == other.name && index == other.index;
+  }
+
+  public int highestLexicalScopeReference() {
+    return nesting;
   }
 }

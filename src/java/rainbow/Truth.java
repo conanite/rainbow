@@ -2,9 +2,13 @@ package rainbow;
 
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
+import rainbow.vm.instructions.Literal;
+
+import java.util.List;
 
 public class Truth extends Symbol {
   public static final Truth T = new Truth();
+  private static final Literal TRUTH_INSTRUCTION = new Literal(T);
 
   private Truth() {
     super("t");
@@ -12,6 +16,10 @@ public class Truth extends Symbol {
 
   public boolean literal() {
     return true;
+  }
+
+  public void addInstructions(List i) {
+    i.add(TRUTH_INSTRUCTION);
   }
 
   public String toString() {
@@ -40,10 +48,6 @@ public class Truth extends Symbol {
 
   public Object unwrap() {
     return Boolean.TRUE;
-  }
-
-  public void setSymbolValue(LexicalClosure lc, ArcObject value) {
-    throw new ArcError("error: can't rebind t!");
   }
 
   public void setValue(ArcObject value) {

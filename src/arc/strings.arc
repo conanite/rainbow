@@ -57,7 +57,7 @@
 ;> (form-urlencoded-decode "x%ce%bbx")
 ;"xλx"
 
-; first byte: 0-7F, 1 char; c2-df 2; e0-ef 3, f0-f4 4. 
+; first byte: 0-7F, 1 char; c2-df 2; e0-ef 3, f0-f4 4.
 
 ; Fixed for utf8 by pc.
 
@@ -72,8 +72,8 @@
           (writec c)))))
 
 (def urlencode (s)
-  (tostring 
-    (each c s 
+  (tostring
+    (each c s
       (writec #\%)
       (let i (int c)
         (if (< i 16) (writec #\0))
@@ -91,7 +91,7 @@
 
 ; litmatch would be cleaner if map worked for string and integer args:
 
-;             ,@(map (fn (n c)  
+;             ,@(map (fn (n c)
 ;                      `(is ,c (,gstring (+ ,gstart ,n))))
 ;                    (len pat)
 ;                    pat)
@@ -102,7 +102,7 @@
        (unless (> ,(len pat) (len ,gstring))
          (and ,@(let acc nil
                   (forlen i pat
-                    (push `(is ,(pat (- (len pat) 1 i)) 
+                    (push `(is ,(pat (- (len pat) 1 i))
                                (,gstring (- ,glen 1 ,i)))
                            acc))
                   (rev acc)))))))
@@ -117,9 +117,9 @@
     nil))
 
 (def headmatch (pat seq (o start 0))
-  (let p (len pat) 
-    ((afn (i)      
-       (or (is i p) 
+  (let p (len pat)
+    ((afn (i)
+       (or (is i p)
            (and (is (pat i) (seq (+ i start)))
                 (self (+ i 1)))))
      0)))
@@ -130,7 +130,7 @@
 
 (def subst (new old seq)
   (let boundary (+ (- (len seq) (len old)) 1)
-    (tostring 
+    (tostring
       (forlen i seq
         (if (and (< i boundary) (headmatch old seq i))
             (do (++ i (- (len old) 1))
@@ -138,7 +138,7 @@
             (pr (seq i)))))))
 
 (def multisubst (pairs seq)
-  (tostring 
+  (tostring
     (forlen i seq
       (iflet (old new) (find [begins seq (car _) i] pairs)
         (do (++ i (- (len old) 1))
@@ -162,7 +162,7 @@
   (withs (f   (testify test)
            p1 (pos ~f s))
     (if p1
-        (cut s 
+        (cut s
              (if (in where 'front 'both) p1 0)
              (when (in where 'end 'both)
                (let i (- (len s) 1)
@@ -191,8 +191,8 @@
                          m (/ (roundup (* a d)) d)
                          i (trunc m)
                          r (abs (trunc (- (* m d) (* i d)))))
-                   (+ (if (is i 0) 
-                          (if (or init-zero (is r 0)) "0" "") 
+                   (+ (if (is i 0)
+                          (if (or init-zero (is r 0)) "0" "")
                           (comma i))
                       (withs (rest   (string r)
                               padded (+ (newstring (- digits (len rest)) #\0)
@@ -205,7 +205,7 @@
     (if (and (< n 0) (find [and (digit _) (isnt _ #\0)] abrep))
         (+ "-" abrep)
         abrep)))
-        
+
 
 ; English
 

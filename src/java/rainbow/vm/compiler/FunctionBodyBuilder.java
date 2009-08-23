@@ -111,6 +111,31 @@ public class FunctionBodyBuilder {
     }
   }
 
+  public static int highestLexScopeReference(int highest, ArcObject parameterList, boolean optionable) {
+    if (parameterList instanceof Nil) {
+      return highest;
+    }
+
+    if (parameterList instanceof Pair) {
+      if (optionable) {
+        if (ComplexArgs.optional(parameterList)) {
+          int expr = parameterList.cdr().cdr().car().highestLexicalScopeReference();
+          return expr > highest ? expr : highest;
+        } else {
+          highest = highestLexScopeReference(highest, parameterList.car(), true);
+          highest = highestLexScopeReference(highest, parameterList.cdr(), false);
+          return highest;
+        }
+      } else {
+        highest = highestLexScopeReference(highest, parameterList.car(), true);
+        highest = highestLexScopeReference(highest, parameterList.cdr(), false);
+        return highest;
+      }
+    } else {
+      return highest;
+    }
+  }
+
   public static void main(String[] args) {
     ArcObject ao = ArcObject.NIL;
     List l = new ArrayList();
