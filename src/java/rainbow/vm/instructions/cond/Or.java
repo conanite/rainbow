@@ -31,8 +31,10 @@ public class Or extends Instruction {
       ArcObject e = ((Else)next).ifExpression;
       if (e instanceof BoundSymbol) {
         i.add(new Or_Lex(ifExpression, (BoundSymbol)e));
+        return;
       } else if (e.literal()) {
         i.add(new Or_Literal(ifExpression, e));
+        return;
       }
     }
     i.add(new Or(ifExpression, (ArcObject) next));
@@ -50,10 +52,10 @@ public class Or extends Instruction {
 
 
   public String toString() {
-    return "(cond if:" + ifExpr + " then:" + ifExpr + " else:" + elseExpr + ")";
+    return "(or:" + ifExpr + " : " + elseExpr + ")";
   }
 
   public String toString(LexicalClosure lc) {
-    return "(cond if:" + ifExpr + " -> " + ifExpr.interpret(lc) + " then:" + ifExpr + " else:" + elseExpr + ")";
+    return "(or:" + ifExpr + " -> " + ifExpr.interpret(lc) + " : " + elseExpr + ")";
   }
 }

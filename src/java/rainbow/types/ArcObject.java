@@ -113,10 +113,11 @@ public abstract class ArcObject {
   }
 
   public ArcObject invokeAndWait(VM vm, Pair args) {
-    int len = (int) args.len();
+    int len = 0;
     while (!(args instanceof Nil)) {
       vm.pushA(args.car());
       args = (Pair) args.cdr();
+      len++;
     }
     vm.pushA(this);
     vm.pushFrame(new Invoke_N.Other(len));

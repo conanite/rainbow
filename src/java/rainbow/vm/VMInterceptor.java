@@ -29,7 +29,7 @@ public enum VMInterceptor {
 
   NEXT_FRAME {
     void check(VM vm) {
-      if (vm.peekI().len() == 1L) {
+      if (vm.peekI().hasLen(1)) {
         vm.setInterceptor(DEBUG);
       }
     }

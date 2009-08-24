@@ -62,6 +62,9 @@ public class Environment {
     new Sine();
     new Cosine();
     new Tangent();
+    new Asin();
+    new Acos();
+    new Atan();
     new Logarithm();
     new ComplexParts();
     new MakeComplex();

@@ -42,7 +42,9 @@ public class Cond_Lex_Lex extends Cond_Lex {
   }
 
   public static void addInstructions(List i, BoundSymbol ifExpression, BoundSymbol thenExpression, Conditional next) {
-    if (next instanceof Else) {
+    if (ifExpression.isSameBoundSymbol(thenExpression)) {
+      Or.addInstructions(i, ifExpression, next);
+    } else if (next instanceof Else) {
       if (((Else) next).ifExpression.literal()) {
         Cond_Lex_Lex_Literal.addInstructions(i, ifExpression, thenExpression, ((Else)next).ifExpression);
       } else if (((Else)next).ifExpression instanceof Quotation) {
@@ -50,8 +52,6 @@ public class Cond_Lex_Lex extends Cond_Lex {
       } else {
         i.add(new Cond_Lex_Lex(ifExpression, thenExpression, next));
       }
-    } else if (ifExpression.isSameBoundSymbol(thenExpression)) {
-      Or.addInstructions(i, ifExpression, next);
     } else {
       i.add(new Cond_Lex_Lex(ifExpression, thenExpression, next));
     }

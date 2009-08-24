@@ -131,10 +131,9 @@ public abstract class InterpretedFunction extends ArcObject {
   public String toString() {
     List<ArcObject> fn = new LinkedList<ArcObject>();
     fn.add(Symbol.mkSym("fn"));
-    fn.add(Symbol.mkSym("[" + highestLexicalScopeReference() + "]"));
     fn.add(parameterList());
     fn.addAll(Arrays.asList(body));
-    return "\n" + Pair.buildFrom(fn, NIL).toString();
+    return Pair.buildFrom(fn, NIL).toString();
   }
 
   public ArcObject parameterList() {

@@ -1,8 +1,6 @@
 package rainbow.types;
 
 import rainbow.ArcError;
-import rainbow.Function;
-import rainbow.LexicalClosure;
 import rainbow.Nil;
 import rainbow.vm.VM;
 
@@ -77,16 +75,6 @@ public class Hash extends LiteralObject {
 
   public long size() {
     return map.size();
-  }
-
-  public ArcObject map(Function f, LexicalClosure lc) {
-    Pair kvs = toList();
-    while (!(kvs instanceof Nil)) {
-      Pair args = (Pair) kvs.car();
-      f.invoke(lc, Pair.buildFrom(args.car(), args.cdr()));
-      kvs = (Pair) kvs.cdr();
-    }
-    return this;
   }
 
   public static Hash cast(ArcObject argument, Object caller) {
