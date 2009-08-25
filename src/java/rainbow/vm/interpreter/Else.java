@@ -1,6 +1,7 @@
 package rainbow.vm.interpreter;
 
 import rainbow.ArcError;
+import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 
@@ -43,5 +44,23 @@ public class Else extends ArcObject implements Conditional {
 
   public int highestLexicalScopeReference() {
     return ifExpression.highestLexicalScopeReference();
+  }
+
+  public boolean assigns(BoundSymbol p) {
+    return ifExpression.assigns(p);
+  }
+
+  public boolean hasClosures() {
+    if (ifExpression instanceof InterpretedFunction) {
+      return ((InterpretedFunction) ifExpression).requiresClosure();
+    } else {
+      return ifExpression.hasClosures();
+    }
+  }
+
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+    Else e = new Else();
+    e.ifExpression = this.ifExpression.inline(p, arg, unnest).reduce();
+    return e;
   }
 }

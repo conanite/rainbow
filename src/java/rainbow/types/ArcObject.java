@@ -1,10 +1,14 @@
 package rainbow.types;
 
-import rainbow.*;
+import rainbow.ArcError;
+import rainbow.Nil;
+import rainbow.Truth;
 import rainbow.types.Pair.NotPair;
 import rainbow.vm.VM;
 import rainbow.vm.instructions.invoke.Invoke_N;
+import rainbow.vm.interpreter.BoundSymbol;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -51,7 +55,7 @@ public abstract class ArcObject {
   }
 
   public ArcObject sref(ArcObject value, ArcObject index) {
-    throw new ArcError("Can't sref " + this.type() + ", other args were " + value + ", " + index);
+    throw new ArcError("Can't sref " + this + "( a " + this.type() + "), other args were " + value + ", " + index);
   }
 
   public ArcObject sref(Pair args) {
@@ -124,18 +128,34 @@ public abstract class ArcObject {
     return vm.thread();
   }
 
-  public ArcObject reduce() {
+  public boolean hasLen(int i) {
+    throw new ArcError("has length: not a proper list: ends with " + this);
+  }
+
+  public ArcObject without(ArcObject unwanted) {
     return this;
   }
 
-  public boolean hasLen(int i) {
-    throw new ArcError("has length: not a proper list: ends with " + this);
+  public static class NotNil extends Throwable {
+  }
+
+  public ArcObject reduce() {
+    return this;
   }
 
   public int highestLexicalScopeReference() {
     return Integer.MIN_VALUE;
   }
 
-  public static class NotNil extends Throwable {
+  public boolean hasClosures() {
+    return false;
+  }
+
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+    return this;
+  }
+
+  public boolean assigns(BoundSymbol p) {
+    return false;
   }
 }

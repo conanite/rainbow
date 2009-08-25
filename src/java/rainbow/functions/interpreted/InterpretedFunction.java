@@ -9,6 +9,7 @@ import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.VM;
 import rainbow.vm.compiler.FunctionBodyBuilder;
+import rainbow.vm.compiler.FunctionParameterListBuilder;
 import rainbow.vm.instructions.Close;
 import rainbow.vm.instructions.Literal;
 import rainbow.vm.instructions.PopArg;
@@ -16,16 +17,20 @@ import rainbow.vm.interpreter.BoundSymbol;
 
 import java.util.*;
 
-public abstract class InterpretedFunction extends ArcObject {
-  protected final ArcObject parameterList;
-  protected final Map lexicalBindings;
-  final ArcObject[] body;
-  protected final Pair instructions;
+public abstract class InterpretedFunction extends ArcObject implements Cloneable {
+  protected ArcObject parameterList;
+  protected Map lexicalBindings;
+  protected ArcObject[] body;
+  protected Pair instructions;
 
   protected InterpretedFunction(ArcObject parameterList, Map lexicalBindings, Pair body) {
     this.parameterList = parameterList;
     this.lexicalBindings = lexicalBindings;
     this.body = body.toArray();
+    buildInstructionList(body);
+  }
+
+  private void buildInstructionList(Pair body) {
     List i = new ArrayList();
     if (this.body.length > 0) {
       Pair b = body;
@@ -40,6 +45,43 @@ public abstract class InterpretedFunction extends ArcObject {
       i.add(new Literal(NIL));
     }
     instructions = Pair.buildFrom(i);
+  }
+
+  public boolean canInline() {
+    if (((parameterList instanceof Pair)) && (parameterList.cdr() instanceof Nil) && ((parameterList.car() instanceof Symbol)) && (body.length == 1)) {
+      BoundSymbol p = new BoundSymbol((Symbol) parameterList.car(), 0, 0);
+      return !assigned(p) && !hasClosures();// && countReferences(p) <= 1;
+    }
+    return false;
+  }
+
+  public boolean hasClosures() {
+    for (ArcObject o : body) {
+      if (o instanceof InterpretedFunction) {
+        if (((InterpretedFunction)o).requiresClosure()) {
+          return true;
+        }
+      } else if (o.hasClosures()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean assigned(BoundSymbol p) {
+    for (ArcObject o : body) {
+      if (o.assigns(p)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean assigns(BoundSymbol p) {
+    if (!(parameterList instanceof Nil)) {
+      p = p.nest();
+    }
+    return assigned(p);
   }
 
   public void invokef(VM vm) {
@@ -84,9 +126,8 @@ public abstract class InterpretedFunction extends ArcObject {
     }
   }
 
-  private boolean requiresClosure() {
-    boolean b = highestLexicalScopeReference() > -1;
-    return b;
+  public boolean requiresClosure() {
+    return highestLexicalScopeReference() > -1;
   }
 
   public int highestLexicalScopeReference() {
@@ -174,4 +215,44 @@ public abstract class InterpretedFunction extends ArcObject {
     throw new ArcError("args " + args + " doesn't match signature for " + this);
   }
 
+  public ArcObject curry(Symbol param, ArcObject arg) {
+    ArcObject newParams = FunctionParameterListBuilder.remove(parameterList, param);
+    Map lexicalBindings = new HashMap();
+    FunctionParameterListBuilder.index(newParams, lexicalBindings, new int[] {0}, false);
+    boolean unnest = newParams instanceof Nil;
+
+    BoundSymbol p = new BoundSymbol(param, 0, 0);
+    List newBody = new ArrayList();
+    for (int i = 0; i < body.length; i++) {
+      newBody.add(body[i].inline(p, arg, unnest).reduce());
+    }
+    Pair nb = Pair.buildFrom(newBody);
+    ArcObject complexParams = FunctionParameterListBuilder.isComplex(newParams);
+//    System.out.println("curry: replacing " + this + " with (fn " + newParams + " " + newBody + ")");
+    return FunctionBodyBuilder.buildFunctionBody(newParams, lexicalBindings, nb, complexParams);
+  }
+
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+    if (!(parameterList instanceof Nil)) {
+      p = p.nest();
+    }
+    InterpretedFunction fn = cloneThis();
+
+    List newBody = new ArrayList();
+    for (int i = 0; i < body.length; i++) {
+      newBody.add(body[i].inline(p, arg, false).reduce());
+    }
+    Pair nb = Pair.buildFrom(newBody);
+    fn.body = nb.toArray();
+    fn.buildInstructionList(nb);
+    return fn;
+  }
+
+  private InterpretedFunction cloneThis() {
+    try {
+      return (InterpretedFunction) clone();
+    } catch (CloneNotSupportedException e) {
+      throw new ArcError("couldn't clone " + this + "; " + e, e);
+    }
+  }
 }

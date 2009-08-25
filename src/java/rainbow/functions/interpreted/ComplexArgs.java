@@ -1,25 +1,22 @@
 package rainbow.functions.interpreted;
 
+import rainbow.ArcError;
+import rainbow.LexicalClosure;
+import rainbow.Nil;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.VM;
-import rainbow.vm.compiler.FunctionBodyBuilder;
-import rainbow.LexicalClosure;
-import rainbow.ArcError;
-import rainbow.Nil;
 
-import java.util.Map;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class ComplexArgs extends InterpretedFunction {
   private static final Symbol o = Symbol.mkSym("o");
-  private String sig;
 
   public ComplexArgs(ArcObject parameterList, Map lexicalBindings, Pair body) {
     super(parameterList, lexicalBindings, body);
-    this.sig = FunctionBodyBuilder.sig(parameterList, false);
   }
 
   public void invoke(VM vm, LexicalClosure lc, Pair args) {

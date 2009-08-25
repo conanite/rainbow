@@ -10,6 +10,7 @@ import rainbow.Nil;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 public class FunctionParameterListBuilder {
   public static final Symbol O = Symbol.mkSym("o");
@@ -44,11 +45,21 @@ public class FunctionParameterListBuilder {
     }
   }
 
+  public static ArcObject isComplex(ArcObject parameters) {
+    while (!parameters.isNotPair()) {
+      parameters = parameters.cdr();
+      if (parameters.car() instanceof Pair) {
+        return ArcObject.T;
+      }
+    }
+    return ArcObject.NIL;
+  }
+
   private static ArcObject returnParams(ArcObject complexParams, ArcObject params) {
     return new Pair(complexParams, params);
   }
 
-  private static void index(ArcObject parameterList, Map map, int[] i, boolean optionable) {
+  public static void index(ArcObject parameterList, Map map, int[] i, boolean optionable) {
     if (parameterList instanceof Nil) {
       return;
     }
@@ -65,4 +76,22 @@ public class FunctionParameterListBuilder {
       i[0]++;
     }
   }
+
+  public static ArcObject remove(ArcObject params, ArcObject unwanted) {
+    List list = new ArrayList();
+    while (!(params instanceof Nil)) {
+      ArcObject c = params.car();
+      if (c instanceof Symbol && !c.isSame(unwanted)) {
+        list.add(c);
+      } else if (ComplexArgs.optional(c) && !c.cdr().car().isSame(unwanted)) {
+        list.add(c);
+      } else if (c instanceof Pair) {
+        list.add(c);
+      }
+      params = params.cdr();
+    }
+    return Pair.buildFrom(list);
+  }
+
+
 }

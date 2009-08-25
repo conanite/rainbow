@@ -1,10 +1,11 @@
 package rainbow.vm.interpreter;
 
+import rainbow.Nil;
+import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 import rainbow.vm.instructions.cond.Cond;
 import rainbow.vm.instructions.cond.Cond_Lex;
-import rainbow.Nil;
 
 import java.util.List;
 
@@ -75,5 +76,31 @@ public class IfThen extends ArcObject implements Conditional {
     int hthen = thenExpression.highestLexicalScopeReference();
     int helse = next.highestLexicalScopeReference();
     return Math.max(Math.max(hif, hthen), helse);
+  }
+
+  public boolean assigns(BoundSymbol p) {
+    return ifExpression.assigns(p) || thenExpression.assigns(p) || next.assigns(p);
+  }
+
+  public boolean hasClosures() {
+    if (ifExpression instanceof InterpretedFunction) {
+      if (((InterpretedFunction) ifExpression).requiresClosure()) {
+        return true;
+      }
+    }
+    if (thenExpression instanceof InterpretedFunction) {
+      if (((InterpretedFunction) thenExpression).requiresClosure()) {
+        return true;
+      }
+    }
+    return ifExpression.hasClosures() || thenExpression.hasClosures() || next.hasClosures();
+  }
+
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+    IfThen other = new IfThen();
+    other.ifExpression = this.ifExpression.inline(p, arg, unnest);
+    other.thenExpression = this.thenExpression.inline(p, arg, unnest);
+    other.next = (Conditional) this.next.inline(p, arg, unnest);
+    return other;
   }
 }

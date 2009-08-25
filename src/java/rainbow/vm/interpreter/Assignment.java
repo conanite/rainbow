@@ -45,4 +45,18 @@ public class Assignment extends ArcObject {
   public int highestLexicalScopeReference() {
     return assignment.highestLexicalScopeReference();
   }
+
+  public boolean assigns(BoundSymbol p) {
+    return assignment.assigns(p);
+  }
+
+  public boolean hasClosures() {
+    return assignment.hasClosures();
+  }
+
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+    Assignment a = new Assignment();
+    a.assignment = this.assignment.inline(p, arg, unnest);
+    return a;
+  }
 }

@@ -45,4 +45,19 @@ public class IfClause extends ArcObject {
   public int highestLexicalScopeReference() {
     return first.highestLexicalScopeReference();
   }
+
+  public boolean assigns(BoundSymbol p) {
+    return first.assigns(p);
+  }
+
+
+  public boolean hasClosures() {
+    return first.hasClosures();
+  }
+
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+    IfClause ic = new IfClause();
+    ic.first = (Conditional) this.first.inline(p, arg, unnest).reduce();
+    return ic;
+  }
 }

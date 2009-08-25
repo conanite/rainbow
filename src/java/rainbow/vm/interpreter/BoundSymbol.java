@@ -11,7 +11,7 @@ public class BoundSymbol extends ArcObject {
   public static final Symbol TYPE = Symbol.mkSym("bound-symbol");
   private final int nesting;
   private final int index;
-  private final Symbol name;
+  final Symbol name;
 
   public BoundSymbol(Symbol name, int nesting, int index) {
     this.nesting = nesting;
@@ -46,5 +46,19 @@ public class BoundSymbol extends ArcObject {
 
   public int highestLexicalScopeReference() {
     return nesting;
+  }
+
+  public BoundSymbol nest() {
+    return new BoundSymbol(name, nesting + 1, index);
+  }
+
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+    if (this.isSameBoundSymbol(p)) {
+      return arg;
+    } else if (unnest) {
+      return new BoundSymbol(name, nesting - 1, index);
+    } else {
+      return this;
+    }
   }
 }

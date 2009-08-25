@@ -38,7 +38,20 @@
         nil)
 
       ("'each' macro relies on cdr of empty list returning nil"
-        ((fn stuff ((fn (outer) (((fn (self) (assign self (fn (inner) (if (is (type inner) 'cons) ((fn () ((fn (x) (disp x)) (car inner)) (self (cdr inner))))) ))) nil) outer)) stuff)))
+        ((fn stuff
+             ((fn (outer)
+                  (((fn (self)
+                         (assign self
+                                 (fn (inner)
+                                     (if (is (type inner) 'cons)
+                                         ((fn ()
+                                              ((fn (x)
+                                                   (disp x))
+                                               (car inner))
+                                     (self (cdr inner))))) )))
+                     nil)
+                    outer))
+              stuff)))
         nil)
     )
 

@@ -175,7 +175,6 @@ public class VM extends ArcObject {
       newInstructionArray(ins.length * 2);
       newClosureArray(lcs.length * 2);
       ip--;
-      System.out.println("expanded instruction stack to " + (ins.length));
       pushFrame(lc, instructions);
     }
   }
@@ -202,7 +201,6 @@ public class VM extends ArcObject {
     } catch (ArrayIndexOutOfBoundsException e) {
       newArgArray(args.length * 2);
       ap--;
-      System.out.println("expanded arg stack to " + (args.length));
       pushA(arg);
     }
   }
@@ -249,8 +247,8 @@ public class VM extends ArcObject {
     while (!(instructions instanceof Nil)) {
       Instruction i = (Instruction) instructions.car();
       instructions = (Pair) instructions.cdr();
-      System.out.print(i.toString());
-//      System.out.print(i.toString(lc));
+//      System.out.print(i.toString());
+      System.out.print(i.toString(lc));
       System.out.print(" ");
     }
     System.out.println();

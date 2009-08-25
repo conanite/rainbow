@@ -6,16 +6,12 @@ import rainbow.functions.interpreted.ComplexArgs;
 import rainbow.functions.interpreted.SimpleArgs;
 import rainbow.types.ArcObject;
 import static rainbow.types.ArcObject.NIL;
-import rainbow.types.ArcString;
 import rainbow.types.Pair;
-import rainbow.types.Symbol;
 import rainbow.vm.VM;
 import rainbow.vm.interpreter.BoundSymbol;
 
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class FunctionBodyBuilder {
@@ -50,7 +46,7 @@ public class FunctionBodyBuilder {
     return result;
   }
 
-  private static ArcObject buildFunctionBody(ArcObject parameterList, Map lexicalBindings, Pair expandedBody, ArcObject complexParams) {
+  public static ArcObject buildFunctionBody(ArcObject parameterList, Map lexicalBindings, Pair expandedBody, ArcObject complexParams) {
     String cname = "rainbow.functions.interpreted.optimise.Bind" + sig(parameterList, false);
     Class c;
     try {
@@ -134,18 +130,5 @@ public class FunctionBodyBuilder {
     } else {
       return highest;
     }
-  }
-
-  public static void main(String[] args) {
-    ArcObject ao = ArcObject.NIL;
-    List l = new ArrayList();
-    List o = new ArrayList();
-    o.add(Symbol.make("o"));
-    o.add(Symbol.make("x"));
-    o.add(ArcString.make("."));
-
-    l.add(Pair.buildFrom(o));
-    Pair p = Pair.buildFrom(l);
-    System.out.println("sig for " + p + " is " + sig(p, false));
   }
 }

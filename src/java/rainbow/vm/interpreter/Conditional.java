@@ -11,4 +11,10 @@ public interface Conditional {
   ArcObject reduce();
 
   int highestLexicalScopeReference();
+
+  boolean assigns(BoundSymbol p);
+
+  boolean hasClosures();
+
+  ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest);
 }

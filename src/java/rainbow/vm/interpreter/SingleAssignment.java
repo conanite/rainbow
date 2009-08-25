@@ -1,6 +1,7 @@
 package rainbow.vm.interpreter;
 
 import rainbow.ArcError;
+import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 import rainbow.vm.instructions.assign.bound.Assign_Lex;
@@ -52,5 +53,31 @@ public class SingleAssignment {
     int me = expression.highestLexicalScopeReference();
     int other = next.highestLexicalScopeReference();
     return Math.max(n, Math.max(me, other));
+  }
+
+  public boolean assigns(BoundSymbol p) {
+    return thisAssigns(p) || next.assigns(p);
+  }
+
+  protected boolean thisAssigns(BoundSymbol p) {
+    return ((name instanceof BoundSymbol) && p.isSameBoundSymbol((BoundSymbol) name)) || expression.assigns(p);
+  }
+
+  public boolean hasClosures() {
+    if (expression instanceof InterpretedFunction) {
+      return ((InterpretedFunction) expression).requiresClosure() || next.hasClosures();
+    }
+    return expression.hasClosures() || next.hasClosures();
+  }
+
+  public SingleAssignment inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+    SingleAssignment sa = new SingleAssignment();
+    if (name instanceof BoundSymbol && p.isSameBoundSymbol((BoundSymbol) name)) {
+      throw new ArcError("Can't inline " + p + " -> " + arg + "; assignment");
+    }
+    sa.name = this.name;
+    sa.expression = this.expression.inline(p, arg, unnest);
+    sa.next = this.next.inline(p, arg, unnest);
+    return sa;
   }
 }

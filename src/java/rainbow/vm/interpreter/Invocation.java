@@ -2,15 +2,17 @@ package rainbow.vm.interpreter;
 
 import rainbow.ArcError;
 import rainbow.Nil;
-import rainbow.functions.interpreted.optimise.Bind;
 import rainbow.functions.interpreted.InterpretedFunction;
+import rainbow.functions.interpreted.optimise.Bind;
 import rainbow.types.ArcObject;
+import rainbow.types.LiteralObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.Instruction;
 import rainbow.vm.instructions.invoke.*;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,12 +41,21 @@ public class Invocation extends ArcObject {
   public ArcObject reduce() {
     if (parts.hasLen(2)) {
       if (parts.car() instanceof InterpretedFunction) {
-        if (((InterpretedFunction) parts.car()).isIdFn()) {
+        InterpretedFunction fn = (InterpretedFunction) parts.car();
+        if (fn.isIdFn()) {
           return parts.cdr().car();
+        } else if (fn.canInline() && inlineableArg(parts.cdr().car())) {
+          Pair reduced = Pair.buildFrom(fn.curry((Symbol) fn.parameterList().car(), parts.cdr().car()).reduce());
+//          System.out.println("inlined " + this + " to " + reduced);
+          return new Invocation(reduced);
         }
       }
     }
     return this;
+  }
+
+  private boolean inlineableArg(ArcObject arg) {
+    return (arg instanceof LiteralObject) || (arg instanceof Quotation) || (arg instanceof Symbol) || (arg instanceof BoundSymbol);
   }
 
   private boolean inlineDoForm(List i) {
@@ -162,5 +173,41 @@ public class Invocation extends ArcObject {
 
   public int highestLexicalScopeReference() {
     return parts.highestLexicalScopeReference();
+  }
+
+  public boolean assigns(BoundSymbol p) {
+    Pair pt = this.parts;
+    while (!(pt instanceof Nil)) {
+      if (pt.car().assigns(p)) {
+        return true;
+      }
+      pt = (Pair) pt.cdr();
+    }
+    return false;
+  }
+
+  public boolean hasClosures() {
+    Pair pt = this.parts;
+    while (!(pt instanceof Nil)) {
+      if (pt.car() instanceof InterpretedFunction) {
+        if (((InterpretedFunction)pt.car()).requiresClosure()) {
+          return true;
+        }
+      } else if (pt.car().hasClosures()) {
+        return true;
+      }
+      pt = (Pair) pt.cdr();
+    }
+    return false;
+  }
+
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+    Pair pt = this.parts;
+    List inlined = new ArrayList();
+    while (!(pt instanceof Nil)) {
+      inlined.add(pt.car().inline(p, arg, unnest));
+      pt = (Pair) pt.cdr();
+    }
+    return new Invocation(Pair.buildFrom(inlined));
   }
 }
