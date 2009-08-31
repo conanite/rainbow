@@ -20,7 +20,7 @@ public class Bind_Oliteral extends InterpretedFunction {
     this.optExpr = parameterList.car().cdr().cdr().car();
     ArcObject optParam = parameterList.car().cdr().car();
     if (canInline((Symbol) optParam, optExpr)) {
-      curried = (InterpretedFunction) this.curry((Symbol) optParam, optExpr);
+      curried = (InterpretedFunction) this.curry((Symbol) optParam, optExpr, false);
     }
   }
 

@@ -202,7 +202,17 @@
               pop-me)
           (car mylist)))
        a)
-)
+
+     ("special case: confused nesting"
+       (let it 'foo
+         (with (foobar (string it 'bar)
+                foobaz (cons it 'baz))
+           (cons foobar foobaz)
+         )
+       )
+       ("foobar" foo . baz)
+     )
+  ) ; suite watch out
 
   ("ignore comments" ; here's one, for example
     ; this is another comment

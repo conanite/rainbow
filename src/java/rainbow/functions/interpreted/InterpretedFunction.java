@@ -247,14 +247,14 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
     throw new ArcError("args " + args + " doesn't match signature for " + this);
   }
 
-  public ArcObject curry(Symbol param, ArcObject arg) {
+  public ArcObject curry(Symbol param, ArcObject arg, boolean requiresNesting) {
     Integer paramIndex = (Integer) lexicalBindings.get(param);
     BoundSymbol p = new BoundSymbol(param, 0, paramIndex);
     ArcObject newParams = FunctionParameterListBuilder.curry(parameterList, p, arg, paramIndex);
     Map lexicalBindings = new HashMap();
     FunctionParameterListBuilder.index(newParams, lexicalBindings, new int[] {0}, false);
     boolean unnest = newParams instanceof Nil;
-    if (!unnest) {
+    if (!unnest && requiresNesting) {
       arg = arg.nest(0);
     }
 

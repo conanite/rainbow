@@ -51,7 +51,7 @@ public class Invocation extends ArcObject {
         if (fn.canInline(param, arg)) {
           ArcObject newfn = null;
           try {
-            newfn = fn.curry(param, arg);
+            newfn = fn.curry(param, arg, true);
           } catch (Exception e) {
             throw new ArcError("couldn't curry " + param + "->" + arg + " for " + fn + " in expression " + this + ": " + e, e);
           }
