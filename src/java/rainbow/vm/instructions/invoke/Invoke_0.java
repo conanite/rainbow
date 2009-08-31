@@ -20,7 +20,7 @@ public class Invoke_0 {
     }
   }
 
-  static class Lex extends Instruction {
+  static class Lex extends Instruction implements Invoke {
     private BoundSymbol fn;
 
     public Lex(BoundSymbol fn) {
@@ -34,9 +34,13 @@ public class Invoke_0 {
     public String toString() {
       return "(invoke " + fn + ")";
     }
+
+    public ArcObject getInvokee(VM vm) {
+      return fn.interpret(vm.lc());
+    }
   }
 
-  static class Free extends Instruction {
+  static class Free extends Instruction implements Invoke {
     private Symbol fn;
 
     public Free(Symbol fn) {
@@ -50,15 +54,23 @@ public class Invoke_0 {
     public String toString() {
       return "(invoke " + fn + ")";
     }
+
+    public ArcObject getInvokee(VM vm) {
+      return fn;
+    }
   }
 
-  static class Other extends Instruction {
+  static class Other extends Instruction implements Invoke {
     public void operate(VM vm) {
       vm.popA().invoke(vm, NIL);
     }
 
     public String toString() {
       return "(invoke <0>)";
+    }
+
+    public ArcObject getInvokee(VM vm) {
+      return vm.peekA();
     }
   }
 }

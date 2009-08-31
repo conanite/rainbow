@@ -35,12 +35,14 @@
     (prn)
     (prn imports)
     (prn)
-    (prn "public class " (classname types) " extends Instruction {")
+    (prn "public class " (classname types) " extends Instruction implements Invoke {")
     (fields args)
     (prn)
     (constructor args)
     (prn)
     (operator args)
+    (prn)
+    (invokee args)
     (prn)
     (simple-to-string args)
     (prn)
@@ -94,6 +96,17 @@
     (let arg-list (apply string
                          (map (fn ((n type)) ", arg#(n)#((type-getter type))") cdr.args))
       (prn "    fn" (type-getter fn-type) ".invokef(vm#(arg-list));")))
+  (prn "  }"))
+
+(def invokee (args)
+  (prn "  public ArcObject getInvokee(VM vm) {")
+  (let (n fn-type) car.args
+    (if (is fn-type 'other)
+        (prn "    return vm.peekA();")
+        (is fn-type 'bound)
+        (prn "    return fn.interpret(vm.lc());")
+        (is fn-type 'free)
+        (prn "    return fn;")))
   (prn "  }"))
 
 (def simple-to-string (args)
@@ -186,5 +199,6 @@ import rainbow.types.Symbol;
 import rainbow.vm.Instruction;
 import rainbow.vm.VM;
 import rainbow.vm.interpreter.Quotation;
-import rainbow.vm.interpreter.BoundSymbol;"
+import rainbow.vm.interpreter.BoundSymbol;
+import rainbow.vm.instructions.invoke.Invoke;"
 )

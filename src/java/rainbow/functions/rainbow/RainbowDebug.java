@@ -1,4 +1,4 @@
-package rainbow.functions.java;
+package rainbow.functions.rainbow;
 
 import rainbow.functions.Builtin;
 import rainbow.types.Pair;

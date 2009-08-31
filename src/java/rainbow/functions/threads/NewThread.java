@@ -4,7 +4,6 @@ import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.vm.VM;
-import rainbow.vm.VMInterceptor;
 
 public class NewThread extends Builtin {
   public NewThread() {

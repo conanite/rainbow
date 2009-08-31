@@ -8,6 +8,7 @@
     "lib/unit-test"
     "lib/parser"
     "lib/tests/foundation-test"
+    "lib/tests/misc-tests"
     "lib/tests/core-errors-continuations-test"
     "lib/tests/core-evaluation-test"
     "lib/tests/core-lists-test"

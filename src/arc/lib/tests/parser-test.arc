@@ -50,7 +50,8 @@
     (coerce (parse:string "\"foo \\#" "(foo)\"") 'cons)
     (#\f #\o #\o #\space #\# #\( #\f #\o #\o #\)))
   ("parse a complex expression"
-    (parse "(foo bar '(toto) `(do ,blah ,@blahs \"astring\") titi)")
+    (do (declare 'atstrings nil)
+        (parse "(foo bar '(toto) `(do ,blah ,@blahs \"astring\") titi)"))
     (foo bar '(toto) `(do ,blah ,@blahs "astring") titi))))
 
 (register-test '(suite "source code indexer test"

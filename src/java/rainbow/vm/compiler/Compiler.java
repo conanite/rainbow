@@ -2,10 +2,7 @@ package rainbow.vm.compiler;
 
 import rainbow.Nil;
 import rainbow.functions.Evaluation;
-import rainbow.types.ArcObject;
-import rainbow.types.Pair;
-import rainbow.types.Symbol;
-import rainbow.types.Tagged;
+import rainbow.types.*;
 import rainbow.vm.VM;
 import rainbow.vm.interpreter.BoundSymbol;
 import rainbow.vm.interpreter.QuasiQuotation;
@@ -14,10 +11,19 @@ import rainbow.vm.interpreter.Quotation;
 import java.util.Map;
 
 public class Compiler {
+  public static ArcObject atstrings = ArcObject.NIL;
+  public static Symbol atStringFunction = Symbol.mkSym("at-string");
 
   public static ArcObject compile(VM vm, ArcObject expression, Map[] lexicalBindings) {
     if (expression instanceof Nil) {
       return expression;
+    } else if (expression instanceof ArcString && !(atstrings instanceof Nil)) {
+      ArcObject string = atString(vm, expression);
+      if (string instanceof ArcString) {
+        return string;
+      } else {
+        return compile(vm, string, lexicalBindings);
+      }
     } else if (Evaluation.isSpecialSyntax(expression)) {
       return compile(vm, Evaluation.ssExpand(expression), lexicalBindings);
     } else if (expression instanceof Pair) {
@@ -69,6 +75,15 @@ public class Compiler {
 
   private static ArcObject decomplement(ArcObject not, Pair args) {
     return new Pair(Symbol.mkSym("no"), new Pair(new Pair(not, args), ArcObject.NIL));
+  }
+
+  private static ArcObject atString(VM vm, ArcObject expression) {
+    if (!atStringFunction.bound()) {
+      return expression;
+    }
+
+    ArcObject fn = atStringFunction.value();
+    return fn.invokeAndWait(vm, new Pair(expression, ArcObject.NIL));
   }
 
   private static ArcObject getMacro(Pair maybeMacCall) {

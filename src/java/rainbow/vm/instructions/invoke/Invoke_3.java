@@ -25,7 +25,7 @@ public class Invoke_3 {
     }
   }
 
-  private static class Lex extends Instruction {
+  private static class Lex extends Instruction implements Invoke {
     private BoundSymbol fn;
 
     public Lex(BoundSymbol fn) {
@@ -42,9 +42,13 @@ public class Invoke_3 {
     public String toString() {
       return "(invoke " + fn + " <3>)";
     }
+
+    public ArcObject getInvokee(VM vm) {
+      return fn.interpret(vm.lc());
+    }
   }
 
-  private static class Free extends Instruction {
+  private static class Free extends Instruction implements Invoke {
     private Symbol fn;
 
     public Free(Symbol fn) {
@@ -61,9 +65,13 @@ public class Invoke_3 {
     public String toString() {
       return "(invoke " + fn + " <3>)";
     }
+
+    public ArcObject getInvokee(VM vm) {
+      return fn;
+    }
   }
 
-  private static class Other extends Instruction {
+  private static class Other extends Instruction implements Invoke {
     public void operate(VM vm) {
       ArcObject f = vm.popA();
       ArcObject arg3 = vm.popA();
@@ -74,6 +82,10 @@ public class Invoke_3 {
 
     public String toString() {
       return "(invoke <3>)";
+    }
+
+    public ArcObject getInvokee(VM vm) {
+      return vm.peekA();
     }
   }
 }

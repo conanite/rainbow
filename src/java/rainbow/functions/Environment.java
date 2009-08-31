@@ -17,6 +17,9 @@ import rainbow.functions.network.ClientIp;
 import rainbow.functions.network.OpenSocket;
 import rainbow.functions.network.SocketAccept;
 import rainbow.functions.predicates.*;
+import rainbow.functions.rainbow.RainbowDebug;
+import rainbow.functions.rainbow.RainbowProfile;
+import rainbow.functions.rainbow.RainbowProfileReport;
 import rainbow.functions.strings.InString;
 import rainbow.functions.strings.Inside;
 import rainbow.functions.strings.OutString;
@@ -25,7 +28,10 @@ import rainbow.functions.tables.MapTable;
 import rainbow.functions.tables.Sref;
 import rainbow.functions.tables.Table;
 import rainbow.functions.threads.*;
-import rainbow.functions.typing.*;
+import rainbow.functions.typing.Annotate;
+import rainbow.functions.typing.Coerce;
+import rainbow.functions.typing.Rep;
+import rainbow.functions.typing.Type;
 import rainbow.types.Hash;
 import rainbow.types.Real;
 import rainbow.types.Symbol;
@@ -84,7 +90,6 @@ public class Environment {
     new JavaStaticField();
     new JavaDebug();
     new JavaImplement();
-    new RainbowDebug();
 
     /* threading */
     new NewThread();
@@ -170,5 +175,11 @@ public class Environment {
     new InString();
     new OutString();
     new Inside();
+
+    /* rainbow-specific */
+    new RainbowDebug();
+    new RainbowProfile();
+    new RainbowProfileReport();
+
   }
 }

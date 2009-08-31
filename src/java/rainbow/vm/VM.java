@@ -13,6 +13,7 @@ import rainbow.vm.instructions.Finally;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class VM extends ArcObject {
   public static final Symbol TYPE = Symbol.mkSym("thread");
@@ -35,6 +36,7 @@ public class VM extends ArcObject {
   private VMInterceptor interceptor = VMInterceptor.NULL;
   private boolean dead = false;
   private int ipThreshold;
+  public Map<String, Integer> profileData;
 
   public ArcObject thread(LexicalClosure lc, Pair instructions) {
     pushFrame(lc, instructions);
@@ -59,8 +61,8 @@ public class VM extends ArcObject {
   }
 
   private void loop() {
-    while (ip >= ipThreshold) {
-      currentLc = peekL();
+    while (hasInstructions()) {
+      loadCurrentContext();
       try {
         step();
         interceptor.check(this);
@@ -68,6 +70,14 @@ public class VM extends ArcObject {
         handleError(e);
       }
     }
+  }
+
+  public void loadCurrentContext() {
+    currentLc = peekL();
+  }
+
+  public boolean hasInstructions() {
+    return ip >= ipThreshold;
   }
 
   private void step() {
@@ -333,7 +343,5 @@ public class VM extends ArcObject {
   private void copy(Object[] src, Object[] dest) {
     System.arraycopy(src, 0, dest, 0, src.length);
   }
-
-
 }
 

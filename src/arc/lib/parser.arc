@@ -167,16 +167,30 @@
      (list
        tokenator
        (fn () lines)
-       (fn () (assign state in-string)))))
+       (fn () (assign state in-string))
+       (fn () (- char-count
+                 (if tq1 (- tq1.3 tq1.2) 0)
+                 (if tq2 (- tq2.3 tq2.2) 0)
+                 (len token)))
+)))
 
 (def read-tokens (text)
   (let (tt lns instr) (arc-tokeniser (instring text))
     (while (prn (tt)))))
 
+(def parse-with-info (text)
+  (let (tkz lc in-string consumed)
+       (arc-tokeniser (if (isa text 'string) (instring text) text))
+    (let result (parse-tokens (list tkz lc in-string))
+      (list result (consumed)))))
+
 (def parse (text)
+  (parse-tokens (arc-tokeniser (if (isa text 'string) (instring text) text))))
+
+(def parse-tokens ((tkz lc in-string))
   "parses the given text (input or string)
    and returns the corresponding arc object"
-  (let (in-string unescape-fragment assemble-string next-form read-string read-form read-list ignore) nil
+  (let (unescape-fragment assemble-string next-form read-string read-form read-list ignore) nil
     (= ignore (uniq))
 
     (def unescape-fragment (fragment)
@@ -255,9 +269,7 @@
                       (read-list token-generator terminator)
                       (cons nextform (read-list token-generator terminator))))))))
 
-    (let (tkz lc instr) (arc-tokeniser (if (isa text 'string) (instring text) text))
-      (assign in-string instr)
-      (read-form tkz))))
+    (read-form tkz)))
 
 (def token? ((kind tok s e) expected-kind (o expected-tok))
   (and (is kind expected-kind)

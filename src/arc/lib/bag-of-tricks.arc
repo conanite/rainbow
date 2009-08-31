@@ -69,13 +69,16 @@
   `(do
      ,@(map [quasiquote (requires ,_ ,(string path _))] funcs)))
 
+(def readstring (f)
+  (awhen (readc f)
+    (tostring
+      (writec it)
+      (whiler c (readc f) nil
+        (writec c)))))
+
 (def load-file (fname)
   (w/infile f (if (is (type fname) 'string) fname (coerce fname 'string))
-    (awhen (readc f)
-      (tostring
-        (writec it)
-        (whiler c (readc f) nil
-          (writec c))))))
+    (readstring f)))
 
 (def write-file (fname text)
   (w/outfile f fname (w/stdout f (pr text))))

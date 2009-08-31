@@ -60,6 +60,41 @@
 (def canonical-path (file)
   ((File new file) 'getCanonicalPath))
 
-(def at-stringify (str)
-  
-)
+(mac profiler expr
+  `(after (do (rainbow-profile) ,@expr)
+          (pr-profile-report (rainbow-profile-report))))
+
+(def pr-profile-report (report)
+  (each item report
+    (prn car.item #\tab cdr.item))
+  (prn))
+
+(def at-toks (str)
+  (with (s nil f nil)
+    (= s (fn (chs acc (o tok))
+           (if (no chs)
+               (if tok
+                   (cons (string:rev tok) acc)
+                   acc)
+               (is car.chs #\@)
+               (if (is cadr.chs #\@)
+                   (s cddr.chs acc (cons #\@ tok))
+                   (f cdr.chs (cons (string:rev tok) acc)))
+               (s cdr.chs acc (cons car.chs tok))))
+       f (fn (chs acc)
+           (if (no chs)
+               acc
+               (withs (str (coerce chs 'string)
+                       ins  (instring str)
+                       (form consumed) (parse-with-info ins)
+                       rest (cut str consumed))
+                 (s (coerce rest 'cons) (cons form acc))))))
+    (rev (s (coerce str 'cons) nil))))
+
+(def at-string (str)
+  (let toks (at-toks str)
+    (if no.toks
+        ""
+        (no:cdr toks)
+        car.toks
+        `(string ,@toks))))

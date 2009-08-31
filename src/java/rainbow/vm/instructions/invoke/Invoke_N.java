@@ -27,7 +27,7 @@ public class Invoke_N {
     }
   }
 
-  private static class Lex extends Instruction {
+  private static class Lex extends Instruction implements Invoke {
     private BoundSymbol fn;
     private int argCount;
 
@@ -43,9 +43,13 @@ public class Invoke_N {
     public String toString() {
       return "(invoke " + fn + " <3>)";
     }
+
+    public ArcObject getInvokee(VM vm) {
+      return fn.interpret(vm.lc());
+    }
   }
 
-  private static class Free extends Instruction {
+  private static class Free extends Instruction implements Invoke {
     private Symbol fn;
     private int argCount;
 
@@ -61,9 +65,13 @@ public class Invoke_N {
     public String toString() {
       return "(invoke " + fn + " <3>)";
     }
+
+    public ArcObject getInvokee(VM vm) {
+      return fn;
+    }
   }
 
-  public static class Other extends Instruction {
+  public static class Other extends Instruction implements Invoke {
     private int argCount;
 
     public Other(int argCount) {
@@ -77,6 +85,10 @@ public class Invoke_N {
 
     public String toString() {
       return "(invoke <" + argCount + ">)";
+    }
+
+    public ArcObject getInvokee(VM vm) {
+      return vm.peekA();
     }
   }
 }

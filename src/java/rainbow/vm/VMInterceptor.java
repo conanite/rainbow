@@ -1,8 +1,12 @@
 package rainbow.vm;
 
+import rainbow.types.ArcObject;
+import rainbow.vm.instructions.invoke.Invoke;
+
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.HashMap;
 
 public enum VMInterceptor {
   NULL {
@@ -33,6 +37,39 @@ public enum VMInterceptor {
         vm.setInterceptor(DEBUG);
       }
     }
+    void end(VM vm) {
+    }},
+
+  PROFILE {
+    private void addInvocation(ArcObject o, VM vm) {
+      if (vm.profileData == null) {
+        vm.profileData = new HashMap();
+      }
+      String key;
+      if (o.literal()) {
+        key = "literal-ref:" + o.type().toString();
+      } else {
+        key = o.toString();
+      }
+      Integer count = vm.profileData.get(key);
+      if (count == null) {
+        count = 1;
+      } else {
+        count++;
+      }
+      vm.profileData.put(key, count);
+    }
+
+    void check(VM vm) {
+      if (!vm.hasInstructions()) {
+        return;
+      }
+      if (vm.peekI().car() instanceof Invoke) {
+        vm.loadCurrentContext();
+        addInvocation(((Invoke) vm.peekI().car()).getInvokee(vm), vm);
+      }
+    }
+
     void end(VM vm) {
     }};
 
