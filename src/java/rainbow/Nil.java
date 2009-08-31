@@ -112,6 +112,10 @@ public class Nil extends Pair {
     return i == 0;
   }
 
+  public boolean longerThan(int i) {
+    return i < 0;
+  }
+
   public int highestLexicalScopeReference() {
     return Integer.MIN_VALUE;
   }

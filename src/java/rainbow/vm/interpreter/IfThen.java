@@ -47,7 +47,9 @@ public class IfThen extends ArcObject implements Conditional {
 
   public ArcObject reduce() {
     next = (Conditional)next.reduce();
-    if (reduceToIfExpr()) {
+    if (ifExpression instanceof Nil) {
+      return (ArcObject) next;
+    } else if (reduceToIfExpr()) {
       Else e = new Else();
       e.take(ifExpression);
       return e;
@@ -71,6 +73,12 @@ public class IfThen extends ArcObject implements Conditional {
     return ifExpression + " " + thenExpression + " " + next;
   }
 
+  public int countReferences(int refs, BoundSymbol p) {
+    refs = ifExpression.countReferences(refs, p);
+    refs = thenExpression.countReferences(refs, p);
+    return next.countReferences(refs, p);
+  }
+
   public int highestLexicalScopeReference() {
     int hif = ifExpression.highestLexicalScopeReference();
     int hthen = thenExpression.highestLexicalScopeReference();
@@ -78,8 +86,8 @@ public class IfThen extends ArcObject implements Conditional {
     return Math.max(Math.max(hif, hthen), helse);
   }
 
-  public boolean assigns(BoundSymbol p) {
-    return ifExpression.assigns(p) || thenExpression.assigns(p) || next.assigns(p);
+  public boolean assigns(int nesting) {
+    return ifExpression.assigns(nesting) || thenExpression.assigns(nesting) || next.assigns(nesting);
   }
 
   public boolean hasClosures() {
@@ -96,11 +104,19 @@ public class IfThen extends ArcObject implements Conditional {
     return ifExpression.hasClosures() || thenExpression.hasClosures() || next.hasClosures();
   }
 
-  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex) {
     IfThen other = new IfThen();
-    other.ifExpression = this.ifExpression.inline(p, arg, unnest);
-    other.thenExpression = this.thenExpression.inline(p, arg, unnest);
-    other.next = (Conditional) this.next.inline(p, arg, unnest);
+    other.ifExpression = this.ifExpression.inline(p, arg, unnest, nesting, paramIndex);
+    other.thenExpression = this.thenExpression.inline(p, arg, unnest, nesting, paramIndex);
+    other.next = (Conditional) this.next.inline(p, arg, unnest, nesting, paramIndex);
+    return other;
+  }
+
+  public ArcObject nest(int threshold) {
+    IfThen other = new IfThen();
+    other.ifExpression = this.ifExpression.nest(threshold);
+    other.thenExpression = this.thenExpression.nest(threshold);
+    other.next = (Conditional) this.next.nest(threshold);
     return other;
   }
 }

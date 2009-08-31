@@ -1,16 +1,18 @@
 package rainbow.vm.compiler;
 
+import rainbow.ArcError;
+import rainbow.Nil;
 import rainbow.functions.interpreted.ComplexArgs;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.VM;
-import rainbow.Nil;
+import rainbow.vm.interpreter.BoundSymbol;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 
 public class FunctionParameterListBuilder {
   public static final Symbol O = Symbol.mkSym("o");
@@ -47,10 +49,10 @@ public class FunctionParameterListBuilder {
 
   public static ArcObject isComplex(ArcObject parameters) {
     while (!parameters.isNotPair()) {
-      parameters = parameters.cdr();
       if (parameters.car() instanceof Pair) {
         return ArcObject.T;
       }
+      parameters = parameters.cdr();
     }
     return ArcObject.NIL;
   }
@@ -77,21 +79,42 @@ public class FunctionParameterListBuilder {
     }
   }
 
-  public static ArcObject remove(ArcObject params, ArcObject unwanted) {
+  public static ArcObject curry(ArcObject params, BoundSymbol param, ArcObject arg, int paramIndex) {
+    ArcObject last = ArcObject.NIL;
     List list = new ArrayList();
-    while (!(params instanceof Nil)) {
-      ArcObject c = params.car();
-      if (c instanceof Symbol && !c.isSame(unwanted)) {
-        list.add(c);
-      } else if (ComplexArgs.optional(c) && !c.cdr().car().isSame(unwanted)) {
-        list.add(c);
-      } else if (c instanceof Pair) {
-        list.add(c);
+    while (!params.isNotPair()) {
+      ArcObject curriedParam = curryParam(param, arg, paramIndex, params.car());
+      if (curriedParam != null) {
+        list.add(curriedParam);
       }
       params = params.cdr();
     }
-    return Pair.buildFrom(list);
+    if (params instanceof Symbol) {
+      ArcObject rest = curryParam(param, arg, paramIndex, params);
+      if (rest != null) {
+        last = rest;
+      }
+    }
+    try {
+      return Pair.buildFrom(list, last);
+    } catch (Exception e) {
+      throw new ArcError("couldn't curry params " + params + ", got list " + list + " and last " + last);
+    }
   }
 
-
+  private static ArcObject curryParam(BoundSymbol param, ArcObject arg, int paramIndex, ArcObject c) {
+    ArcObject curriedParam = null;
+    if (c instanceof Symbol && !c.isSame(param.name)) {
+      curriedParam = c;
+    } else if (ComplexArgs.optional(c) && !c.cdr().car().isSame(param.name)) {
+      List opt = new ArrayList(3);
+      opt.add(O);
+      opt.add(c.cdr().car());
+      opt.add(c.cdr().cdr().car().inline(param, arg, false, 0, paramIndex));
+      curriedParam = Pair.buildFrom(opt);
+    } else if (!ComplexArgs.optional(c) && c instanceof Pair) {
+      curriedParam = c;
+    }
+    return curriedParam;
+  }
 }

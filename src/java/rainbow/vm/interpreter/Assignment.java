@@ -42,21 +42,32 @@ public class Assignment extends ArcObject {
     return "(assign " + assignment + ")";
   }
 
+  public int countReferences(int refs, BoundSymbol p) {
+    return assignment.countReferences(refs, p);
+  }
+
   public int highestLexicalScopeReference() {
     return assignment.highestLexicalScopeReference();
   }
 
-  public boolean assigns(BoundSymbol p) {
-    return assignment.assigns(p);
+  public boolean assigns(int nesting) {
+    return assignment.assigns(nesting);
   }
 
   public boolean hasClosures() {
     return assignment.hasClosures();
   }
 
-  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex) {
     Assignment a = new Assignment();
-    a.assignment = this.assignment.inline(p, arg, unnest);
+    a.assignment = this.assignment.inline(p, arg, unnest, nesting, paramIndex);
     return a;
   }
+
+  public ArcObject nest(int threshold) {
+    Assignment a = new Assignment();
+    a.assignment = this.assignment.nest(threshold);
+    return a;
+  }
+
 }

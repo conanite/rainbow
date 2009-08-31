@@ -48,6 +48,12 @@ public class SingleAssignment {
     next.addInstructions(i);
   }
 
+  public int countReferences(int refs, BoundSymbol p) {
+    refs = name.countReferences(refs, p);
+    refs = expression.countReferences(refs, p);
+    return next.countReferences(refs, p);
+  }
+
   public int highestLexicalScopeReference() {
     int n = name.highestLexicalScopeReference();
     int me = expression.highestLexicalScopeReference();
@@ -55,12 +61,8 @@ public class SingleAssignment {
     return Math.max(n, Math.max(me, other));
   }
 
-  public boolean assigns(BoundSymbol p) {
-    return thisAssigns(p) || next.assigns(p);
-  }
-
-  protected boolean thisAssigns(BoundSymbol p) {
-    return ((name instanceof BoundSymbol) && p.isSameBoundSymbol((BoundSymbol) name)) || expression.assigns(p);
+  public boolean assigns(int nesting) {
+    return true;
   }
 
   public boolean hasClosures() {
@@ -70,14 +72,22 @@ public class SingleAssignment {
     return expression.hasClosures() || next.hasClosures();
   }
 
-  public SingleAssignment inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+  public SingleAssignment inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex) {
     SingleAssignment sa = new SingleAssignment();
     if (name instanceof BoundSymbol && p.isSameBoundSymbol((BoundSymbol) name)) {
       throw new ArcError("Can't inline " + p + " -> " + arg + "; assignment");
     }
     sa.name = this.name;
-    sa.expression = this.expression.inline(p, arg, unnest);
-    sa.next = this.next.inline(p, arg, unnest);
+    sa.expression = this.expression.inline(p, arg, unnest, nesting, paramIndex);
+    sa.next = this.next.inline(p, arg, unnest, nesting, paramIndex);
+    return sa;
+  }
+
+  public SingleAssignment nest(int threshold) {
+    SingleAssignment sa = new SingleAssignment();
+    sa.name = this.name.nest(threshold);
+    sa.expression = this.expression.nest(threshold);
+    sa.next = this.next.nest(threshold);
     return sa;
   }
 }

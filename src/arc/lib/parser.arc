@@ -165,7 +165,7 @@
        add-to-token initial-add-to-token)
 
      (list
-       (fn () (tokenator))
+       tokenator
        (fn () lines)
        (fn () (assign state in-string)))))
 

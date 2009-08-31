@@ -19,6 +19,6 @@ public class PairExpander {
       result.add(Compiler.compile(vm, next, lexicalBindings).reduce());
     }
 
-    return Pair.buildFrom(result, Compiler.compile(vm, body, lexicalBindings).reduce());
+    return (Pair)Pair.buildFrom(result, Compiler.compile(vm, body, lexicalBindings).reduce());
   }
 }

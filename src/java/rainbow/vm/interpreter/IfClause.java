@@ -42,22 +42,31 @@ public class IfClause extends ArcObject {
     return "(if " + first + ")";
   }
 
+  public int countReferences(int refs, BoundSymbol p) {
+    return first.countReferences(refs, p);
+  }
+
   public int highestLexicalScopeReference() {
     return first.highestLexicalScopeReference();
   }
 
-  public boolean assigns(BoundSymbol p) {
-    return first.assigns(p);
+  public boolean assigns(int nesting) {
+    return first.assigns(nesting);
   }
-
 
   public boolean hasClosures() {
     return first.hasClosures();
   }
 
-  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex) {
     IfClause ic = new IfClause();
-    ic.first = (Conditional) this.first.inline(p, arg, unnest).reduce();
+    ic.first = (Conditional) this.first.inline(p, arg, unnest, nesting, paramIndex).reduce();
+    return ic;
+  }
+
+  public ArcObject nest(int threshold) {
+    IfClause ic = new IfClause();
+    ic.first = (Conditional) this.first.nest(threshold);
     return ic;
   }
 }

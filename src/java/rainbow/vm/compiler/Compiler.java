@@ -1,5 +1,6 @@
 package rainbow.vm.compiler;
 
+import rainbow.Nil;
 import rainbow.functions.Evaluation;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
@@ -7,10 +8,8 @@ import rainbow.types.Symbol;
 import rainbow.types.Tagged;
 import rainbow.vm.VM;
 import rainbow.vm.interpreter.BoundSymbol;
-import rainbow.vm.interpreter.Invocation;
 import rainbow.vm.interpreter.QuasiQuotation;
 import rainbow.vm.interpreter.Quotation;
-import rainbow.Nil;
 
 import java.util.Map;
 
@@ -35,21 +34,11 @@ public class Compiler {
     }
   }
 
-  protected static ArcObject receive(VM vm, Pair expression, ArcObject expanded, Map[] lexicalBindings) {
-    if (expanded.isNotPair()) {
-      return compile(vm, expanded, lexicalBindings);
-    } else if (expression.equals(expanded)) {
-      return new Invocation((Pair) expanded);
-    } else {
-      return receive(vm, (Pair) expanded, compile(vm, expanded, lexicalBindings), lexicalBindings);
-    }
-  }
-
   public static ArcObject compilePair(VM vm, Pair expression, Map[] lexicalBindings) {
     ArcObject f = getMacro(expression);
     if (f != null) {
       ArcObject expanded = f.invokeAndWait(vm, (Pair) expression.cdr());
-      return receive(vm, expression, expanded, lexicalBindings);
+      return compile(vm, expanded, lexicalBindings);
     } else {
       ArcObject fun = expression.car();
       if (Symbol.is("quote", fun)) {
@@ -69,9 +58,7 @@ public class Compiler {
       } else if (Evaluation.isSpecialSyntax(fun)) {
         return compile(vm, new Pair(Evaluation.ssExpand(fun), expression.cdr()), lexicalBindings);
       } else {
-        ArcObject expanded = PairExpander.expand(vm, expression, lexicalBindings); // todo I've no idea if this else clause is even used
-        ArcObject macexed = MacExpander.expand(vm, expanded);
-        return receive(vm, expression, macexed, lexicalBindings);
+        return InvocationBuilder.build(vm, expression, lexicalBindings);
       }
     }
   }
@@ -97,5 +84,4 @@ public class Compiler {
 
     return Tagged.ifTagged(sym.value(), "mac");
   }
-
 }

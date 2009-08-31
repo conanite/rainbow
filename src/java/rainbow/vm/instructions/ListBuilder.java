@@ -23,7 +23,7 @@ public class ListBuilder extends ArcObject {
     last = o;
   }
 
-  public Pair list() {
+  public ArcObject list() {
     return Pair.buildFrom(list, last);
   }
 

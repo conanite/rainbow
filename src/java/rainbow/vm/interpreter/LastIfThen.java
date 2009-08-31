@@ -1,6 +1,7 @@
 package rainbow.vm.interpreter;
 
 import rainbow.ArcError;
+import rainbow.Nil;
 import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
@@ -36,11 +37,22 @@ public class LastIfThen extends ArcObject implements Conditional {
   }
 
   public ArcObject reduce() {
-    return this;
+    if (ifExpression instanceof Nil) {
+      Else e = new Else();
+      e.take(NIL);
+      return e;
+    } else {
+      return this;
+    }
   }
 
   public String toString() {
     return ifExpression + " " + thenExpression;
+  }
+
+  public int countReferences(int refs, BoundSymbol p) {
+    refs = ifExpression.countReferences(refs, p);
+    return thenExpression.countReferences(refs, p);
   }
 
   public int highestLexicalScopeReference() {
@@ -49,8 +61,8 @@ public class LastIfThen extends ArcObject implements Conditional {
     return Math.max(hif, hthen);
   }
 
-  public boolean assigns(BoundSymbol p) {
-    return ifExpression.assigns(p) || thenExpression.assigns(p);
+  public boolean assigns(int nesting) {
+    return ifExpression.assigns(nesting) || thenExpression.assigns(nesting);
   }
 
   public boolean hasClosures() {
@@ -67,10 +79,17 @@ public class LastIfThen extends ArcObject implements Conditional {
     return ifExpression.hasClosures() || thenExpression.hasClosures();
   }
 
-  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex) {
     LastIfThen other = new LastIfThen();
-    other.ifExpression = this.ifExpression.inline(p, arg, unnest);
-    other.thenExpression = this.thenExpression.inline(p, arg, unnest);
+    other.ifExpression = this.ifExpression.inline(p, arg, unnest, nesting, paramIndex);
+    other.thenExpression = this.thenExpression.inline(p, arg, unnest, nesting, paramIndex);
+    return other;
+  }
+
+  public ArcObject nest(int threshold) {
+    LastIfThen other = new LastIfThen();
+    other.ifExpression = this.ifExpression.nest(threshold);
+    other.thenExpression = this.thenExpression.nest(threshold);
     return other;
   }
 }

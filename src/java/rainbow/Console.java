@@ -14,6 +14,7 @@ public class Console {
   public static boolean debugJava = false;
 
   public static void main(String args[]) throws ParseException, IOException {
+    long started = System.currentTimeMillis();
     Object o = ArcObject.NIL;
     String[] path = getArcPath();
     Argv argv = new Argv(args);
@@ -47,6 +48,8 @@ public class Console {
     interpretAll(vm, argv.multi("-e"));
 
     if (!argv.present("-q")) {
+      long ready = System.currentTimeMillis();
+      System.out.println("repl in " + (ready - started) + "ms");
       repl(vm);
     }
   }

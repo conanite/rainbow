@@ -154,20 +154,20 @@ public class Pair extends ArcObject {
     }
   }
 
-  public static Pair buildFrom(List items, ArcObject last) {
-    if (items == null) {
-      return EMPTY_LIST;
+  public static ArcObject buildFrom(List items, ArcObject last) {
+    if (items == null || items.size() == 0) {
+      return last;
     }
 
-    return (Pair)buildFrom(items, last, 0);
+    return buildFrom(items, last, 0);
   }
 
   public static Pair buildFrom(List items) {
-    return buildFrom(items, NIL);
+    return (Pair)buildFrom(items, NIL);
   }
 
   public static Pair buildFrom(ArcObject... items) {
-    return buildFrom(Arrays.asList(items), NIL);
+    return (Pair)buildFrom(Arrays.asList(items), NIL);
   }
 
   public ArcObject type() {
@@ -271,6 +271,10 @@ public class Pair extends ArcObject {
 
   public boolean hasLen(int i) {
     return cdr().hasLen(i - 1);
+  }
+
+  public boolean longerThan(int i) {
+    return i < 0 || cdr().longerThan(i - 1);
   }
 
   static class OOB extends RuntimeException {

@@ -5,7 +5,6 @@ import rainbow.Nil;
 import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.functions.interpreted.optimise.Bind;
 import rainbow.types.ArcObject;
-import rainbow.types.LiteralObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.Instruction;
@@ -37,25 +36,30 @@ public class Invocation extends ArcObject {
     boolean v = inlineDoForm(i) || addOptimisedHandler(i) || defaultAddInstructions(i);
   }
 
-  // reduce ( (fn (x) x) y) to just y
   public ArcObject reduce() {
-    if (parts.hasLen(2)) {
+    if (parts.longerThan(1)) {
       if (parts.car() instanceof InterpretedFunction) {
         InterpretedFunction fn = (InterpretedFunction) parts.car();
-        if (fn.isIdFn()) {
-          return parts.cdr().car();
-        } else if (fn.canInline() && inlineableArg(parts.cdr().car())) {
-          Pair reduced = Pair.buildFrom(fn.curry((Symbol) fn.parameterList().car(), parts.cdr().car()).reduce());
-//          System.out.println("inlined " + this + " to " + reduced);
-          return new Invocation(reduced);
+        ArcObject plist = fn.parameterList();
+
+        if (plist.isNotPair() || !(plist.car() instanceof Symbol)) {
+          return this;
+        }
+
+        Symbol param = (Symbol) plist.car();
+        ArcObject arg = parts.cdr().car();
+        if (fn.canInline(param, arg)) {
+          ArcObject newfn = null;
+          try {
+            newfn = fn.curry(param, arg);
+          } catch (Exception e) {
+            throw new ArcError("couldn't curry " + param + "->" + arg + " for " + fn + " in expression " + this + ": " + e, e);
+          }
+          return new Invocation(new Pair(newfn, parts.cdr().cdr())).reduce();
         }
       }
     }
     return this;
-  }
-
-  private boolean inlineableArg(ArcObject arg) {
-    return (arg instanceof LiteralObject) || (arg instanceof Quotation) || (arg instanceof Symbol) || (arg instanceof BoundSymbol);
   }
 
   private boolean inlineDoForm(List i) {
@@ -175,15 +179,24 @@ public class Invocation extends ArcObject {
     return parts.highestLexicalScopeReference();
   }
 
-  public boolean assigns(BoundSymbol p) {
+  public boolean assigns(int nesting) {
     Pair pt = this.parts;
     while (!(pt instanceof Nil)) {
-      if (pt.car().assigns(p)) {
+      if (pt.car().assigns(nesting)) {
         return true;
       }
       pt = (Pair) pt.cdr();
     }
     return false;
+  }
+
+  public int countReferences(int refs, BoundSymbol p) {
+    Pair pt = this.parts;
+    while (!(pt instanceof Nil)) {
+      refs = pt.car().countReferences(refs, p);
+      pt = (Pair) pt.cdr();
+    }
+    return refs;
   }
 
   public boolean hasClosures() {
@@ -201,11 +214,25 @@ public class Invocation extends ArcObject {
     return false;
   }
 
-  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex) {
     Pair pt = this.parts;
     List inlined = new ArrayList();
     while (!(pt instanceof Nil)) {
-      inlined.add(pt.car().inline(p, arg, unnest));
+      try {
+        inlined.add(pt.car().inline(p, arg, unnest, nesting, paramIndex));
+      } catch (Exception e) {
+        throw new ArcError("couldn't inline " + p + "->" + arg + "(unnest:" + unnest + ";nesting:" + nesting + ") in " + this + " : " + e, e);
+      }
+      pt = (Pair) pt.cdr();
+    }
+    return new Invocation(Pair.buildFrom(inlined));
+  }
+
+  public ArcObject nest(int threshold) {
+    Pair pt = this.parts;
+    List inlined = new ArrayList();
+    while (!(pt instanceof Nil)) {
+      inlined.add(pt.car().nest(threshold));
       pt = (Pair) pt.cdr();
     }
     return new Invocation(Pair.buildFrom(inlined));

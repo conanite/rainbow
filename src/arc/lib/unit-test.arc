@@ -63,7 +63,7 @@
 	          (do (if (is show-failed-only nil)
 	                  (prn desc " - " (car test) " - ok"))
 	              (++ results!passed))
-	          (do (prn desc " - " (car test) " - FAILED: expected " expected ", got " result)
+	          (do (prn desc " - " (car test) " - FAILED:\n   expected " expected ",\n   got " result "\n")
 	              (++ results!failed)))))
 
 (def execute-tests (desc tests results)

@@ -7,6 +7,7 @@ import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
+import rainbow.types.LiteralObject;
 import rainbow.vm.VM;
 import rainbow.vm.compiler.FunctionBodyBuilder;
 import rainbow.vm.compiler.FunctionParameterListBuilder;
@@ -14,13 +15,14 @@ import rainbow.vm.instructions.Close;
 import rainbow.vm.instructions.Literal;
 import rainbow.vm.instructions.PopArg;
 import rainbow.vm.interpreter.BoundSymbol;
+import rainbow.vm.interpreter.Quotation;
 
 import java.util.*;
 
 public abstract class InterpretedFunction extends ArcObject implements Cloneable {
   protected ArcObject parameterList;
   protected Map lexicalBindings;
-  protected ArcObject[] body;
+  public ArcObject[] body;
   protected Pair instructions;
 
   protected InterpretedFunction(ArcObject parameterList, Map lexicalBindings, Pair body) {
@@ -47,12 +49,41 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
     instructions = Pair.buildFrom(i);
   }
 
-  public boolean canInline() {
-    if (((parameterList instanceof Pair)) && (parameterList.cdr() instanceof Nil) && ((parameterList.car() instanceof Symbol)) && (body.length == 1)) {
-      BoundSymbol p = new BoundSymbol((Symbol) parameterList.car(), 0, 0);
-      return !assigned(p) && !hasClosures();// && countReferences(p) <= 1;
+  public boolean canInline(Symbol param, ArcObject arg) {
+    Integer paramIndex = (Integer) lexicalBindings.get(param);
+    BoundSymbol p = new BoundSymbol(param, 0, paramIndex);
+    return  body.length == 1
+            && inlineableArg(p, arg)
+            && !assigns(0)
+            && !hasClosures();
+  }
+
+  private boolean inlineableArg(BoundSymbol p, ArcObject arg) {
+    return (arg instanceof LiteralObject)
+            || (arg instanceof Quotation)
+            || (arg instanceof Symbol)
+            || (arg instanceof BoundSymbol)
+            || (countReferences(p) <= 1);
+  }
+
+  private int countReferences(BoundSymbol p) {
+    int refs = 0;
+    for (ArcObject o : body) {
+      refs = o.countReferences(refs, p);
     }
-    return false;
+    return refs;
+  }
+
+  public int countReferences(int refs, BoundSymbol p) {
+    return refs + countReferences(maybeNest(p));
+  }
+
+  private BoundSymbol maybeNest(BoundSymbol p) {
+    if (!(parameterList instanceof Nil)) {
+      return p.nest(0);
+    } else {
+      return p;
+    }
   }
 
   public boolean hasClosures() {
@@ -68,20 +99,21 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
     return false;
   }
 
-  private boolean assigned(BoundSymbol p) {
+  private boolean assigned(int nesting) {
     for (ArcObject o : body) {
-      if (o.assigns(p)) {
+      if (o.assigns(nesting)) {
         return true;
       }
     }
     return false;
   }
 
-  public boolean assigns(BoundSymbol p) {
+  public boolean assigns(int nesting) {
     if (!(parameterList instanceof Nil)) {
-      p = p.nest();
+      return assigned(nesting + 1);
+    } else {
+      return assigned(nesting);
     }
-    return assigned(p);
   }
 
   public void invokef(VM vm) {
@@ -216,31 +248,48 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
   }
 
   public ArcObject curry(Symbol param, ArcObject arg) {
-    ArcObject newParams = FunctionParameterListBuilder.remove(parameterList, param);
+    Integer paramIndex = (Integer) lexicalBindings.get(param);
+    BoundSymbol p = new BoundSymbol(param, 0, paramIndex);
+    ArcObject newParams = FunctionParameterListBuilder.curry(parameterList, p, arg, paramIndex);
     Map lexicalBindings = new HashMap();
     FunctionParameterListBuilder.index(newParams, lexicalBindings, new int[] {0}, false);
     boolean unnest = newParams instanceof Nil;
+    if (!unnest) {
+      arg = arg.nest(0);
+    }
 
-    BoundSymbol p = new BoundSymbol(param, 0, 0);
     List newBody = new ArrayList();
     for (int i = 0; i < body.length; i++) {
-      newBody.add(body[i].inline(p, arg, unnest).reduce());
+      newBody.add(body[i].inline(p, arg, unnest, 0, paramIndex).reduce());
     }
     Pair nb = Pair.buildFrom(newBody);
     ArcObject complexParams = FunctionParameterListBuilder.isComplex(newParams);
-//    System.out.println("curry: replacing " + this + " with (fn " + newParams + " " + newBody + ")");
     return FunctionBodyBuilder.buildFunctionBody(newParams, lexicalBindings, nb, complexParams);
   }
 
-  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex) {
+    p = maybeNest(p);
+    InterpretedFunction fn = cloneThis();
+
+    List newBody = new ArrayList();
+    for (int i = 0; i < body.length; i++) {
+      newBody.add(body[i].inline(p, arg, false, nesting + 1, paramIndex).reduce());
+    }
+    Pair nb = Pair.buildFrom(newBody);
+    fn.body = nb.toArray();
+    fn.buildInstructionList(nb);
+    return fn;
+  }
+
+  public ArcObject nest(int threshold) {
     if (!(parameterList instanceof Nil)) {
-      p = p.nest();
+      threshold++;
     }
     InterpretedFunction fn = cloneThis();
 
     List newBody = new ArrayList();
     for (int i = 0; i < body.length; i++) {
-      newBody.add(body[i].inline(p, arg, false).reduce());
+      newBody.add(body[i].nest(threshold));
     }
     Pair nb = Pair.buildFrom(newBody);
     fn.body = nb.toArray();

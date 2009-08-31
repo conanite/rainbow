@@ -55,7 +55,7 @@ public class Add extends Builtin {
     }
   }
 
-  private static Pair joinLists(Pair args) {
+  private static ArcObject joinLists(Pair args) {
     List list = new LinkedList();
     copyAllTo(args, list);
     return Pair.buildFrom(list, ArcObject.NIL);

@@ -26,7 +26,7 @@ public class Hash extends LiteralObject {
       Pair keyValue = new Pair((ArcObject) o, new Pair((ArcObject) map.get(o), NIL));
       pairs.add(keyValue);
     }
-    return Pair.buildFrom(pairs, EMPTY_LIST);
+    return (Pair)Pair.buildFrom(pairs, EMPTY_LIST);
   }
 
   public long len() {

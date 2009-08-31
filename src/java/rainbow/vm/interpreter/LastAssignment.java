@@ -37,14 +37,15 @@ public class LastAssignment extends SingleAssignment {
     }
   }
 
+  public int countReferences(int refs, BoundSymbol p) {
+    refs = name.countReferences(refs, p);
+    return expression.countReferences(refs, p);
+  }
+
   public int highestLexicalScopeReference() {
     int n = name.highestLexicalScopeReference();
     int e = expression.highestLexicalScopeReference();
     return e > n ? e : n;
-  }
-
-  public boolean assigns(BoundSymbol p) {
-    return thisAssigns(p);
   }
 
   public boolean hasClosures() {
@@ -54,13 +55,20 @@ public class LastAssignment extends SingleAssignment {
     return expression.hasClosures();
   }
 
-  public SingleAssignment inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+  public SingleAssignment inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex) {
     LastAssignment sa = new LastAssignment();
     if (name instanceof BoundSymbol && p.isSameBoundSymbol((BoundSymbol) name)) {
       throw new ArcError("Can't inline " + p + " -> " + arg + "; assignment");
     }
-    sa.name = this.name.inline(p, arg, unnest);
-    sa.expression = this.expression.inline(p, arg, unnest);
+    sa.name = this.name.inline(p, arg, unnest, nesting, paramIndex);
+    sa.expression = this.expression.inline(p, arg, unnest, nesting, paramIndex);
+    return sa;
+  }
+
+  public LastAssignment nest(int threshold) {
+    LastAssignment sa = new LastAssignment();
+    sa.name = this.name.nest(threshold);
+    sa.expression = this.expression.nest(threshold);
     return sa;
   }
 }

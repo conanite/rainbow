@@ -177,6 +177,33 @@
         ))
         (a b c d (e f g)))))
 
+  (suite "watch out for dangerous optimisations"
+     ("special case: swap two values"
+       ( (fn (x y)
+           (let tmp x
+             (assign x y)
+             (assign y tmp)
+             `(,x ,y))) 1 2)
+       (2 1))
+
+     ("special case: inlining literals; scheme and rainbow do the same thing (shouldn't this be a bug?)"
+       ((fn (f) (cons (f) (f)) )
+         (fn () ((fn (xs) (scdr xs (cons 'x (cdr xs))) xs) '(a b c))))
+       ((a x x b c) a x x b c))
+
+     ("special case: don't inline stuff if it ends up out of order"
+       (tostring (prn "a" "b" "c"))
+       "abc\n")
+
+     ("special case: can't inline pop-me here"
+       (let mylist '(a b c d)
+         ((fn (pop-me)
+              (assign mylist (cdr mylist))
+              pop-me)
+          (car mylist)))
+       a)
+)
+
   ("ignore comments" ; here's one, for example
     ; this is another comment
     nil

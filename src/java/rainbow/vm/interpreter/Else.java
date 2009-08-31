@@ -42,12 +42,16 @@ public class Else extends ArcObject implements Conditional {
     return ifExpression.toString();
   }
 
+  public int countReferences(int refs, BoundSymbol p) {
+    return ifExpression.countReferences(refs, p);
+  }
+
   public int highestLexicalScopeReference() {
     return ifExpression.highestLexicalScopeReference();
   }
 
-  public boolean assigns(BoundSymbol p) {
-    return ifExpression.assigns(p);
+  public boolean assigns(int nesting) {
+    return ifExpression.assigns(nesting);
   }
 
   public boolean hasClosures() {
@@ -58,9 +62,15 @@ public class Else extends ArcObject implements Conditional {
     }
   }
 
-  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex) {
     Else e = new Else();
-    e.ifExpression = this.ifExpression.inline(p, arg, unnest).reduce();
+    e.ifExpression = this.ifExpression.inline(p, arg, unnest, nesting, paramIndex).reduce();
+    return e;
+  }
+
+  public ArcObject nest(int threshold) {
+    Else e = new Else();
+    e.ifExpression = this.ifExpression.nest(threshold);
     return e;
   }
 }

@@ -85,9 +85,10 @@
       (do (eval (car exprs)) (eval-these (cdr exprs)))))
 
 (def benchmark (times fun (o verbose nil))
-  (pr "warm-up ")
-  (repeat 3 (do (fun) (pr ".")))
+  (pr "warm-up   ")
+  (repeat times (do (fun) (pr ".")))
   (prn)
+  (pr "benchmark ")
   (with (mintime 2000000000 maxtime 0 totaltime 0 now nil)
     (for i 1 times
       (= now (msec))
@@ -96,12 +97,10 @@
         (zap [min _ elapsed] mintime)
         (zap [max _ elapsed] maxtime)
         (zap [+ _ elapsed] totaltime)
-        (if verbose (prn i " . " elapsed " " (trunc:/ totaltime i 1.0)))))
-    (prn)
-    (prn "avg " (/ totaltime times 1.0))
-    (prn "min " mintime)
-    (prn "max " maxtime)
-    (/ totaltime times 1.0)))
+        (if verbose
+            (prn i " . " elapsed " " (trunc:/ totaltime i 1.0))
+            (pr "."))))
+    (obj avg (/ totaltime times 1.0) min mintime max maxtime)))
 
 (mac bm (times . body)
   `(benchmark ,times (fn () ,@body)))

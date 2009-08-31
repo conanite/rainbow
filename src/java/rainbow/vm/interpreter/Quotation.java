@@ -23,7 +23,7 @@ public class Quotation extends ArcObject {
   }
 
   public ArcObject type() {
-    return Symbol.mkSym("quoatation");
+    return Symbol.mkSym("quotation");
   }
 
   public ArcObject interpret(LexicalClosure lc) {

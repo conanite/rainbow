@@ -8,7 +8,6 @@ import rainbow.vm.VM;
 import rainbow.vm.instructions.invoke.Invoke_N;
 import rainbow.vm.interpreter.BoundSymbol;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -125,14 +124,26 @@ public abstract class ArcObject {
     }
     vm.pushA(this);
     vm.pushFrame(new Invoke_N.Other(len));
-    return vm.thread();
+    try {
+      return vm.thread();
+    } catch (Exception e) {
+      throw new ArcError("error invoking " + this + " with args " + args + ": " + e, e);
+    }
   }
 
   public boolean hasLen(int i) {
     throw new ArcError("has length: not a proper list: ends with " + this);
   }
 
-  public ArcObject without(ArcObject unwanted) {
+  public boolean longerThan(int i) {
+    throw new ArcError("longer than: not a proper list: ends with " + this);
+  }
+
+  public int countReferences(int refs, BoundSymbol p) {
+    return refs;
+  }
+
+  public ArcObject nest(int threshold) {
     return this;
   }
 
@@ -151,11 +162,11 @@ public abstract class ArcObject {
     return false;
   }
 
-  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex) {
     return this;
   }
 
-  public boolean assigns(BoundSymbol p) {
+  public boolean assigns(int nesting) {
     return false;
   }
 }

@@ -12,9 +12,13 @@ public interface Conditional {
 
   int highestLexicalScopeReference();
 
-  boolean assigns(BoundSymbol p);
+  boolean assigns(int nesting);
 
   boolean hasClosures();
 
-  ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest);
+  ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex);
+
+  int countReferences(int refs, BoundSymbol p);
+
+  ArcObject nest(int threshold);
 }

@@ -6,22 +6,32 @@ import rainbow.Nil;
 import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
+import rainbow.types.Symbol;
 import rainbow.vm.VM;
 
 import java.util.Map;
 
 public class Bind_Oliteral extends InterpretedFunction {
   private ArcObject optExpr;
+  private InterpretedFunction curried;
 
   public Bind_Oliteral(ArcObject parameterList, Map lexicalBindings, Pair expandedBody) {
     super(parameterList, lexicalBindings, expandedBody);
     this.optExpr = parameterList.car().cdr().cdr().car();
+    ArcObject optParam = parameterList.car().cdr().car();
+    if (canInline((Symbol) optParam, optExpr)) {
+      curried = (InterpretedFunction) this.curry((Symbol) optParam, optExpr);
+    }
   }
 
   public void invokeN(VM vm, LexicalClosure lc) {
-    lc = new LexicalClosure(lexicalBindings.size(), lc);
-    lc.add(optExpr);
-    vm.pushFrame(lc, this.instructions);
+    if (curried != null) {
+      curried.invokeN(vm, lc);
+    } else {
+      lc = new LexicalClosure(lexicalBindings.size(), lc);
+      lc.add(optExpr);
+      vm.pushFrame(lc, this.instructions);
+    }
   }
 
   public void invokeN(VM vm, LexicalClosure lc, ArcObject arg) {

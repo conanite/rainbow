@@ -68,6 +68,7 @@ public class QuasiQuotation extends ArcObject {
     while (!expr.isNotPair()) {
       if (isUnQuote(expr) || isQuasiQuote(expr)) { // catch post-dot unquotes
         appendUnquotes(l, expr, nesting);
+        expr = expr.cdr().cdr();
       } else {
         final ArcObject current = expr.car();
         expr = expr.cdr();
@@ -94,6 +95,7 @@ public class QuasiQuotation extends ArcObject {
     while (!expr.isNotPair()) {
       if (isUnQuote(expr)) { // catch post-dot unquotes
         highest = highestLexicalScopeReference(highest, expr);
+        expr = expr.cdr().cdr();
       } else {
         final ArcObject current = expr.car();
         expr = expr.cdr();
@@ -196,9 +198,9 @@ public class QuasiQuotation extends ArcObject {
     return expression instanceof Pair;
   }
 
-  public boolean assigns(BoundSymbol p) {
+  public boolean assigns(int nesting) {
     for (ArcObject o : unquotes()) {
-      if (o.assigns(p)) {
+      if (o.assigns(nesting)) {
         return true;
       }
     }
@@ -218,46 +220,53 @@ public class QuasiQuotation extends ArcObject {
     return false;
   }
 
-  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest) {
-    QuasiQuotation r = new QuasiQuotation(inline(p, arg, unnest, target, 1));
-//    System.out.println("QQ:inline:returning " + r + " for " + this);
-    return r;
+  public int countReferences(int refs, BoundSymbol p) {
+    for (ArcObject o : unquotes()) {
+      refs = o.countReferences(refs, p);
+    }
+    return refs;
   }
 
-  private static ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, ArcObject expr, int nesting) {
+  public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int lexicalNesting, int paramIndex) {
+    return new QuasiQuotation(inline(p, arg, unnest, lexicalNesting, paramIndex, target, 1));
+  }
+
+  private static ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int lexicalNesting, int paramIndex, ArcObject expr, int nesting) {
     if (isUnQuote(expr)) {
       if (nesting == 1) {
-        return Pair.buildFrom(UNQUOTE, expr.cdr().car().inline(p, arg, unnest));
+        return Pair.buildFrom(UNQUOTE, expr.cdr().car().inline(p, arg, unnest, lexicalNesting, paramIndex));
       } else {
-        return Pair.buildFrom(UNQUOTE, inline(p, arg, unnest, expr.cdr().car(), nesting - 1));
+        return Pair.buildFrom(UNQUOTE, inline(p, arg, unnest, lexicalNesting, paramIndex, expr.cdr().car(), nesting - 1));
       }
 
     } else if (isUnQuoteSplicing(expr)) {
       if (nesting == 1) {
-        return Pair.buildFrom(UNQUOTE_SPLICING, expr.cdr().car().inline(p, arg, unnest));
+        return Pair.buildFrom(UNQUOTE_SPLICING, expr.cdr().car().inline(p, arg, unnest, lexicalNesting, paramIndex));
       } else {
-        return Pair.buildFrom(UNQUOTE_SPLICING, inline(p, arg, unnest, expr.cdr().car(), nesting - 1));
+        return Pair.buildFrom(UNQUOTE_SPLICING, inline(p, arg, unnest, lexicalNesting, paramIndex, expr.cdr().car(), nesting - 1));
       }
 
     } else if (isQuasiQuote(expr)) {
-      return Pair.buildFrom(QUASIQUOTE, inline(p, arg, unnest, expr.cdr().car(), nesting + 1));
+      return Pair.buildFrom(QUASIQUOTE, inline(p, arg, unnest, lexicalNesting, paramIndex, expr.cdr().car(), nesting + 1));
 
     } else if (expr.isNotPair()) {
       return expr;
     }
 
     List list = new ArrayList();
+    ArcObject last = NIL;
 
     while (!expr.isNotPair()) {
       if (isUnQuote(expr) || isQuasiQuote(expr)) { // catch post-dot unquotes
-        list.add(inline(p, arg, unnest, expr, nesting));
+        last = inline(p, arg, unnest, lexicalNesting, paramIndex, expr, nesting);
+        expr = expr.cdr().cdr();
       } else {
         final ArcObject current = expr.car();
         expr = expr.cdr();
         if (isUnQuoteSplicing(current)) {
-          list.add(inline(p, arg, unnest, current, nesting));
+          list.add(inline(p, arg, unnest, lexicalNesting, paramIndex, current, nesting));
         } else if (isUnQuote(current) || isQuasiQuote(current) || isPair(current)) {
-          list.add(inline(p, arg, unnest, current, nesting));
+          list.add(inline(p, arg, unnest, lexicalNesting, paramIndex, current, nesting));
         } else {
           list.add(current);
         }
@@ -265,9 +274,61 @@ public class QuasiQuotation extends ArcObject {
     }
 
     if (!(expr instanceof Nil)) {
-      list.add(expr);
+      last = expr;
     }
 
-    return Pair.buildFrom(list);
+    return Pair.buildFrom(list, last);
   }
+
+  public ArcObject nest(int threshold) {
+    return nest(threshold, target, 1);
+  }
+
+  private static ArcObject nest(int threshold, ArcObject expr, int nesting) {
+    if (isUnQuote(expr)) {
+      if (nesting == 1) {
+        return Pair.buildFrom(UNQUOTE, expr.cdr().car().nest(threshold));
+      } else {
+        return Pair.buildFrom(UNQUOTE, nest(threshold, expr.cdr().car(), nesting - 1));
+      }
+
+    } else if (isUnQuoteSplicing(expr)) {
+      if (nesting == 1) {
+        return Pair.buildFrom(UNQUOTE_SPLICING, expr.cdr().car().nest(threshold));
+      } else {
+        return Pair.buildFrom(UNQUOTE_SPLICING, nest(threshold, expr.cdr().car(), nesting - 1));
+      }
+
+    } else if (isQuasiQuote(expr)) {
+      return Pair.buildFrom(QUASIQUOTE, nest(threshold, expr.cdr().car(), nesting + 1));
+
+    } else if (expr.isNotPair()) {
+      return expr;
+    }
+
+    List list = new ArrayList();
+    ArcObject last = NIL;
+
+    while (!expr.isNotPair()) {
+      if (isUnQuote(expr) || isQuasiQuote(expr)) { // catch post-dot unquotes
+        last = nest(threshold, expr, nesting);
+        expr = expr.cdr().cdr();
+      } else {
+        final ArcObject current = expr.car();
+        expr = expr.cdr();
+        if (isUnQuoteSplicing(current) || isUnQuote(current) || isQuasiQuote(current) || isPair(current)) {
+          list.add(nest(threshold, current, nesting));
+        } else {
+          list.add(current);
+        }
+      }
+    }
+
+    if (!(expr instanceof Nil)) {
+      last = expr;
+    }
+
+    return Pair.buildFrom(list, last);
+  }
+
 }
