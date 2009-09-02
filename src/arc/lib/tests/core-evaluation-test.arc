@@ -68,14 +68,6 @@
       ("andf"
         (ssyntax '&a&b&)
         t)
-
-      ("andf - ignore &"
-        (ssyntax '&)
-        nil)
-
-      ("andf - ignore &&"
-        (ssyntax '&&)
-        nil)
     )
 
     (suite "special syntax invocation (compose is implemented in Arc)"

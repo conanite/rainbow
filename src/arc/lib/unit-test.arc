@@ -44,8 +44,6 @@
     (prn "failed: " results!failed)
     (/ results!passed (+ results!passed results!failed))))
 
-(assign rat run-all-tests)
-
 (def run-tests (tests (o results (obj passed 0 failed 0)))
   "executes the given tests. 'results is a hash with
    keys 'passed and 'failed"
@@ -69,3 +67,25 @@
 (def execute-tests (desc tests results)
   (execute-test desc (car tests) results)
   (if (cdr tests) (execute-tests desc (cdr tests) results)))
+
+(def rat ()
+  (assign all-tests nil)
+  (let loader [load (string _ ".arc")]
+    (map loader '(lib/tests/foundation-test
+                  lib/tests/misc-tests
+                  lib/tests/core-errors-continuations-test
+                  lib/tests/core-evaluation-test
+                  lib/tests/core-lists-test
+                  lib/tests/core-macros-test
+                  lib/tests/core-maths-test
+                  lib/tests/core-predicates-test
+                  lib/tests/core-special-forms-test
+                  lib/tests/core-typing-test
+                  lib/tests/parser-test))
+    (if (bound 'java-new)
+        (map loader '(rainbow/tests/anarki-compatibility-test
+                      rainbow/tests/extra-math-test
+                      rainbow/tests/chained-ssexpand-test
+                      rainbow/tests/string-interpolation-test
+                      rainbow/tests/java-interface-test))))
+  (run-all-tests))

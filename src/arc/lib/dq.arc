@@ -21,9 +21,9 @@
                         (self (cdr xx) k (cons elm low) high)))
                   (list low k high))) (cdr xs) (car xs))))
     (fn (xs) xs)
-    (fn ((left k right)) 
+    (fn ((left k right))
       (if left
-          (do (scdr (lastcdr left) 
+          (do (scdr (lastcdr left)
                     (cons k right))
               left)
           (cons k right)))))
@@ -32,6 +32,6 @@
   (if (> size 0) (cons (rand limit) (make-random-list (- size 1) limit))))
 
 (time ((quicksort <) (make-random-list 10 10)))
-(time ((quicksort <) (make-random-list 10000 10000)))
-(time (sort < (make-random-list 10000 10000)))
+(time10 ((quicksort <) (make-random-list 100 10000)))
+(time10 (sort < (make-random-list 10000 10000)))
 

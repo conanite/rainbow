@@ -20,24 +20,13 @@ public class QuasiQuoteCompiler {
     }
 
     if (QuasiQuotation.isUnQuote(expression)) {
-      ArcObject compileMe = expression.cdr().car();
-      ArcObject compiled;
-      if (nesting == 1) {
-        compiled = Compiler.compile(vm, compileMe, lexicalBindings);
-      } else {
-        compiled = compile(vm, compileMe, lexicalBindings, nesting - 1);
-      }
-      return Pair.buildFrom(UNQUOTE, compiled);
+      return compileUnquote(vm, UNQUOTE, expression, nesting, lexicalBindings);
 
     } else if (QuasiQuotation.isUnQuoteSplicing(expression)) {
-      if (nesting == 1) {
-        return Pair.buildFrom(UNQUOTE_SPLICING, Compiler.compile(vm, expression.cdr().car(), lexicalBindings));
-      } else {
-        return Pair.buildFrom(UNQUOTE_SPLICING, compile(vm, expression.cdr().car(), lexicalBindings, nesting - 1));
-      }
+      return compileUnquote(vm, UNQUOTE_SPLICING, expression, nesting, lexicalBindings);
 
     } else if (QuasiQuotation.isQuasiQuote(expression)) {
-      return Pair.buildFrom(QUASIQUOTE, compile(vm, expression.cdr().car(), lexicalBindings, 2));
+      return Pair.buildFrom(QUASIQUOTE, compile(vm, expression.cdr().car(), lexicalBindings, nesting + 1));
 
     } else {
       LinkedList result = new LinkedList();
@@ -47,21 +36,24 @@ public class QuasiQuoteCompiler {
         expression = expression.cdr();
         if (next.isNotPair()) {
           result.add(next);
-        } else if (QuasiQuotation.isUnQuote(next)) {
-          result.add(compile(vm, next, lexicalBindings, nesting));
-
-        } else if (QuasiQuotation.isUnQuoteSplicing(next)) {
-          result.add(compile(vm, next, lexicalBindings, nesting));
-
-        } else if (QuasiQuotation.isQuasiQuote(next)) {
-          result.add(compile(vm, next, lexicalBindings, nesting + 1));
-
         } else {
           result.add(compile(vm, next, lexicalBindings, nesting));
         }
       }
+
       return Pair.buildFrom(result, compile(vm, expression, lexicalBindings, nesting));
     }
+  }
+
+  private static ArcObject compileUnquote(VM vm, Symbol prefix, ArcObject expression, int nesting, Map[] lexicalBindings) {
+    ArcObject compileMe = expression.cdr().car();
+    ArcObject compiled;
+    if (nesting == 1) {
+      compiled = Compiler.compile(vm, compileMe, lexicalBindings);
+    } else {
+      compiled = compile(vm, compileMe, lexicalBindings, nesting - 1);
+    }
+    return Pair.buildFrom(prefix, compiled);
   }
 
 }

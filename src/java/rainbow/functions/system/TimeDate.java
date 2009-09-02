@@ -9,6 +9,7 @@ import rainbow.Nil;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class TimeDate extends Builtin {
   public TimeDate() {
@@ -20,12 +21,13 @@ public class TimeDate extends Builtin {
     if (!(args instanceof Nil)) {
       c.setTime(new Date(1000 * Rational.cast(args.car(), this).toInt()));
     }
+    c.setTimeZone(TimeZone.getTimeZone("UTC"));
     return Pair.buildFrom(
             Rational.make(c.get(Calendar.SECOND)),
             Rational.make(c.get(Calendar.MINUTE)),
             Rational.make(c.get(Calendar.HOUR_OF_DAY)),
             Rational.make(c.get(Calendar.DAY_OF_MONTH)),
-            Rational.make(c.get(Calendar.MONTH)),
+            Rational.make(c.get(Calendar.MONTH) + 1),
             Rational.make(c.get(Calendar.YEAR))
     );
   }

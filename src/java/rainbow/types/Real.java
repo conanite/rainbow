@@ -51,6 +51,10 @@ public class Real extends ArcNumber {
     }
   }
 
+  public ArcObject type() {
+    return NUM_TYPE;
+  }
+
   public double value() {
     return value;
   }

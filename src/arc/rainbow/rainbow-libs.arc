@@ -6,23 +6,7 @@
     "app"
     "prompt"
     "lib/unit-test"
-    "lib/parser"
-    "lib/tests/foundation-test"
-    "lib/tests/misc-tests"
-    "lib/tests/core-errors-continuations-test"
-    "lib/tests/core-evaluation-test"
-    "lib/tests/core-lists-test"
-    "lib/tests/core-macros-test"
-    "lib/tests/core-maths-test"
-    "lib/tests/core-predicates-test"
-    "lib/tests/core-special-forms-test"
-    "lib/tests/core-typing-test"
-    "lib/tests/parser-test"
-    "rainbow/tests/anarki-compatibility-test"
-    "rainbow/tests/extra-math-test"
-    "rainbow/tests/chained-ssexpand-test"
-    "rainbow/tests/string-interpolation-test"
-    "rainbow/tests/java-interface-test"))
+    "lib/parser"))
 
 (def file-join parts
   (apply + parts))

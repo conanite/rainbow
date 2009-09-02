@@ -2,7 +2,7 @@
 
   ("w/bars should ignore nil elements"
     (do (declare 'atstrings t)
-        (tostring (w/bars (pr "baa") nil (pr "floop") nil)))
+        (eval '(tostring (w/bars (pr "baa") nil (pr "floop") nil))))
     "baa | floop"
   )
 

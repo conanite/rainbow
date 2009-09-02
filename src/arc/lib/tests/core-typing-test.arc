@@ -39,7 +39,7 @@
 
       ("of integer double is int"
         (type 3.0)
-        int)
+        num)
 
       ("of pair is cons"
         (type '(a b c))
@@ -152,9 +152,9 @@
             (type (coerce "12/4" 'num))
             int)
 
-          ("type of integer float is int even if coerced to num"
+          ("type of integer float is num"
             (type (coerce "3.0" 'num))
-            int)
+            num)
 
           ("string->num for non-integer in a given base"
             (coerce "101/100" 'num 2)
@@ -192,9 +192,9 @@
             (coerce "101E100" 'num 2)
             80.0)
 
-          ("type of 80.0 is int even if coerced to a num"
+          ("type of 80.0 is num"
             (type (coerce "80.0" 'num))
-            int)
+            num)
 
           ("positive infinity is a 'num"
             (coerce "+inf.0" 'num)

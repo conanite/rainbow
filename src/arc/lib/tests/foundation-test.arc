@@ -3,7 +3,7 @@
 
   ("timedate breaks date into calendar components"
     ((fn (d)
-      (list d.5 d.4 d.3)) (timedate 1203450000))
+      (list d.5 d.4 d.3)) (timedate 1200700800))
     (2008 01 19))
 
   (suite "Strings"
