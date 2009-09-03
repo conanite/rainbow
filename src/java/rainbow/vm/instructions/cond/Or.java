@@ -4,13 +4,12 @@ import rainbow.LexicalClosure;
 import rainbow.Nil;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
-import rainbow.vm.Instruction;
 import rainbow.vm.VM;
+import rainbow.vm.Instruction;
 import rainbow.vm.interpreter.BoundSymbol;
 import rainbow.vm.interpreter.Conditional;
 import rainbow.vm.interpreter.Else;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Or extends Instruction {
@@ -21,9 +20,7 @@ public class Or extends Instruction {
   public Or(BoundSymbol ifExpr, ArcObject elseExpr) {
     this.ifExpr = ifExpr;
     this.elseExpr = elseExpr;
-    List e = new ArrayList();
-    elseExpr.addInstructions(e);
-    this.elseInstructions = Pair.buildFrom(e);
+    this.elseInstructions = Cond.instructionsFor(elseExpr);
   }
 
   public static void addInstructions(List i, BoundSymbol ifExpression, Conditional next) {

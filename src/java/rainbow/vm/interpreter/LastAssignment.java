@@ -6,6 +6,7 @@ import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 import rainbow.vm.instructions.assign.bound.Assign_Lex;
 import rainbow.vm.instructions.assign.free.Assign_Free;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.List;
 
@@ -70,5 +71,17 @@ public class LastAssignment extends SingleAssignment {
     sa.name = this.name.nest(threshold);
     sa.expression = this.expression.nest(threshold);
     return sa;
+  }
+
+  public void collectReferences(BoundSymbol b, List bs) {
+    name.collectReferences(b, bs);
+    expression.collectReferences(b, bs);
+  }
+
+  public void visit(Visitor v) {
+    v.accept(this);
+    name.visit(v);
+    expression.visit(v);
+    v.end(this);
   }
 }

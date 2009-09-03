@@ -1,10 +1,10 @@
 package rainbow.vm.instructions;
 
+import rainbow.Nil;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
-import rainbow.vm.Instruction;
 import rainbow.vm.VM;
-import rainbow.Nil;
+import rainbow.vm.Instruction;
 
 public class TableMapper extends Instruction {
   private final ArcObject fn;

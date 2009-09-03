@@ -1,9 +1,8 @@
 package rainbow.vm.instructions;
 
-import rainbow.types.ArcException;
 import rainbow.types.ArcObject;
-import rainbow.vm.Instruction;
 import rainbow.vm.VM;
+import rainbow.vm.Instruction;
 
 public class Literal extends Instruction {
   ArcObject arg;
@@ -13,9 +12,6 @@ public class Literal extends Instruction {
   }
 
   public void operate(VM vm) {
-    if (arg instanceof ArcException) {
-      System.out.println("Literal:pushing ArcException " + arg);
-    }
     vm.pushA(arg);
   }
 

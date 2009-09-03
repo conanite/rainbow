@@ -1,8 +1,8 @@
 package rainbow.vm.instructions;
 
 import rainbow.types.ArcObject;
-import rainbow.vm.Instruction;
 import rainbow.vm.VM;
+import rainbow.vm.Instruction;
 
 public class Append extends Instruction {
   public void operate(VM vm) {

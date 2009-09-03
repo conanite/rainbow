@@ -23,11 +23,22 @@ public class Assign_Free_Literal extends Assign_Free{
     if (last) {
       i.add(new Assign_Free_Literal(name, expr));
     } else {
-      i.add(new Assign_Free_Literal_Intermediate(name, expr));
+      i.add(new Intermediate(name, expr));
     }
   }
 
   public String toString() {
     return "(assign-free " + name + " " + expr + ")";
   }
+
+  public static class Intermediate extends Assign_Free_Literal {
+    public Intermediate(Symbol name, ArcObject expr) {
+      super(name, expr);
+    }
+
+    public void operate(VM vm) {
+      name.setValue(expr);
+    }
+  }
 }
+

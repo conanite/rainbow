@@ -9,6 +9,7 @@ import static rainbow.types.ArcObject.NIL;
 import rainbow.types.Pair;
 import rainbow.vm.VM;
 import rainbow.vm.interpreter.BoundSymbol;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -129,6 +130,21 @@ public class FunctionBodyBuilder {
       }
     } else {
       return highest;
+    }
+  }
+
+  public static void visit(Visitor v, ArcObject parameterList, boolean optionable) {
+    if (parameterList instanceof Nil) {
+      return;
+    }
+
+    if (parameterList instanceof Pair) {
+      if (optionable && ComplexArgs.optional(parameterList)) {
+        parameterList.cdr().cdr().car().visit(v);
+      } else {
+        visit(v, parameterList.car(), true);
+        visit(v, parameterList.cdr(), false);
+      }
     }
   }
 }

@@ -5,23 +5,22 @@ import rainbow.LexicalClosure;
 import rainbow.Nil;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
+import rainbow.types.LiteralObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.types.LiteralObject;
 import rainbow.vm.VM;
 import rainbow.vm.compiler.FunctionBodyBuilder;
 import rainbow.vm.compiler.FunctionParameterListBuilder;
-import rainbow.vm.instructions.Close;
-import rainbow.vm.instructions.Literal;
-import rainbow.vm.instructions.PopArg;
+import rainbow.vm.instructions.*;
 import rainbow.vm.interpreter.BoundSymbol;
 import rainbow.vm.interpreter.Quotation;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.*;
 
 public abstract class InterpretedFunction extends ArcObject implements Cloneable {
   protected ArcObject parameterList;
-  protected Map lexicalBindings;
+  protected Map<Symbol, Integer> lexicalBindings;
   public ArcObject[] body;
   protected Pair instructions;
 
@@ -29,28 +28,67 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
     this.parameterList = parameterList;
     this.lexicalBindings = lexicalBindings;
     this.body = body.toArray();
-    buildInstructionList(body);
+    buildInstructionList();
   }
 
-  private void buildInstructionList(Pair body) {
-    List i = new ArrayList();
-    if (this.body.length > 0) {
-      Pair b = body;
-      while (!(b instanceof Nil)) {
-        b.car().addInstructions(i);
-        b = (Pair) b.cdr();
-        if (!(b instanceof Nil)) {
-          i.add(new PopArg("intermediate-fn-expression"));
-        }
-      }
-    } else {
-      i.add(new Literal(NIL));
+  public ArcObject reduce() {
+    canIGoOnTheStack();
+    return this;
+  }
+
+  private void canIGoOnTheStack() {
+    if (hasClosures()) {
+      return;
     }
+
+    if (requiresClosure()) {
+      return;
+    }
+
+    if (lexicalBindings.size() > 1) {
+      return;
+    }
+
+    if (!(parameterList instanceof Symbol) && !(parameterList.car() instanceof Symbol)) {
+      return;
+    }
+
+    Symbol p = (Symbol) ((parameterList instanceof Symbol) ? parameterList : parameterList.car());
+    BoundSymbol b = new BoundSymbol(p, 0, 0);
+
+    List referrers = findReferrers(b);
+    if (referrers.size() > 1) {
+      return;
+    }
+
+//    System.out.println("referrers to " + b + " in " + this + " : " + referrers);
+
+//    System.out.println("I can go on the stack: " + this);
+  }
+
+  private void buildInstructionList() {
+    List i = new ArrayList();
+    buildInstructions(i);
     instructions = Pair.buildFrom(i);
   }
 
+  public void buildInstructions(List i) {
+    if (body.length == 0) {
+      i.add(new Literal(NIL));
+    } else {
+      for (int b = 0; b < body.length; b++) {
+        ArcObject expr = body[b];
+        boolean last = (b == body.length - 1);
+        expr.addInstructions(i);
+        if (!last) {
+          i.add(new PopArg("intermediate-fn-expression"));
+        }
+      }
+    }
+  }
+
   public boolean canInline(Symbol param, ArcObject arg) {
-    Integer paramIndex = (Integer) lexicalBindings.get(param);
+    Integer paramIndex = lexicalBindings.get(param);
     BoundSymbol p = new BoundSymbol(param, 0, paramIndex);
     return  body.length == 1
             && inlineableArg(p, arg)
@@ -169,15 +207,70 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
       if (eh > highest) {
         highest = eh;
       }
+      highest = FunctionBodyBuilder.highestLexScopeReference(highest, parameterList, false);
     }
-
-    highest = FunctionBodyBuilder.highestLexScopeReference(highest, parameterList, false);
 
     if (parameterList() instanceof Nil) {
       return highest;
     } else {
       return highest - 1;
     }
+  }
+
+  public List findReferrers(final BoundSymbol b) {
+    final List stack = new ArrayList();
+    final List referrers = new ArrayList();
+
+    Visitor v = new Visitor() {
+      int fNesting = 0;
+      int lNesting = 0;
+      BoundSymbol target = b;
+
+      public void accept(InterpretedFunction f) {
+        stack.add(0, f);
+        fNesting++;
+        if (!(f.parameterList instanceof Nil)) {
+          target = target.nest(0);
+        }
+      }
+
+      public void acceptObject(ArcObject o) {
+        stack.add(0, o);
+      }
+
+      public void endObject(ArcObject o) {
+        stack.remove(0);
+      }
+
+      public void end(InterpretedFunction f) {
+        stack.remove(0);
+        fNesting--;
+        if (!(f.parameterList instanceof Nil)) {
+          target = target.unnest();
+        }
+      }
+
+      public void accept(BoundSymbol b) {
+        if (b.isSameBoundSymbol(target) && stack.size() > 0) {
+          referrers.add(stack.get(0));
+        }
+      }
+    };
+
+    for (ArcObject o : body) {
+      o.visit(v);
+    }
+
+    return referrers;
+  }
+
+  public void visit(Visitor v) {
+    v.accept(this);
+    FunctionBodyBuilder.visit(v, parameterList, false);
+    for (ArcObject o : body) {
+      o.visit(v);
+    }
+    v.end(this);
   }
 
   public boolean isIdFn() {
@@ -248,7 +341,7 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
   }
 
   public ArcObject curry(Symbol param, ArcObject arg, boolean requiresNesting) {
-    Integer paramIndex = (Integer) lexicalBindings.get(param);
+    Integer paramIndex = lexicalBindings.get(param);
     BoundSymbol p = new BoundSymbol(param, 0, paramIndex);
     ArcObject newParams = FunctionParameterListBuilder.curry(parameterList, p, arg, paramIndex);
     Map lexicalBindings = new HashMap();
@@ -277,7 +370,7 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
     }
     Pair nb = Pair.buildFrom(newBody);
     fn.body = nb.toArray();
-    fn.buildInstructionList(nb);
+    fn.buildInstructionList();
     return fn;
   }
 
@@ -293,7 +386,7 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
     }
     Pair nb = Pair.buildFrom(newBody);
     fn.body = nb.toArray();
-    fn.buildInstructionList(nb);
+    fn.buildInstructionList();
     return fn;
   }
 

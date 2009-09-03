@@ -9,6 +9,7 @@ import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.Instruction;
 import rainbow.vm.instructions.invoke.*;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -34,6 +35,10 @@ public class Invocation extends ArcObject {
   public void addInstructions(List i) {
     // java stupidly insists on assigning the result to a variable
     boolean v = inlineDoForm(i) || addOptimisedHandler(i) || defaultAddInstructions(i);
+  }
+
+  public boolean canStackify(BoundSymbol s) {
+    return false;
   }
 
   public ArcObject reduce() {
@@ -64,7 +69,8 @@ public class Invocation extends ArcObject {
 
   private boolean inlineDoForm(List i) {
     if (parts.len() == 1L && parts.car() instanceof Bind) {
-      ((InterpretedFunction) parts.car()).instructions().copyTo(i);
+      InterpretedFunction fn = (InterpretedFunction) parts.car();
+      fn.buildInstructions(i);
       return true;
     }
     return false;
@@ -236,5 +242,15 @@ public class Invocation extends ArcObject {
       pt = (Pair) pt.cdr();
     }
     return new Invocation(Pair.buildFrom(inlined));
+  }
+
+  public void visit(Visitor v) {
+    v.accept(this);
+    Pair pt = this.parts;
+    while (!(pt instanceof Nil)) {
+      pt.car().visit(v);
+      pt = (Pair) pt.cdr();
+    }
+    v.end(this);
   }
 }

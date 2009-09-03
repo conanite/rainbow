@@ -1,6 +1,7 @@
 package rainbow.vm.interpreter;
 
 import rainbow.ArcError;
+import rainbow.vm.interpreter.visitor.Visitor;
 import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
@@ -72,5 +73,11 @@ public class Else extends ArcObject implements Conditional {
     Else e = new Else();
     e.ifExpression = this.ifExpression.nest(threshold);
     return e;
+  }
+
+  public void visit(Visitor v) {
+    v.accept(this);
+    ifExpression.visit(v);
+    v.end(this);
   }
 }

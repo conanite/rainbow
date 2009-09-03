@@ -33,7 +33,7 @@ public enum VMInterceptor {
 
   NEXT_FRAME {
     void check(VM vm) {
-      if (vm.peekI().hasLen(1)) {
+      if (vm.ip <= vm.debug_target_frame) {
         vm.setInterceptor(DEBUG);
       }
     }
@@ -85,6 +85,7 @@ public enum VMInterceptor {
       if ("q".equalsIgnoreCase(command)) {
         vm.setInterceptor(VMInterceptor.NULL);
       } else if ("f".equalsIgnoreCase(command)) {
+        vm.debug_target_frame = vm.ip - 1;
         vm.setInterceptor(VMInterceptor.NEXT_FRAME);
       }
     } catch (IOException e) {

@@ -5,7 +5,6 @@ import rainbow.types.Symbol;
 import rainbow.LexicalClosure;
 
 public abstract class Instruction extends ArcObject {
-  public abstract void operate(VM vm);
 
   public ArcObject type() {
     return Symbol.mkSym("instruction");
@@ -22,4 +21,6 @@ public abstract class Instruction extends ArcObject {
       return "#unbound#";
     }
   }
+
+  public abstract void operate(VM vm);
 }

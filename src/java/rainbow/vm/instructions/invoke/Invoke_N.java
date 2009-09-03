@@ -3,8 +3,8 @@ package rainbow.vm.instructions.invoke;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.Instruction;
 import rainbow.vm.VM;
+import rainbow.vm.Instruction;
 import rainbow.vm.interpreter.BoundSymbol;
 import rainbow.Nil;
 
@@ -28,8 +28,8 @@ public class Invoke_N {
   }
 
   private static class Lex extends Instruction implements Invoke {
-    private BoundSymbol fn;
-    private int argCount;
+    protected BoundSymbol fn;
+    protected int argCount;
 
     public Lex(BoundSymbol fn, int argCount) {
       this.fn = fn;
@@ -41,7 +41,7 @@ public class Invoke_N {
     }
 
     public String toString() {
-      return "(invoke " + fn + " <3>)";
+      return "(invoke " + fn + " <" + argCount + ">)";
     }
 
     public ArcObject getInvokee(VM vm) {
@@ -50,8 +50,8 @@ public class Invoke_N {
   }
 
   private static class Free extends Instruction implements Invoke {
-    private Symbol fn;
-    private int argCount;
+    protected Symbol fn;
+    protected int argCount;
 
     public Free(Symbol fn, int argCount) {
       this.fn = fn;
@@ -63,7 +63,7 @@ public class Invoke_N {
     }
 
     public String toString() {
-      return "(invoke " + fn + " <3>)";
+      return "(invoke " + fn + " <" + argCount + ">)";
     }
 
     public ArcObject getInvokee(VM vm) {
@@ -72,7 +72,7 @@ public class Invoke_N {
   }
 
   public static class Other extends Instruction implements Invoke {
-    private int argCount;
+    protected int argCount;
 
     public Other(int argCount) {
       this.argCount = argCount;

@@ -29,7 +29,17 @@ public class Assign_Free_Other extends Assign_Free {
     if (last) {
       i.add(new Assign_Free_Other(name));
     } else {
-      i.add(new Assign_Free_Other_Intermediate(name));
+      i.add(new Intermediate(name));
+    }
+  }
+
+  public static class Intermediate extends Assign_Free_Other {
+    public Intermediate(Symbol name) {
+      super(name);
+    }
+
+    public void operate(VM vm) {
+      name.setValue(vm.popA());
     }
   }
 }

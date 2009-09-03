@@ -1,9 +1,9 @@
 package rainbow.vm.interpreter;
 
 import rainbow.LexicalClosure;
-import rainbow.vm.instructions.Literal;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
+import rainbow.vm.instructions.Literal;
 
 import java.util.List;
 

@@ -3,7 +3,6 @@ package rainbow;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.Instruction;
 import rainbow.vm.VM;
 import rainbow.vm.instructions.Literal;
 
@@ -14,7 +13,6 @@ public class Nil extends Pair {
   public static final Symbol TYPE = Symbol.TYPE;
   public static final Nil NIL = new Nil("nil");
   public static final Nil EMPTY_LIST = new Nil("()");
-  private static final Instruction LITERAL_NIL = new Literal(NIL);
 
   private String rep;
 
@@ -23,7 +21,7 @@ public class Nil extends Pair {
   }
 
   public void addInstructions(List i) {
-    i.add(LITERAL_NIL);
+    i.add(new Literal(NIL));
   }
 
   public void invoke(VM vm, Pair args) {

@@ -25,11 +25,21 @@ public class Assign_Lex_Free extends Assign_Lex {
     if (last) {
       i.add(new Assign_Lex_Free(name, symbol));
     } else {
-      i.add(new Assign_Lex_Free_Intermediate(name, symbol));
+      i.add(new Intermediate(name, symbol));
     }
   }
 
   public String toString() {
     return "(assign-lex " + name + " " + value + ")";
+  }
+
+  public static class Intermediate extends Assign_Lex_Free {
+    public Intermediate(BoundSymbol name, Symbol value) {
+      super(name, value);
+    }
+
+    public void operate(VM vm) {
+      name.setSymbolValue(vm.lc(), value.value());
+    }
   }
 }

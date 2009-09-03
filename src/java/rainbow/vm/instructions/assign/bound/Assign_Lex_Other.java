@@ -29,7 +29,17 @@ public class Assign_Lex_Other extends Assign_Lex {
     if (last) {
       i.add(new Assign_Lex_Other(name));
     } else {
-      i.add(new Assign_Lex_Other_Intermediate(name));
+      i.add(new Intermediate(name));
+    }
+  }
+
+  public static class Intermediate extends Assign_Lex_Other {
+    public Intermediate(BoundSymbol name) {
+      super(name);
+    }
+
+    public void operate(VM vm) {
+      name.setSymbolValue(vm.lc(), vm.popA());
     }
   }
 }

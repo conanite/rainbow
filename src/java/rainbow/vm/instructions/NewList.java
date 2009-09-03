@@ -1,8 +1,7 @@
 package rainbow.vm.instructions;
 
-import rainbow.vm.Instruction;
 import rainbow.vm.VM;
-import rainbow.vm.instructions.ListBuilder;
+import rainbow.vm.Instruction;
 
 public class NewList extends Instruction {
   public void operate(VM vm) {

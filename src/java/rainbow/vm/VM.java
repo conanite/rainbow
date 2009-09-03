@@ -37,6 +37,7 @@ public class VM extends ArcObject {
   private boolean dead = false;
   private int ipThreshold;
   public Map<String, Integer> profileData;
+  public int debug_target_frame;
 
   public ArcObject thread(LexicalClosure lc, Pair instructions) {
     pushFrame(lc, instructions);
@@ -61,6 +62,7 @@ public class VM extends ArcObject {
   }
 
   private void loop() {
+    interceptor.check(this);
     while (hasInstructions()) {
       loadCurrentContext();
       try {
@@ -81,25 +83,30 @@ public class VM extends ArcObject {
   }
 
   private void step() {
-    if (ip < 0) {
+    if (ip < 0) { // todo why is this here?
       throw new Error("step: ip can't possibly be below 0!");
     }
     Pair instructions = peekI();
+    if (instructions instanceof Nil) {
+      popFrame();
+      return;
+    }
+
     Instruction i = (Instruction) instructions.car();
 
     Pair rest = (Pair) instructions.cdr();
-    if (rest instanceof Nil) {
-      popFrame();
-    } else {
-      pokeI(rest);
-    }
+//    if (rest instanceof Nil) {
+//      popFrame();
+//    } else {
+    pokeI(rest);
+//    }
 
     try {
       i.operate(this);
     } catch (ArcError e) {
       throw e;
     } catch (Exception e) {
-      String msg = "failed to execute instruction " + i.toString(currentLc) +
+      String msg = "failed to execute instruction " + i.toString() +
               "\nremaining instructions in this frame: " + rest +
               "\nlast arg: " + (ap > -1 ? peekA() : null) +
               "\nLC: " + currentLc +
@@ -168,15 +175,18 @@ public class VM extends ArcObject {
     showInstructions();
   }
 
-  private void popFrame() {
+  public void popFrame() {
     ip--;
   }
 
   public void pushFrame(Instruction i) {
-    pushFrame(null, Pair.buildFrom(i));
+    pushFrame(null, Pair.buildFrom((ArcObject)i));
   }
 
   public void pushFrame(LexicalClosure lc, Pair instructions) {
+    if (ip >= ipThreshold && peekI() instanceof Nil) {
+      popFrame();
+    }
     ++ip;
     try {
       ins[ip] = instructions;

@@ -6,6 +6,7 @@ import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 import rainbow.vm.instructions.cond.LastCond;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.List;
 
@@ -91,5 +92,12 @@ public class LastIfThen extends ArcObject implements Conditional {
     other.ifExpression = this.ifExpression.nest(threshold);
     other.thenExpression = this.thenExpression.nest(threshold);
     return other;
+  }
+
+  public void visit(Visitor v) {
+    v.accept(this);
+    ifExpression.visit(v);
+    thenExpression.visit(v);
+    v.end(this);
   }
 }

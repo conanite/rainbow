@@ -1,3 +1,10 @@
+; more efficient than (is x nil)
+(def no (x) (if x nil t))
+
+(def map1 (f xs)
+  (if xs
+      (cons (f (car xs)) (map1 f (cdr xs)))))
+
 (mac afnwith (withses . body)
   (let w (pair withses)
     `((afn ,(map car w) ,@body) ,@(map cadr w))))
@@ -87,9 +94,21 @@
   (if (acons exprs)
       (do (eval (car exprs)) (eval-these (cdr exprs)))))
 
+(def trunc/pad (s n (o padding #\space))
+  (= s (string s))
+  (let lens (len s)
+    (if (< lens n)
+        (+ s (newstring (- n lens) padding))
+        (is lens n)
+        s
+        (cut s 0 n))))
+
 (def benchmark (times fun (o verbose nil))
   (pr "warm-up   ")
-  (repeat times (do (fun) (pr ".")))
+  (for i 1 times
+    (fun)
+    (if (and verbose (is (mod i 10) 0))
+      (pr ".")))
   (prn)
   (pr "benchmark ")
   (with (mintime 2000000000 maxtime 0 totaltime 0 now nil)
@@ -100,9 +119,9 @@
         (zap [min _ elapsed] mintime)
         (zap [max _ elapsed] maxtime)
         (zap [+ _ elapsed] totaltime)
-        (if verbose
-            (prn i " . " elapsed " " (trunc:/ totaltime i 1.0))
+        (if (and verbose (is (mod i 10) 0))
             (pr "."))))
+    (prn)
     (obj avg (/ totaltime times 1.0) min mintime max maxtime)))
 
 (mac bm (times . body)
@@ -110,3 +129,32 @@
 
 (mac bmv (times . body)
   `(benchmark ,times (fn () ,@body) t))
+
+(assign bm-tests nil)
+
+(mac defbm (name withses . body)
+  (w/uniq gcount
+    (let bmfn `(fn (,gcount) (with ,withses (bmv ,gcount ,@body)))
+      `(push (list ',name ,bmfn) bm-tests))))
+
+(def car< args
+  (apply < (map car args)))
+
+(def run-benchmark-suite (repeat-count)
+  (w/table t
+    (each (name test) (sort car< bm-tests)
+      (prn "executing benchmark " name)
+      (= t.name (test repeat-count)))))
+
+(def rbs-row (title avg min max)
+  (prn (trunc/pad title 20) " " (trunc/pad avg 10) " " (trunc/pad min 10) " " (trunc/pad max 10)))
+
+(def rbs-report (report)
+  (rbs-row "" "avg" "min" "max")
+  (each (k v) (sort car< (tablist report))
+    (rbs-row k v!avg v!min v!max)))
+
+(def rbs ((o count 200))
+  (require-lib 'lib/bm-tests)
+  (rbs-report (run-benchmark-suite count)))
+

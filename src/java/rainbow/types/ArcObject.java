@@ -7,6 +7,7 @@ import rainbow.types.Pair.NotPair;
 import rainbow.vm.VM;
 import rainbow.vm.instructions.invoke.Invoke_N;
 import rainbow.vm.interpreter.BoundSymbol;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.Collection;
 import java.util.List;
@@ -116,6 +117,7 @@ public abstract class ArcObject {
   }
 
   public ArcObject invokeAndWait(VM vm, Pair args) {
+    Pair orig = args;
     int len = 0;
     while (!(args instanceof Nil)) {
       vm.pushA(args.car());
@@ -127,7 +129,7 @@ public abstract class ArcObject {
     try {
       return vm.thread();
     } catch (Exception e) {
-      throw new ArcError("error invoking " + this + " with args " + args + ": " + e, e);
+      throw new ArcError("error invoking " + this + " with args " + orig + ": " + e, e);
     }
   }
 
@@ -145,6 +147,12 @@ public abstract class ArcObject {
 
   public ArcObject nest(int threshold) {
     return this;
+  }
+
+  public void collectReferences(BoundSymbol b, List bs) {
+  }
+
+  public void visit(Visitor v) {
   }
 
   public static class NotNil extends Throwable {

@@ -3,8 +3,8 @@ package rainbow.vm.instructions.invoke;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.Instruction;
 import rainbow.vm.VM;
+import rainbow.vm.Instruction;
 import rainbow.vm.interpreter.BoundSymbol;
 import rainbow.LexicalClosure;
 
@@ -26,7 +26,7 @@ public class Invoke_2 {
   }
 
   private static class Lex extends Instruction implements Invoke {
-    private BoundSymbol fn;
+    protected BoundSymbol fn;
 
     public Lex(BoundSymbol fn) {
       this.fn = fn;
@@ -52,7 +52,7 @@ public class Invoke_2 {
   }
 
   private static class Free extends Instruction implements Invoke {
-    private Symbol fn;
+    protected Symbol fn;
 
     public Free(Symbol fn) {
       this.fn = fn;
@@ -65,11 +65,11 @@ public class Invoke_2 {
     }
 
     public String toString() {
-      return "(invoke " + fn + " <2>)";
+      return "(invoke_2:free " + fn + " <2>)";
     }
 
     public String toString(LexicalClosure lc) {
-      return "(invoke " + fn + " -> " + fn.value() + " <2>)";
+      return "(invoke_2:free " + fn + " -> " + fn.value() + " <2>)";
     }
 
     public ArcObject getInvokee(VM vm) {

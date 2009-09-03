@@ -1,7 +1,7 @@
 package rainbow.vm.instructions;
 
-import rainbow.vm.Instruction;
 import rainbow.vm.VM;
+import rainbow.vm.Instruction;
 
 public class SetThreadLocal extends Instruction implements Finally {
   private final ThreadLocal tl;

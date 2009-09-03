@@ -1,7 +1,7 @@
 package rainbow.vm.instructions.cond;
 
-import rainbow.vm.Instruction;
 import rainbow.vm.VM;
+import rainbow.vm.Instruction;
 import rainbow.vm.interpreter.BoundSymbol;
 import rainbow.LexicalClosure;
 import rainbow.Nil;

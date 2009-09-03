@@ -1,12 +1,12 @@
 package rainbow.functions.tables;
 
+import rainbow.Nil;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Hash;
 import rainbow.types.Pair;
 import rainbow.vm.VM;
 import rainbow.vm.instructions.PopArg;
-import rainbow.Nil;
 
 public class Table extends Builtin {
   public Table() {

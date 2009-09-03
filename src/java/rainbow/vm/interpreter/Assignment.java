@@ -1,6 +1,7 @@
 package rainbow.vm.interpreter;
 
 import rainbow.ArcError;
+import rainbow.vm.interpreter.visitor.Visitor;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 
@@ -70,4 +71,9 @@ public class Assignment extends ArcObject {
     return a;
   }
 
+  public void visit(Visitor v) {
+    v.accept(this);
+    assignment.visit(v);
+    v.end(this);
+  }
 }

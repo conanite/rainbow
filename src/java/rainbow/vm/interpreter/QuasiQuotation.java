@@ -7,6 +7,7 @@ import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import static rainbow.vm.compiler.QuasiQuoteCompiler.*;
 import rainbow.vm.instructions.*;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -227,6 +228,13 @@ public class QuasiQuotation extends ArcObject {
     return refs;
   }
 
+
+  public void collectReferences(BoundSymbol b, List bs) {
+    for (ArcObject o : unquotes()) {
+      o.collectReferences(b, bs);
+    }
+  }
+
   public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int lexicalNesting, int paramIndex) {
     return new QuasiQuotation(inline(p, arg, unnest, lexicalNesting, paramIndex, target, 1));
   }
@@ -329,6 +337,15 @@ public class QuasiQuotation extends ArcObject {
     }
 
     return Pair.buildFrom(list, last);
+  }
+
+
+  public void visit(Visitor v) {
+    v.accept(this);
+    for (ArcObject o : unquotes()) {
+      o.visit(v);
+    }
+    v.end(this);
   }
 
 }

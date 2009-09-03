@@ -2,6 +2,7 @@ package rainbow.vm.interpreter;
 
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.List;
 
@@ -68,5 +69,11 @@ public class IfClause extends ArcObject {
     IfClause ic = new IfClause();
     ic.first = (Conditional) this.first.nest(threshold);
     return ic;
+  }
+
+  public void visit(Visitor v) {
+    v.accept(this);
+    first.visit(v);
+    v.end(this);
   }
 }

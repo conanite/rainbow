@@ -1,6 +1,5 @@
 package rainbow.vm.instructions.assign.bound;
 
-import rainbow.ArcError;
 import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.vm.VM;
@@ -18,11 +17,7 @@ public class Assign_Lex_Lex extends Assign_Lex {
 
   public void operate(VM vm) {
     ArcObject v = value.interpret(vm.lc());
-    try {
-      name.setSymbolValue(vm.lc(), v);
-    } catch (NullPointerException e) {
-      throw new ArcError("setting value for " + this, e);
-    }
+    name.setSymbolValue(vm.lc(), v);
     vm.pushA(v);
   }
 
@@ -30,7 +25,7 @@ public class Assign_Lex_Lex extends Assign_Lex {
     if (last) {
       i.add(new Assign_Lex_Lex(name, value));
     } else {
-      i.add(new Assign_Lex_Lex_Intermediate(name, value));
+      i.add(new Intermediate(name, value));
     }
   }
 
@@ -40,5 +35,15 @@ public class Assign_Lex_Lex extends Assign_Lex {
 
   public String toString(LexicalClosure lc) {
     return "(assign-lex " + name + "-->" + name.interpret(lc) + value + "-->" + value.interpret(lc) + ")";
+  }
+
+  public static class Intermediate extends Assign_Lex_Lex {
+    public Intermediate(BoundSymbol name, BoundSymbol value) {
+      super(name, value);
+    }
+
+    public void operate(VM vm) {
+      name.setSymbolValue(vm.lc(), value.interpret(vm.lc()));
+    }
   }
 }

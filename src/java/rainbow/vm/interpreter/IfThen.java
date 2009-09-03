@@ -6,6 +6,7 @@ import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 import rainbow.vm.instructions.cond.Cond;
 import rainbow.vm.instructions.cond.Cond_Lex;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.List;
 
@@ -118,5 +119,13 @@ public class IfThen extends ArcObject implements Conditional {
     other.thenExpression = this.thenExpression.nest(threshold);
     other.next = (Conditional) this.next.nest(threshold);
     return other;
+  }
+
+  public void visit(Visitor v) {
+    v.accept(this);
+    ifExpression.visit(v);
+    thenExpression.visit(v);
+    next.visit(v);
+    v.end(this);
   }
 }

@@ -1,11 +1,11 @@
 package rainbow;
 
+import rainbow.functions.Environment;
 import rainbow.parser.ArcParser;
 import rainbow.parser.ParseException;
 import rainbow.types.*;
 import rainbow.util.Argv;
 import rainbow.vm.VM;
-import rainbow.functions.Environment;
 
 import java.io.*;
 import java.util.*;

@@ -23,11 +23,21 @@ public class Assign_Lex_Literal extends Assign_Lex {
     if (last) {
       i.add(new Assign_Lex_Literal(name, expr));
     } else {
-      i.add(new Assign_Lex_Literal_Intermediate(name, expr));
+      i.add(new Intermediate(name, expr));
     }
   }
 
   public String toString() {
     return "(assign-lex " + name + " " + expr + ")";
+  }
+
+  public static class Intermediate extends Assign_Lex_Literal {
+    public Intermediate(BoundSymbol name, ArcObject expr) {
+      super(name, expr);
+    }
+
+    public void operate(VM vm) {
+      name.setSymbolValue(vm.lc(), expr);
+    }
   }
 }

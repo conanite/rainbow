@@ -8,7 +8,6 @@ import java.util.List;
 
 public class Truth extends Symbol {
   public static final Truth T = new Truth();
-  private static final Literal TRUTH_INSTRUCTION = new Literal(T);
 
   private Truth() {
     super("t");
@@ -19,7 +18,7 @@ public class Truth extends Symbol {
   }
 
   public void addInstructions(List i) {
-    i.add(TRUTH_INSTRUCTION);
+    i.add(new Literal(T));
   }
 
   public String toString() {

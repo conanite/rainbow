@@ -5,12 +5,13 @@ import rainbow.LexicalClosure;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 import rainbow.vm.instructions.LexSym;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.List;
 
 public class BoundSymbol extends ArcObject {
   public static final Symbol TYPE = Symbol.mkSym("bound-symbol");
-  private final int nesting;
+  public final int nesting;
   private final int index;
   public final Symbol name;
 
@@ -25,7 +26,11 @@ public class BoundSymbol extends ArcObject {
   }
 
   public ArcObject interpret(LexicalClosure lc) {
-    return lc.nth(nesting).at(index);
+    try {
+      return lc.nth(nesting).at(index);
+    } catch (Exception e) {
+      throw new ArcError("internal error evaluating " + this + " in context " + lc + "; " + e, e);
+    }
   }
 
   public void addInstructions(List i) {
@@ -65,6 +70,10 @@ public class BoundSymbol extends ArcObject {
     }
   }
 
+  public BoundSymbol unnest() {
+    return new BoundSymbol(name, this.nesting - 1, index);
+  }
+
   public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex) {
     if (this.isSameBoundSymbol(p)) {
       return arg;
@@ -72,11 +81,15 @@ public class BoundSymbol extends ArcObject {
       if (this.nesting == 0) {
         throw new ArcError("can't unnest " + this + ", looking for " + p + " to inline with " + arg);
       }
-      return new BoundSymbol(name, this.nesting - 1, index);
+      return unnest();
     } else if (nesting == this.nesting && paramIndex < index) {
       return new BoundSymbol(name, this.nesting, this.index - 1);
     } else {
       return this;
     }
+  }
+
+  public void visit(Visitor v) {
+    v.accept(this);
   }
 }

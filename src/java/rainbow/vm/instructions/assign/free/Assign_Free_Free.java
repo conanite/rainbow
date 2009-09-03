@@ -24,11 +24,21 @@ public class Assign_Free_Free extends Assign_Free {
     if (last) {
       i.add(new Assign_Free_Free(name, value));
     } else {
-      i.add(new Assign_Free_Free_Intermediate(name, value));
+      i.add(new Intermediate(name, value));
     }
   }
 
   public String toString() {
     return "(assign-free " + name + " " + value + ")";
+  }
+
+  public static class Intermediate extends Assign_Free_Free {
+    public Intermediate(Symbol name, Symbol value) {
+      super(name, value);
+    }
+
+    public void operate(VM vm) {
+      name.setValue(value.value());
+    }
   }
 }

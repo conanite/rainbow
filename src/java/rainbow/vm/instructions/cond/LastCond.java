@@ -1,27 +1,18 @@
 package rainbow.vm.instructions.cond;
 
+import rainbow.Nil;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
-import rainbow.vm.Instruction;
 import rainbow.vm.VM;
-import rainbow.Nil;
-
-import java.util.ArrayList;
-import java.util.List;
+import rainbow.vm.Instruction;
 
 public class LastCond extends Instruction {
   private final ArcObject thenExpr;
-  private final Pair thenInstructions;
+  protected final Pair thenInstructions;
 
   public LastCond(ArcObject thenExpr) {
     this.thenExpr = thenExpr;
-    this.thenInstructions = instructionsFor(thenExpr);
-  }
-
-  private Pair instructionsFor(ArcObject expr) {
-    List list = new ArrayList();
-    expr.addInstructions(list);
-    return Pair.buildFrom(list);
+    this.thenInstructions = Cond.instructionsFor(thenExpr);
   }
 
   public void operate(VM vm) {

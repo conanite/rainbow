@@ -20,10 +20,6 @@ public class MapTable extends Builtin {
 
   public void invoke(VM vm, Pair args) {
     checkExactArgsCount(args, 2, getClass());
-    ArcObject f = args.car();
-    Hash h = (Hash) args.cdr().car();
-    vm.pushA(h);
-    vm.pushA(h.toList());
-    vm.pushFrame(new TableMapper(f));
+    invokef(vm, args.car(), args.cdr().car());
   }
 }
