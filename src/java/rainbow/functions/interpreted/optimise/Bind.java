@@ -15,7 +15,7 @@ public class Bind extends InterpretedFunction {
   }
 
   public void invokeN(VM vm, LexicalClosure lc) {
-    vm.pushFrame(lc, this.instructions);
+    vm.pushInvocation(lc, this.instructions);
   }
 
   public void invoke(VM vm, LexicalClosure lc, Pair args) {
@@ -24,6 +24,6 @@ public class Bind extends InterpretedFunction {
     } catch (NotNil notNil) {
       throw new ArcError("expected 1 arg, got " + args);
     }
-    vm.pushFrame(lc, this.instructions);
+    vm.pushInvocation(lc, this.instructions);
   }
 }

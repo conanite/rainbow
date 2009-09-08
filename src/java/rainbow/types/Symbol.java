@@ -88,7 +88,12 @@ public class Symbol extends ArcObject {
   }
 
   public void setValue(ArcObject value) {
+    ArcObject old = this.value;
     this.value = value;
+    if (old != null) {
+      old.unassigned(this);
+    }
+    value.assigned(this);
   }
 
   public ArcObject value() {

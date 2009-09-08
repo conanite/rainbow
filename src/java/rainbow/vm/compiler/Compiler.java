@@ -31,7 +31,7 @@ public class Compiler {
     } else if (expression instanceof Symbol) {
       for (int i = 0; i < lexicalBindings.length; i++) {
         if (lexicalBindings[i].containsKey(expression)) {
-          return new BoundSymbol((Symbol)expression, i, (Integer)lexicalBindings[i].get(expression));
+          return BoundSymbol.make((Symbol)expression, i, (Integer)lexicalBindings[i].get(expression));
         }
       }
       return expression;

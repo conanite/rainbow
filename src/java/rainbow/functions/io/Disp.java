@@ -10,7 +10,7 @@ public class Disp extends Builtin {
   }
 
   public ArcObject invoke(Pair args) {
-    Output out = IO.chooseOutputPort(args.cdr().car(), this); // todo kill new ArcThread()!
+    Output out = IO.chooseOutputPort(args.cdr().car(), this);
     ArcObject o = args.car();
     if (o instanceof ArcString) {
       out.write(((ArcString) o).value());

@@ -19,6 +19,6 @@ public class Eval extends Builtin {
     expression = rainbow.vm.compiler.Compiler.compile(vm, expression, new Map[0]).reduce();
     List i = new ArrayList();
     expression.addInstructions(i);
-    vm.pushFrame(null, Pair.buildFrom(i));
+    vm.pushInvocation(null, Pair.buildFrom(i));
   }
 }

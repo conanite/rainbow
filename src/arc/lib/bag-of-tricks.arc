@@ -144,10 +144,12 @@
   (w/table t
     (each (name test) (sort car< bm-tests)
       (prn "executing benchmark " name)
-      (= t.name (test repeat-count)))))
+      (let result (test repeat-count)
+        (= t.name result)
+        (prn "avg " result!avg)))))
 
 (def rbs-row (title avg min max)
-  (prn (trunc/pad title 20) " " (trunc/pad avg 10) " " (trunc/pad min 10) " " (trunc/pad max 10)))
+  (prn (trunc/pad title 25) " " (trunc/pad avg 10) " " (trunc/pad min 10) " " (trunc/pad max 10)))
 
 (def rbs-report (report)
   (rbs-row "" "avg" "min" "max")

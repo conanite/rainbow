@@ -5,6 +5,7 @@ import rainbow.types.Symbol;
 import rainbow.vm.Instruction;
 import rainbow.vm.interpreter.BoundSymbol;
 import rainbow.vm.interpreter.Quotation;
+import rainbow.vm.interpreter.StackSymbol;
 
 import java.util.List;
 
@@ -18,6 +19,8 @@ public abstract class Assign_Lex extends Instruction {
   public static void addInstructions(List i, BoundSymbol name, ArcObject expr, boolean last) {
     if (expr instanceof BoundSymbol) {
       Assign_Lex_Lex.addInstructions(i, name, (BoundSymbol)expr, last);
+    } else if (expr instanceof StackSymbol) {
+      Assign_Lex_Stack.addInstructions(i, name, (StackSymbol)expr, last);
     } else if (expr instanceof Symbol) {
       Assign_Lex_Free.addInstructions(i, name, (Symbol)expr, last);
     } else if (expr.literal()) {

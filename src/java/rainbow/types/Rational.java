@@ -9,6 +9,9 @@ public class Rational extends ArcNumber {
   public static final Rational ONE = make(1);
   public static final Rational TEN = make(10);
 
+  public Rational() {
+  }
+
   public Rational(long numerator) {
     this.numerator = numerator;
     this.denominator = 1L;
@@ -63,6 +66,18 @@ public class Rational extends ArcNumber {
     return gcd(b, a % b);
   }
 
+  public ArcObject mod(ArcNumber other) {
+    if (!isInteger() || !other.isInteger()) {
+      throw new ArcError("modulo: expects integer, got (" + this + " " + other + ")");
+    }
+    long divisor = other.toInt();
+    long result = numerator % divisor;
+    if (result < 0) {
+      result += divisor;
+    }
+    return Rational.make(result);
+  }
+
   public Rational times(Rational other) {
     return new Rational(numerator * other.numerator, denominator * other.denominator);
   }
@@ -101,14 +116,6 @@ public class Rational extends ArcNumber {
     return this.numerator == other.numerator && this.denominator == other.denominator;
   }
 
-  public long numerator() {
-    return numerator;
-  }
-
-  public long denominator() {
-    return denominator;
-  }
-
   public static Rational cast(ArcObject argument, Object caller) {
     try {
       return (Rational) argument;
@@ -122,6 +129,16 @@ public class Rational extends ArcNumber {
       return this;
     } else {
       return Rational.make(Math.round(((double)numerator) / ((double)denominator)));
+    }
+  }
+
+  public ArcObject stringify(ArcNumber base) {
+    String num = Long.toString(numerator, (int) base.toInt());
+    if (isInteger()) {
+      return ArcString.make(num);
+    } else {
+      String den = Long.toString(denominator, (int) base.toInt());
+      return ArcString.make(num + "/" + den);
     }
   }
 }

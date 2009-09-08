@@ -40,7 +40,7 @@
   (new-shape)
   (each (k v) universe-cells*
     (repaint-cell k nil))
-  (update-score))
+  (update-score 0))
 
 (def key (row col)
   (string row "-" col))
@@ -165,6 +165,7 @@
       (if (is filled tetris-width*)
         (do (collapse row)
             (= score (* score 2)))))
+    (prn "score this round " score ", total: " score*)
     (update-score (zap [+ _ score] score*))
     (= last-score* score)))
 

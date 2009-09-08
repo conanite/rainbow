@@ -18,7 +18,7 @@ public class Bind_A_A_A extends InterpretedFunction {
     lc.add(arg1);
     lc.add(arg2);
     lc.add(arg3);
-    vm.pushFrame(lc, this.instructions);
+    vm.pushInvocation(lc, this.instructions);
   }
 
   public void invoke(VM vm, LexicalClosure lc, Pair args) {

@@ -22,7 +22,7 @@ public class InvocationBuilder {
       } catch (NotPair notPair) {
         throw new ArcError("can't compile " + original + "; not a proper list");
       }
-      list.add(Compiler.compile(vm, body.car(), lexicalBindings));
+      list.add(Compiler.compile(vm, body.car(), lexicalBindings).reduce());
       body = body.cdr();
     }
     return new Invocation(Pair.buildFrom(list)).reduce();

@@ -6,7 +6,7 @@ import rainbow.types.Pair;
 public class LexicalClosure {
   private ArcObject[] bindings;
   private int count;
-  private LexicalClosure parent;
+  public final LexicalClosure parent;
 
   public LexicalClosure(int length, LexicalClosure parent) {
     this.parent = parent;

@@ -22,7 +22,7 @@ public class Bind_A extends InterpretedFunction {
   public void invokeN(VM vm, LexicalClosure lc, ArcObject arg) {
     lc = new LexicalClosure(lexicalBindings.size(), lc);
     lc.add(arg);
-    vm.pushFrame(lc, this.instructions);
+    vm.pushInvocation(lc, this.instructions);
   }
 
   public void invoke(VM vm, LexicalClosure lc, Pair args) {

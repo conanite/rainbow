@@ -194,13 +194,7 @@ public class Typing {
   }
 
   private static ArcObject stringify(Rational rational, ArcNumber base) {
-    String num = Long.toString(rational.numerator(), (int) base.toInt());
-    if (rational.isInteger()) {
-      return ArcString.make(num);
-    } else {
-      String den = Long.toString(rational.denominator(), (int) base.toInt());
-      return ArcString.make(num + "/" + den);
-    }
+    return rational.stringify(base);
   }
 
   private static ArcObject stringify(Real d, ArcNumber base) {

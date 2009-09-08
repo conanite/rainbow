@@ -1,3 +1,7 @@
+(def test-stack-assignment (x)
+  (assign x (+ x 1))
+  x)
+
 (register-test '(suite "miscellaneous tests"
 
   ("w/bars should ignore nil elements"
@@ -5,6 +9,10 @@
         (eval '(tostring (w/bars (pr "baa") nil (pr "floop") nil))))
     "baa | floop"
   )
+
+  ("make sure faster no works properly"
+    (map no '(a nil 4 nil (x y z) nil (obj x 1 y 2) nil))
+    (nil t nil t nil t nil t))
 
   (suite "watch out for dangerous optimisations"
      ("special case: swap two values"
@@ -14,6 +22,11 @@
              (assign y tmp)
              `(,x ,y))) 1 2)
        (2 1))
+
+     ("assignment within a function"
+       (test-stack-assignment 10)
+       11
+     )
 
      ("special case: inlining literals; scheme and rainbow do the same thing (shouldn't this be a bug?)"
        ((fn (f) (cons (f) (f)) )

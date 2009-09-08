@@ -25,16 +25,16 @@ public class Bind_A_Oother extends InterpretedFunction {
   public void invokeN(VM vm, LexicalClosure lc, ArcObject arg) {
     lc = new LexicalClosure(lexicalBindings.size(), lc);
     lc.add(arg);
-    vm.pushFrame(lc, optInstructions);
+    vm.pushInvocation(lc, optInstructions);
     lc.add(vm.thread());
-    vm.pushFrame(lc, this.instructions);
+    vm.pushInvocation(lc, this.instructions);
   }
 
   public void invokeN(VM vm, LexicalClosure lc, ArcObject arg1, ArcObject arg2) {
     lc = new LexicalClosure(lexicalBindings.size(), lc);
     lc.add(arg1);
     lc.add(arg2);
-    vm.pushFrame(lc, this.instructions);
+    vm.pushInvocation(lc, this.instructions);
   }
 
   public void invoke(VM vm, LexicalClosure lc, Pair args) {

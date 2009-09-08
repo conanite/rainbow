@@ -29,7 +29,7 @@ public class Assign_Free_Free extends Assign_Free {
   }
 
   public String toString() {
-    return "(assign-free " + name + " " + value + ")";
+    return "(assign-free-free " + name + " " + value + ")";
   }
 
   public static class Intermediate extends Assign_Free_Free {

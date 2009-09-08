@@ -12,8 +12,11 @@ public class Protect extends Builtin {
   }
 
   public void invoke(VM vm, Pair args) {
-    vm.pushFrame(new PopArg("clear up 'protect/after' return value"));
-    vm.pushFrame(new FinallyInvoke(args.cdr().car()));
+    Pair instructions = new Pair(
+            new FinallyInvoke(args.cdr().car()), new Pair(
+            new PopArg("clear up 'protect/after' return value"),
+            NIL));
+    vm.pushInvocation(null, instructions);
     args.car().invoke(vm, NIL);
   }
 }

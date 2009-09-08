@@ -46,10 +46,6 @@ public class Visitor {
     acceptObject(o);
   }
 
-  public void accept(LastIfThen o) {
-    acceptObject(o);
-  }
-
   public void accept(QuasiQuotation o) {
     acceptObject(o);
   }
@@ -87,10 +83,6 @@ public class Visitor {
   }
 
   public void end(LastAssignment o) {
-    endObject(o);
-  }
-
-  public void end(LastIfThen o) {
     endObject(o);
   }
 

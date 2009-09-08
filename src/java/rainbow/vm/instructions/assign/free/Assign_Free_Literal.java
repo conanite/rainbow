@@ -28,7 +28,7 @@ public class Assign_Free_Literal extends Assign_Free{
   }
 
   public String toString() {
-    return "(assign-free " + name + " " + expr + ")";
+    return "(assign-free-literal " + name + " " + expr + ")";
   }
 
   public static class Intermediate extends Assign_Free_Literal {

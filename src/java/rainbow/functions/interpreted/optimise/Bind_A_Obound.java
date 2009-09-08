@@ -35,7 +35,7 @@ public class Bind_A_Obound extends InterpretedFunction {
       lc = new LexicalClosure(lexicalBindings.size(), lc);
       lc.add(arg);
       lc.add(optExpr);
-      vm.pushFrame(lc, this.instructions);
+      vm.pushInvocation(lc, this.instructions);
     }
   }
 
@@ -43,7 +43,7 @@ public class Bind_A_Obound extends InterpretedFunction {
     lc = new LexicalClosure(lexicalBindings.size(), lc);
     lc.add(arg1);
     lc.add(arg2);
-    vm.pushFrame(lc, this.instructions);
+    vm.pushInvocation(lc, this.instructions);
   }
 
   public void invoke(VM vm, LexicalClosure lc, Pair args) {

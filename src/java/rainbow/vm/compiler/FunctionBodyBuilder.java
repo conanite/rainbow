@@ -3,6 +3,7 @@ package rainbow.vm.compiler;
 import rainbow.ArcError;
 import rainbow.Nil;
 import rainbow.functions.interpreted.ComplexArgs;
+import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.functions.interpreted.SimpleArgs;
 import rainbow.types.ArcObject;
 import static rainbow.types.ArcObject.NIL;
@@ -36,7 +37,12 @@ public class FunctionBodyBuilder {
     }
 
     Pair body = (Pair) args.cdr();
-    Pair expandedBody = PairExpander.expand(vm, body, lexicalBindings);
+    Pair expandedBody = null;
+    try {
+      expandedBody = PairExpander.expand(vm, body, lexicalBindings);
+    } catch (Exception e) {
+      throw new ArcError("building function fn " + parameterList + " " + body + ": " + e, e);
+    }
     return buildFunctionBody(parameterList, myParams, expandedBody, complexParams);
   }
 
@@ -65,6 +71,60 @@ public class FunctionBodyBuilder {
 
     try {
       return (ArcObject) cons.newInstance(parameterList, lexicalBindings, expandedBody);
+    } catch (Exception e) {
+      throw new ArcError("Couldn't instantiate " + c + ": " + e, e);
+    }
+  }
+
+  public static ArcObject buildStackFunctionBody(ArcObject parameterList, Map lexicalBindings, Pair expandedBody, ArcObject complexParams) {
+    String sig = sig(parameterList, false);
+    if ("".equals(sig)) {
+      return buildFunctionBody(parameterList, lexicalBindings, expandedBody, complexParams);
+    }
+
+    String cname = "rainbow.functions.interpreted.optimise.stack.Stack" + sig;
+    Class c;
+    try {
+      c = Class.forName(cname);
+    } catch (ClassNotFoundException e) {
+      throw new ArcError("no stack-based function implementation for " + parameterList + "; couldn't find " + cname);
+    }
+
+    Constructor cons;
+    try {
+      cons = c.getConstructor(ArcObject.class, Map.class, Pair.class);
+    } catch (NoSuchMethodException e) {
+      throw new ArcError("Interpreted function constructor not found on " + c, e);
+    }
+
+    try {
+      return (ArcObject) cons.newInstance(parameterList, lexicalBindings, expandedBody);
+    } catch (Exception e) {
+      throw new ArcError("Couldn't instantiate " + c + ": " + e, e);
+    }
+  }
+
+  public static ArcObject convertToStackParams(InterpretedFunction ifn) {
+    String sig = sig(ifn.parameterList(), false);
+    String cname = "rainbow.functions.interpreted.optimise.stack.Stack" + sig;
+    Class c;
+    try {
+      c = Class.forName(cname);
+    } catch (ClassNotFoundException e) {
+      System.out.println("no implementation " + cname + " for " + ifn);
+      return ifn;
+    }
+
+    Constructor cons;
+    try {
+      cons = c.getConstructor(InterpretedFunction.class);
+    } catch (NoSuchMethodException e) {
+      throw new ArcError("Interpreted function constructor not found on " + c, e);
+    }
+
+    try {
+//      System.out.println("creating new stack-fn with sig " + sig + " for ifn " + ifn);
+      return (ArcObject) cons.newInstance(ifn);
     } catch (Exception e) {
       throw new ArcError("Couldn't instantiate " + c + ": " + e, e);
     }

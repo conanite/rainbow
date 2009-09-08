@@ -1,7 +1,6 @@
 package rainbow.vm;
 
 import rainbow.ArcError;
-import rainbow.Console;
 import rainbow.LexicalClosure;
 import rainbow.Nil;
 import rainbow.types.ArcException;
@@ -20,6 +19,7 @@ public class VM extends ArcObject {
   private static long threadCount = 0;
 
   private final long threadId;
+
   {
     synchronized(VM.class) {
       threadId = threadCount++;
@@ -27,11 +27,16 @@ public class VM extends ArcObject {
   }
 
   public ArcObject[] args = new ArcObject[100];
+  public int ap = -1;
+
+  public ArcObject[][] params = new ArcObject[100][];
   public LexicalClosure[] lcs = new LexicalClosure[100];
   public Pair[] ins = new Pair[100];
-  public int ap = -1;
   public int ip = -1;
+
   private LexicalClosure currentLc;
+  private ArcObject[] currentParams;
+
   private ArcException error;
   private VMInterceptor interceptor = VMInterceptor.NULL;
   private boolean dead = false;
@@ -39,8 +44,8 @@ public class VM extends ArcObject {
   public Map<String, Integer> profileData;
   public int debug_target_frame;
 
-  public ArcObject thread(LexicalClosure lc, Pair instructions) {
-    pushFrame(lc, instructions);
+  public ArcObject thread(LexicalClosure lc, Pair instructions) { // todo dump this, inline to callers
+    pushInvocation(lc, instructions);
     return thread();
   }
 
@@ -63,11 +68,19 @@ public class VM extends ArcObject {
 
   private void loop() {
     interceptor.check(this);
-    while (hasInstructions()) {
-      loadCurrentContext();
+    while (ip >= ipThreshold) {
       try {
-        step();
-        interceptor.check(this);
+        if (ins[ip] instanceof Nil) {
+          ip--;
+        } else {
+          currentLc = lcs[ip];
+          currentParams = params[ip];
+          Instruction i = (Instruction) ins[ip].car();
+          ins[ip] = ((Pair) ins[ip].cdr());
+//          Instruction.invoke(i);
+          i.operate(this);
+          interceptor.check(this);
+        }
       } catch (Throwable e) {
         handleError(e);
       }
@@ -80,40 +93,6 @@ public class VM extends ArcObject {
 
   public boolean hasInstructions() {
     return ip >= ipThreshold;
-  }
-
-  private void step() {
-    if (ip < 0) { // todo why is this here?
-      throw new Error("step: ip can't possibly be below 0!");
-    }
-    Pair instructions = peekI();
-    if (instructions instanceof Nil) {
-      popFrame();
-      return;
-    }
-
-    Instruction i = (Instruction) instructions.car();
-
-    Pair rest = (Pair) instructions.cdr();
-//    if (rest instanceof Nil) {
-//      popFrame();
-//    } else {
-    pokeI(rest);
-//    }
-
-    try {
-      i.operate(this);
-    } catch (ArcError e) {
-      throw e;
-    } catch (Exception e) {
-      String msg = "failed to execute instruction " + i.toString() +
-              "\nremaining instructions in this frame: " + rest +
-              "\nlast arg: " + (ap > -1 ? peekA() : null) +
-              "\nLC: " + currentLc +
-              "\nmessage: " + e.getMessage();
-      System.out.println(msg);
-      throw new ArcError(msg, e);
-    }
   }
 
   private void handleError(Throwable e) {
@@ -130,17 +109,8 @@ public class VM extends ArcObject {
 
     this.error = new ArcException(e);
 
-    if (Console.debugJava) {
-      System.out.println("\n\n------------------ ERROR -------------------");
-      System.out.println("handling error " + e);
-      System.out.println("finally clauses: " + instructions);
-      System.out.println("catch clause: " + (ip >= 0));
-      e.printStackTrace(System.out);
-      System.out.println("------------------ ERROR -------------------\n\n");
-    }
-
     for (int i = instructions.size() - 1; i >= 0; i--) {
-      pushFrame((LexicalClosure) lexClosures.get(i), (Pair) instructions.get(i));
+      pushInvocation((LexicalClosure) lexClosures.get(i), (Pair) instructions.get(i));
     }
   }
 
@@ -158,7 +128,7 @@ public class VM extends ArcObject {
     }
 
     for (int i = instructions.size() - 1; i >= 0; i--) {
-      pushFrame((LexicalClosure) lexClosures.get(i), (Pair) instructions.get(i));
+      pushInvocation((LexicalClosure) lexClosures.get(i), (Pair) instructions.get(i));
     }
   }
 
@@ -180,30 +150,80 @@ public class VM extends ArcObject {
   }
 
   public void pushFrame(Instruction i) {
-    pushFrame(null, Pair.buildFrom((ArcObject)i));
+    if (ip >= ipThreshold && peekI() instanceof Nil) {
+      ins[ip] = new Pair(i, NIL);
+    } else {
+      ++ip;
+      try {
+        ins[ip] = new Pair(i, NIL);
+      } catch (ArrayIndexOutOfBoundsException e) {
+        newInstructionArray(ins.length * 2);
+        newClosureArray(lcs.length * 2);
+        newParamsArray(params.length * 2);
+        ins[ip] = new Pair(i, NIL);
+      }
+    }
   }
 
-  public void pushFrame(LexicalClosure lc, Pair instructions) {
+  public void pushInvocation(LexicalClosure lc, Pair instructions) {
     if (ip >= ipThreshold && peekI() instanceof Nil) {
-      popFrame();
-    }
-    ++ip;
-    try {
       ins[ip] = instructions;
       lcs[ip] = lc;
-    } catch (ArrayIndexOutOfBoundsException e) {
-      newInstructionArray(ins.length * 2);
-      newClosureArray(lcs.length * 2);
-      ip--;
-      pushFrame(lc, instructions);
+    } else {
+      ++ip;
+      try {
+        ins[ip] = instructions;
+        lcs[ip] = lc;
+      } catch (ArrayIndexOutOfBoundsException e) {
+        newInstructionArray(ins.length * 2);
+        newClosureArray(lcs.length * 2);
+        newParamsArray(params.length * 2);
+        ins[ip] = instructions;
+        lcs[ip] = lc;
+      }
     }
   }
 
-  public void pokeI(Pair instructions) {
-    if (ip < 0) {
-      throw new Error("pokeI: ip can't possibly be below 0!");
+  public void pushInvocation(LexicalClosure lc, Pair instructions, ArcObject[] args) {
+    if (ip >= ipThreshold && peekI() instanceof Nil) {
+      ins[ip] = instructions;
+      lcs[ip] = lc;
+      params[ip] = args;
+    } else {
+      ++ip;
+      try {
+        ins[ip] = instructions;
+        lcs[ip] = lc;
+        params[ip] = args;
+      } catch (ArrayIndexOutOfBoundsException e) {
+        newInstructionArray(ins.length * 2);
+        newClosureArray(lcs.length * 2);
+        newParamsArray(params.length * 2);
+        ins[ip] = instructions;
+        lcs[ip] = lc;
+        params[ip] = args;
+      }
     }
-    ins[ip] = instructions;
+  }
+
+  public void pushConditional(Pair instructions) {
+    if (ip >= ipThreshold && peekI() instanceof Nil) {
+      ins[ip] = instructions;
+    } else {
+      ++ip;
+      try {
+        ins[ip] = instructions;
+        lcs[ip] = currentLc;
+        params[ip] = currentParams;
+      } catch (ArrayIndexOutOfBoundsException e) {
+        newInstructionArray(ins.length * 2);
+        newClosureArray(lcs.length * 2);
+        newParamsArray(params.length * 2);
+        ins[ip] = instructions;
+        lcs[ip] = currentLc;
+        params[ip] = currentParams;
+      }
+    }
   }
 
   public Pair peekI() {
@@ -214,14 +234,27 @@ public class VM extends ArcObject {
     return lcs[ip];
   }
 
+  public ArcObject param(int index) {
+    return currentParams[index];
+  }
+
+  public void pushParam(int index) {
+    ++ap;
+    try {
+      args[ap] = currentParams[index];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      newArgArray(args.length * 2);
+      args[ap] = currentParams[index];
+    }
+  }
+
   public void pushA(ArcObject arg) {
     ++ap;
     try {
       args[ap] = arg;
     } catch (ArrayIndexOutOfBoundsException e) {
       newArgArray(args.length * 2);
-      ap--;
-      pushA(arg);
+      args[ap] = arg;
     }
   }
 
@@ -230,9 +263,6 @@ public class VM extends ArcObject {
   }
 
   public ArcObject popA() {
-    if (ap < 0) {
-      throw new Error("no more args on arg stack!");
-    }
     return args[ap--];
   }
 
@@ -305,23 +335,17 @@ public class VM extends ArcObject {
   }
 
   public void copyTo(VM vm) {
-    compact();
     vm.ap = this.ap;
     vm.ip = this.ip;
     vm.ins = this.ins.clone();
     vm.args = this.args.clone();
     vm.lcs = this.lcs.clone();
+    vm.params = this.params.clone();
     vm.currentLc = this.currentLc;
     vm.error = this.error;
     vm.interceptor = this.interceptor;
     vm.dead = this.dead;
     vm.ipThreshold = this.ipThreshold;
-  }
-
-  private void compact() {
-    if (ins.length > (ip * 2)) {
-
-    }
   }
 
   public boolean dead() {
@@ -348,6 +372,12 @@ public class VM extends ArcObject {
     Pair[] newI = new Pair[newLength];
     copy(ins, newI);
     this.ins = newI;
+  }
+
+  private void newParamsArray(int newLength) {
+    ArcObject[][] newP = new ArcObject[newLength][];
+    copy(params, newP);
+    this.params = newP;
   }
 
   private void copy(Object[] src, Object[] dest) {

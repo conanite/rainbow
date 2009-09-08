@@ -22,7 +22,7 @@ public class ComplexArgs extends InterpretedFunction {
   public void invoke(VM vm, LexicalClosure lc, Pair args) {
     lc = new LexicalClosure(lexicalBindings.size(), lc);
     complex(vm, lc, parameterList, args);
-    vm.pushFrame(lc, this.instructions);
+    vm.pushInvocation(lc, this.instructions);
   }
 
   private static void complex(VM vm, LexicalClosure lc, ArcObject parameters, Pair args) {
@@ -62,7 +62,7 @@ public class ComplexArgs extends InterpretedFunction {
   private static ArcObject evalOptional(VM vm, LexicalClosure lc, Pair optional) {
     List i = new ArrayList();
     optional.cdr().car().addInstructions(i);
-    vm.pushFrame(lc, Pair.buildFrom(i));
+    vm.pushInvocation(lc, Pair.buildFrom(i));
     return vm.thread();
   }
 

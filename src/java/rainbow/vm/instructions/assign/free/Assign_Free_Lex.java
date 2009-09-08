@@ -30,7 +30,7 @@ public class Assign_Free_Lex extends Assign_Free {
   }
 
   public String toString() {
-    return "(assign-free " + name + " " + value + ")";
+    return "(assign-free-lex " + name + " " + value + ")";
   }
 
   public static class Intermediate extends Assign_Free_Lex {

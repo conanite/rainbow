@@ -11,6 +11,7 @@ import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class QuasiQuotation extends ArcObject {
   private ArcObject target;
@@ -82,7 +83,7 @@ public class QuasiQuotation extends ArcObject {
     }
   }
 
-  private int highestLexicalScopeReference(int highest, ArcObject expr) { // todo this won't work for nested quasiquotes, shold work with unquotes() instead
+  private int highestLexicalScopeReference(int highest, ArcObject expr) { // todo this won't work for nested quasiquotes, should use unquotes() instead
     if (isUnQuote(expr)) {
       int me = expr.cdr().car().highestLexicalScopeReference();
       return me > highest ? me : highest;
@@ -288,8 +289,61 @@ public class QuasiQuotation extends ArcObject {
     return Pair.buildFrom(list, last);
   }
 
+  public ArcObject inline(StackSymbol p, ArcObject arg, int paramIndex) {
+    return new QuasiQuotation(inline(p, arg, paramIndex, target, 1));
+  }
+
+  private static ArcObject inline(StackSymbol p, ArcObject arg, int paramIndex, ArcObject expr, int nesting) {
+    if (isUnQuote(expr)) {
+      if (nesting == 1) {
+        return Pair.buildFrom(UNQUOTE, expr.cdr().car().inline(p, arg, paramIndex));
+      } else {
+        return Pair.buildFrom(UNQUOTE, inline(p, arg, paramIndex, expr.cdr().car(), nesting - 1));
+      }
+
+    } else if (isUnQuoteSplicing(expr)) {
+      if (nesting == 1) {
+        return Pair.buildFrom(UNQUOTE_SPLICING, expr.cdr().car().inline(p, arg, paramIndex));
+      } else {
+        return Pair.buildFrom(UNQUOTE_SPLICING, inline(p, arg, paramIndex, expr.cdr().car(), nesting - 1));
+      }
+
+    } else if (isQuasiQuote(expr)) {
+      return Pair.buildFrom(QUASIQUOTE, inline(p, arg, paramIndex, expr.cdr().car(), nesting + 1));
+
+    } else if (expr.isNotPair()) {
+      return expr;
+    }
+
+    List list = new ArrayList();
+    ArcObject last = NIL;
+
+    while (!expr.isNotPair()) {
+      if (isUnQuote(expr) || isQuasiQuote(expr)) { // catch post-dot unquotes
+        last = inline(p, arg, paramIndex, expr, nesting);
+        expr = expr.cdr().cdr();
+      } else {
+        final ArcObject current = expr.car();
+        expr = expr.cdr();
+        if (isUnQuoteSplicing(current)) {
+          list.add(inline(p, arg, paramIndex, current, nesting));
+        } else if (isUnQuote(current) || isQuasiQuote(current) || isPair(current)) {
+          list.add(inline(p, arg, paramIndex, current, nesting));
+        } else {
+          list.add(current);
+        }
+      }
+    }
+
+    if (!(expr instanceof Nil)) {
+      last = expr;
+    }
+
+    return Pair.buildFrom(list, last);
+  }
+
   public ArcObject nest(int threshold) {
-    return nest(threshold, target, 1);
+    return new QuasiQuotation(nest(threshold, target, 1));
   }
 
   private static ArcObject nest(int threshold, ArcObject expr, int nesting) {
@@ -339,6 +393,56 @@ public class QuasiQuotation extends ArcObject {
     return Pair.buildFrom(list, last);
   }
 
+  public ArcObject replaceBoundSymbols(Map<Symbol, Integer> lexicalBindings) {
+    return new QuasiQuotation(replaceBoundSymbols(lexicalBindings, target, 1));
+  }
+
+  private static ArcObject replaceBoundSymbols(Map<Symbol, Integer> lexicalBindings, ArcObject expr, int nesting) {
+    if (isUnQuote(expr)) {
+      if (nesting == 1) {
+        return Pair.buildFrom(UNQUOTE, expr.cdr().car().replaceBoundSymbols(lexicalBindings));
+      } else {
+        return Pair.buildFrom(UNQUOTE, replaceBoundSymbols(lexicalBindings, expr.cdr().car(), nesting - 1));
+      }
+
+    } else if (isUnQuoteSplicing(expr)) {
+      if (nesting == 1) {
+        return Pair.buildFrom(UNQUOTE_SPLICING, expr.cdr().car().replaceBoundSymbols(lexicalBindings));
+      } else {
+        return Pair.buildFrom(UNQUOTE_SPLICING, replaceBoundSymbols(lexicalBindings, expr.cdr().car(), nesting - 1));
+      }
+
+    } else if (isQuasiQuote(expr)) {
+      return Pair.buildFrom(QUASIQUOTE, replaceBoundSymbols(lexicalBindings, expr.cdr().car(), nesting + 1));
+
+    } else if (expr.isNotPair()) {
+      return expr;
+    }
+
+    List list = new ArrayList();
+    ArcObject last = NIL;
+
+    while (!expr.isNotPair()) {
+      if (isUnQuote(expr) || isQuasiQuote(expr)) { // catch post-dot unquotes
+        last = replaceBoundSymbols(lexicalBindings, expr, nesting);
+        expr = expr.cdr().cdr();
+      } else {
+        final ArcObject current = expr.car();
+        expr = expr.cdr();
+        if (isUnQuoteSplicing(current) || isUnQuote(current) || isQuasiQuote(current) || isPair(current)) {
+          list.add(replaceBoundSymbols(lexicalBindings, current, nesting));
+        } else {
+          list.add(current);
+        }
+      }
+    }
+
+    if (!(expr instanceof Nil)) {
+      last = expr;
+    }
+
+    return Pair.buildFrom(list, last);
+  }
 
   public void visit(Visitor v) {
     v.accept(this);

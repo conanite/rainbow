@@ -4,11 +4,10 @@ import rainbow.ArcError;
 import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
-import rainbow.vm.instructions.assign.bound.Assign_Lex;
-import rainbow.vm.instructions.assign.free.Assign_Free;
 import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.List;
+import java.util.Map;
 
 public class LastAssignment extends SingleAssignment {
 
@@ -31,11 +30,7 @@ public class LastAssignment extends SingleAssignment {
   }
 
   public void addInstructions(List i) {
-    if (name instanceof BoundSymbol) {
-      Assign_Lex.addInstructions(i, (BoundSymbol) name, expression, true);
-    } else if (name instanceof Symbol) {
-      Assign_Free.addInstructions(i, (Symbol) name, expression, true);
-    }
+    addMyInstructions(i, true);
   }
 
   public int countReferences(int refs, BoundSymbol p) {
@@ -66,10 +61,27 @@ public class LastAssignment extends SingleAssignment {
     return sa;
   }
 
+  public SingleAssignment inline(StackSymbol p, ArcObject arg, int paramIndex) {
+    LastAssignment sa = new LastAssignment();
+    if (name instanceof StackSymbol && p.isSameStackSymbol((StackSymbol) name)) {
+      throw new ArcError("Can't inline " + p + " -> " + arg + "; assignment");
+    }
+    sa.name = this.name.inline(p, arg, paramIndex);
+    sa.expression = this.expression.inline(p, arg, paramIndex);
+    return sa;
+  }
+
   public LastAssignment nest(int threshold) {
     LastAssignment sa = new LastAssignment();
     sa.name = this.name.nest(threshold);
     sa.expression = this.expression.nest(threshold);
+    return sa;
+  }
+
+  public ArcObject replaceBoundSymbols(Map<Symbol, Integer> lexicalBindings) {
+    LastAssignment sa = new LastAssignment();
+    sa.name = this.name.replaceBoundSymbols(lexicalBindings);
+    sa.expression = this.expression.replaceBoundSymbols(lexicalBindings);
     return sa;
   }
 

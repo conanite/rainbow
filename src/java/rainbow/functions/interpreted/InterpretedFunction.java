@@ -1,26 +1,29 @@
 package rainbow.functions.interpreted;
 
 import rainbow.ArcError;
+import rainbow.Console;
 import rainbow.LexicalClosure;
 import rainbow.Nil;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
-import rainbow.types.LiteralObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.VM;
 import rainbow.vm.compiler.FunctionBodyBuilder;
 import rainbow.vm.compiler.FunctionParameterListBuilder;
-import rainbow.vm.instructions.*;
+import rainbow.vm.instructions.Close;
+import rainbow.vm.instructions.Literal;
+import rainbow.vm.instructions.PopArg;
 import rainbow.vm.interpreter.BoundSymbol;
 import rainbow.vm.interpreter.Quotation;
+import rainbow.vm.interpreter.StackSymbol;
 import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.*;
 
 public abstract class InterpretedFunction extends ArcObject implements Cloneable {
   protected ArcObject parameterList;
-  protected Map<Symbol, Integer> lexicalBindings;
+  public final Map<Symbol, Integer> lexicalBindings;
   public ArcObject[] body;
   protected Pair instructions;
 
@@ -32,38 +35,17 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
   }
 
   public ArcObject reduce() {
-    canIGoOnTheStack();
-    return this;
+    if (Console.stackfunctions && canIGoOnTheStack() && !(parameterList instanceof Nil)) {
+      return FunctionBodyBuilder.convertToStackParams(this);
+    } else {
+      return this;
+    }
   }
 
-  private void canIGoOnTheStack() {
-    if (hasClosures()) {
-      return;
-    }
-
-    if (requiresClosure()) {
-      return;
-    }
-
-    if (lexicalBindings.size() > 1) {
-      return;
-    }
-
-    if (!(parameterList instanceof Symbol) && !(parameterList.car() instanceof Symbol)) {
-      return;
-    }
-
-    Symbol p = (Symbol) ((parameterList instanceof Symbol) ? parameterList : parameterList.car());
-    BoundSymbol b = new BoundSymbol(p, 0, 0);
-
-    List referrers = findReferrers(b);
-    if (referrers.size() > 1) {
-      return;
-    }
-
-//    System.out.println("referrers to " + b + " in " + this + " : " + referrers);
-
-//    System.out.println("I can go on the stack: " + this);
+  private boolean canIGoOnTheStack() {
+    // if I need to make closures, I can't keep my params on the param stack
+    // todo this could be more subtle: create LC for params that need it, put all other params on stack. probably poor for performance though
+    return !hasClosures();
   }
 
   private void buildInstructionList() {
@@ -88,16 +70,16 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
   }
 
   public boolean canInline(Symbol param, ArcObject arg) {
-    Integer paramIndex = lexicalBindings.get(param);
-    BoundSymbol p = new BoundSymbol(param, 0, paramIndex);
     return  body.length == 1
-            && inlineableArg(p, arg)
+            && inlineableArg(param, arg)
             && !assigns(0)
             && !hasClosures();
   }
 
-  private boolean inlineableArg(BoundSymbol p, ArcObject arg) {
-    return (arg instanceof LiteralObject)
+  private boolean inlineableArg(Symbol param, ArcObject arg) {
+    Integer paramIndex = lexicalBindings.get(param);
+    BoundSymbol p = BoundSymbol.make(param, 0, paramIndex);
+    return (arg.literal())
             || (arg instanceof Quotation)
             || (arg instanceof Symbol)
             || (arg instanceof BoundSymbol)
@@ -178,11 +160,21 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
     invoke(vm, lc, new Pair(arg1, new Pair(arg2, NIL)));
   }
 
+  public void invokef(VM vm, ArcObject arg1, ArcObject arg2, ArcObject arg3) {
+    invokeN(vm, null, arg1, arg2, arg3);
+  }
+
+  public void invokeN(VM vm, LexicalClosure lc, ArcObject arg1, ArcObject arg2, ArcObject arg3) {
+    invoke(vm, lc, new Pair(arg1, new Pair(arg2, new Pair(arg3, NIL))));
+  }
+
   public void invoke(VM vm, Pair args) {
     invoke(vm, null, args);
   }
 
-  public abstract void invoke(VM vm, LexicalClosure lc, Pair args);
+  public void invoke(VM vm, LexicalClosure lc, Pair args) {
+    throw new ArcError("error: invoke(vm, lc, args) not implemented in " + this.getClass() + "; " + this);
+  }
 
   public Pair instructions() {
     return instructions;
@@ -190,18 +182,25 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
 
   public void addInstructions(List i) {
     if (requiresClosure()) {
+//      System.out.println("requires closure : " + this);
       i.add(new Close(this));
     } else {
       i.add(new Literal(this));
     }
   }
 
-  public boolean requiresClosure() {
+  public boolean literal() {
+    return !requiresClosure();
+  }
+
+  public boolean requiresClosure() { // todo should ignore (do ...) forms because they get inlined anyway
+    // todo but must make sure (fn () ...) is counted as requiring closure if it's an arg in an invocation
+    // in other words, (fn () ...) doesn't require a closure if it's in fn position of an invocation
     return highestLexicalScopeReference() > -1;
   }
 
   public int highestLexicalScopeReference() {
-    int highest = Integer.MIN_VALUE;
+    int highest = -1;
     for (ArcObject expr : body) {
       int eh = expr.highestLexicalScopeReference();
       if (eh > highest) {
@@ -210,7 +209,7 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
       highest = FunctionBodyBuilder.highestLexScopeReference(highest, parameterList, false);
     }
 
-    if (parameterList() instanceof Nil) {
+    if (parameterList() instanceof Nil || this instanceof StackFunctionSupport) {
       return highest;
     } else {
       return highest - 1;
@@ -280,7 +279,7 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
           if (body[0] instanceof BoundSymbol) {
             Symbol p1 = (Symbol) parameterList.car();
             BoundSymbol rv = (BoundSymbol) body[0];
-            BoundSymbol equiv = new BoundSymbol(p1, 0, 0);
+            BoundSymbol equiv = BoundSymbol.make(p1, 0, 0);
             return rv.isSameBoundSymbol(equiv);
           }
         }
@@ -342,7 +341,7 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
 
   public ArcObject curry(Symbol param, ArcObject arg, boolean requiresNesting) {
     Integer paramIndex = lexicalBindings.get(param);
-    BoundSymbol p = new BoundSymbol(param, 0, paramIndex);
+    BoundSymbol p = BoundSymbol.make(param, 0, paramIndex);
     ArcObject newParams = FunctionParameterListBuilder.curry(parameterList, p, arg, paramIndex);
     Map lexicalBindings = new HashMap();
     FunctionParameterListBuilder.index(newParams, lexicalBindings, new int[] {0}, false);
@@ -374,6 +373,22 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
     return fn;
   }
 
+  public ArcObject inline(StackSymbol p, ArcObject arg, int paramIndex) {
+    if (!(parameterList instanceof Nil)) {
+      return this;
+    }
+    InterpretedFunction fn = cloneThis();
+
+    List newBody = new ArrayList();
+    for (int i = 0; i < body.length; i++) {
+      newBody.add(body[i].inline(p, arg, paramIndex).reduce());
+    }
+    Pair nb = Pair.buildFrom(newBody);
+    fn.body = nb.toArray();
+    fn.buildInstructionList();
+    return fn;
+  }
+
   public ArcObject nest(int threshold) {
     if (!(parameterList instanceof Nil)) {
       threshold++;
@@ -395,6 +410,12 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
       return (InterpretedFunction) clone();
     } catch (CloneNotSupportedException e) {
       throw new ArcError("couldn't clone " + this + "; " + e, e);
+    }
+  }
+
+  protected void checkArgsLength(int expected, ArcObject args) {
+    if (!args.hasLen(expected)) {
+      throw new ArcError("error: " + this + " expects " + expected + " args, got " + args);
     }
   }
 }

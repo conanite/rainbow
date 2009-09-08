@@ -8,14 +8,19 @@ import rainbow.vm.instructions.LexSym;
 import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.List;
+import java.util.Map;
 
 public class BoundSymbol extends ArcObject {
   public static final Symbol TYPE = Symbol.mkSym("bound-symbol");
   public final int nesting;
-  private final int index;
+  protected final int index;
   public final Symbol name;
 
-  public BoundSymbol(Symbol name, int nesting, int index) {
+  public static BoundSymbol make(Symbol name, int nesting, int index) {
+    return new BoundSymbol(name, nesting, index);
+  }
+
+  protected BoundSymbol(Symbol name, int nesting, int index) {
     this.nesting = nesting;
     this.index = index;
     this.name = name;
@@ -26,11 +31,13 @@ public class BoundSymbol extends ArcObject {
   }
 
   public ArcObject interpret(LexicalClosure lc) {
-    try {
-      return lc.nth(nesting).at(index);
-    } catch (Exception e) {
-      throw new ArcError("internal error evaluating " + this + " in context " + lc + "; " + e, e);
+    int n = nesting;
+    while (n > 0) {
+      lc = lc.parent;
+      n--;
     }
+    return lc.at(index);
+//    return lc.nth(nesting).at(index);
   }
 
   public void addInstructions(List i) {
@@ -43,7 +50,6 @@ public class BoundSymbol extends ArcObject {
 
   public String toString() {
     return name + "[" + nesting + ":" + index + "]";
-//    return name.name();
   }
 
   public boolean isSameBoundSymbol(BoundSymbol other) {
@@ -64,14 +70,14 @@ public class BoundSymbol extends ArcObject {
 
   public BoundSymbol nest(int threshold) {
     if (nesting >= threshold) {
-      return new BoundSymbol(name, nesting + 1, index);
+      return BoundSymbol.make(name, nesting + 1, index);
     } else {
       return this;
     }
   }
 
   public BoundSymbol unnest() {
-    return new BoundSymbol(name, this.nesting - 1, index);
+    return BoundSymbol.make(name, this.nesting - 1, index);
   }
 
   public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex) {
@@ -83,7 +89,7 @@ public class BoundSymbol extends ArcObject {
       }
       return unnest();
     } else if (nesting == this.nesting && paramIndex < index) {
-      return new BoundSymbol(name, this.nesting, this.index - 1);
+      return BoundSymbol.make(name, this.nesting, this.index - 1);
     } else {
       return this;
     }
@@ -91,5 +97,16 @@ public class BoundSymbol extends ArcObject {
 
   public void visit(Visitor v) {
     v.accept(this);
+  }
+
+  public ArcObject replaceBoundSymbols(Map<Symbol, Integer> lexicalBindings) {
+    Integer index = lexicalBindings.get(name);
+    if (index == null) {
+      return this.unnest();
+    } else if (index == this.index) {
+      return new StackSymbol(name, index);
+    } else {
+      throw new ArcError("error: parameter index mismatch: expected " + index + ", got " + this.index);
+    }
   }
 }

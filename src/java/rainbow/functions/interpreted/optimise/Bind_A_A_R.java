@@ -27,6 +27,6 @@ public class Bind_A_A_R extends InterpretedFunction {
     lc.add(args.car());
     lc.add(args.cdr().car());
     lc.add(args.cdr().cdr());
-    vm.pushFrame(lc, this.instructions);
+    vm.pushInvocation(lc, this.instructions);
   }
 }

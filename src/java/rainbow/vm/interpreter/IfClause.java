@@ -5,6 +5,7 @@ import rainbow.types.Symbol;
 import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.List;
+import java.util.Map;
 
 public class IfClause extends ArcObject {
   private static final ArcObject TYPE = Symbol.mkSym("if-clause");
@@ -65,9 +66,21 @@ public class IfClause extends ArcObject {
     return ic;
   }
 
+  public ArcObject inline(StackSymbol p, ArcObject arg, int paramIndex) {
+    IfClause ic = new IfClause();
+    ic.first = (Conditional) this.first.inline(p, arg, paramIndex).reduce();
+    return ic;
+  }
+
   public ArcObject nest(int threshold) {
     IfClause ic = new IfClause();
     ic.first = (Conditional) this.first.nest(threshold);
+    return ic;
+  }
+
+  public ArcObject replaceBoundSymbols(Map<Symbol, Integer> lexicalBindings) {
+    IfClause ic = new IfClause();
+    ic.first = (Conditional) this.first.replaceBoundSymbols(lexicalBindings);
     return ic;
   }
 

@@ -16,6 +16,6 @@ public class Bind_R extends InterpretedFunction {
   public void invoke(VM vm, LexicalClosure lc, Pair args) {
     lc = new LexicalClosure(lexicalBindings.size(), lc);
     lc.add(args);
-    vm.pushFrame(lc, this.instructions);
+    vm.pushInvocation(lc, this.instructions);
   }
 }

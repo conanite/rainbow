@@ -12,6 +12,7 @@ import java.util.*;
 
 public class Console {
   public static boolean debugJava = false;
+  public static boolean stackfunctions = true;
 
   public static void main(String args[]) throws ParseException, IOException {
     long started = System.currentTimeMillis();
@@ -19,6 +20,10 @@ public class Console {
     String[] path = getArcPath();
     Argv argv = new Argv(args);
     List programArgs = parseAll(argv.terminal("-args"));
+
+    if (argv.present("--nosf")) {
+      stackfunctions = false;
+    }
 
     if (argv.present("--help")) {
       showHelp();

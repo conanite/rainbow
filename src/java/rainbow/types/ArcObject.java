@@ -7,10 +7,12 @@ import rainbow.types.Pair.NotPair;
 import rainbow.vm.VM;
 import rainbow.vm.instructions.invoke.Invoke_N;
 import rainbow.vm.interpreter.BoundSymbol;
+import rainbow.vm.interpreter.StackSymbol;
 import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public abstract class ArcObject {
   public static final Symbol TYPE_DISPATCHER_TABLE = Symbol.mkSym("call*");
@@ -155,6 +157,16 @@ public abstract class ArcObject {
   public void visit(Visitor v) {
   }
 
+  public ArcObject replaceBoundSymbols(Map<Symbol, Integer> lexicalBindings) {
+    return this;
+  }
+
+  public void unassigned(ArcObject name) {
+  }
+
+  public void assigned(ArcObject name) {
+  }
+
   public static class NotNil extends Throwable {
   }
 
@@ -171,6 +183,10 @@ public abstract class ArcObject {
   }
 
   public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex) {
+    return this;
+  }
+
+  public ArcObject inline(StackSymbol p, ArcObject arg, int paramIndex) {
     return this;
   }
 

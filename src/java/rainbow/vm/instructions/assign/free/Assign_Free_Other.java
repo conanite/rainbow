@@ -17,11 +17,11 @@ public class Assign_Free_Other extends Assign_Free {
   }
 
   public String toString() {
-    return "(assign-free " + name + ")";
+    return "(assign-free-other " + name + ")";
   }
 
   public String toString(LexicalClosure lc) {
-    return "(assign-free " + name + " -> " + symValue(name) + ")";
+    return "(assign-free-other " + name + " -> " + symValue(name) + ")";
   }
 
   public static void addInstructions(List i, Symbol name, ArcObject expr, boolean last) {

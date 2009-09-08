@@ -1,11 +1,6 @@
-;(constructor '((0 bound) (1 free) (2 literal) (3 quote) (4 other)))
-;(operate-method '((0 bound) (1 free) (2 literal) (3 quote) (4 other)))
-;(to-string '((0 bound) (1 free) (2 literal) (3 quote) (4 other)))
-;(classname (map cadr '((0 bound) (1 free) (2 literal) (3 quote) (4 other))))
-;(generate-class '(bound free literal quote other))
 
-(assign fn-types '(bound free other)
-        arg-types '(bound free literal quote other))
+(assign fn-types '(bound stack free other)
+        arg-types '(bound stack free literal quote other))
 
 (def optimiser-generator ()
   (make-directory package-dir)
@@ -105,6 +100,8 @@
         (prn "    return vm.peekA();")
         (is fn-type 'bound)
         (prn "    return fn.interpret(vm.lc());")
+        (is fn-type 'stack)
+        (prn "    return fn.get(vm);")
         (is fn-type 'free)
         (prn "    return fn;")))
   (prn "  }"))
@@ -134,6 +131,7 @@
 (def to-stringify (name type)
   (case type
     bound    "\"[bound:\" + #(name) + \"->\" + #(name).interpret(lc) + \"]\""
+    stack    "\"[stack:\" + #(name)                                  + \"]\""
     free     "\"[free:\"  + #(name) + \"->\" + #(name).value()       + \"]\""
     literal  "\"[lit:\"   + #(name)                                  + \"]\""
     quote    "\"[quote:\" + #(name)                                  + \"]\""
@@ -142,6 +140,7 @@
 (def simple-to-stringify (name type)
   (case type
     bound    "\"[bound:\" + #(name)                            + \"]\""
+    stack    "\"[stack:\" + #(name)                            + \"]\""
     free     "\"[free:\"  + #(name) + \"->\" + #(name).value() + \"]\""
     literal  "\"[lit:\"   + #(name)                            + \"]\""
     quote    "\"[quote:\" + #(name)                            + \"]\""
@@ -160,6 +159,7 @@
 (def cast (type)
   (case type
     bound   "(BoundSymbol)"
+    stack   "(StackSymbol)"
     free    "(Symbol)"
     literal ""
     quote   ""
@@ -168,6 +168,7 @@
 (def constructor-getter (type)
   (case type
     bound   "(BoundSymbol)args.car()"
+    stack   "(StackSymbol)args.car()"
     free    "(Symbol)args.car()"
     literal "args.car()"
     quote   "((Quotation)args.car()).quoted()"
@@ -176,6 +177,7 @@
 (def java-type-for (type)
   (case type
     bound   "BoundSymbol"
+    stack   "StackSymbol"
     free    "Symbol"
     literal "ArcObject"
     quote   "ArcObject"
@@ -184,6 +186,7 @@
 (def type-getter (type)
   (case type
     bound   ".interpret(vm.lc())"
+    stack   ".get(vm)"
     free    ".value()"
     literal ""
     quote   ""
@@ -200,5 +203,6 @@ import rainbow.vm.Instruction;
 import rainbow.vm.VM;
 import rainbow.vm.interpreter.Quotation;
 import rainbow.vm.interpreter.BoundSymbol;
+import rainbow.vm.interpreter.StackSymbol;
 import rainbow.vm.instructions.invoke.Invoke;"
 )

@@ -6,6 +6,7 @@ import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 
 import java.util.List;
+import java.util.Map;
 
 public class Assignment extends ArcObject {
   private SingleAssignment assignment;
@@ -65,6 +66,12 @@ public class Assignment extends ArcObject {
     return a;
   }
 
+  public ArcObject inline(StackSymbol p, ArcObject arg, int paramIndex) {
+    Assignment a = new Assignment();
+    a.assignment = this.assignment.inline(p, arg, paramIndex);
+    return a;
+  }
+
   public ArcObject nest(int threshold) {
     Assignment a = new Assignment();
     a.assignment = this.assignment.nest(threshold);
@@ -75,5 +82,11 @@ public class Assignment extends ArcObject {
     v.accept(this);
     assignment.visit(v);
     v.end(this);
+  }
+
+  public ArcObject replaceBoundSymbols(Map<Symbol, Integer> lexicalBindings) {
+    Assignment a = new Assignment();
+    a.assignment = (SingleAssignment) this.assignment.replaceBoundSymbols(lexicalBindings);
+    return a;
   }
 }

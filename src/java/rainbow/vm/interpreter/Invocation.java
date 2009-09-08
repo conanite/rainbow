@@ -37,10 +37,6 @@ public class Invocation extends ArcObject {
     boolean v = inlineDoForm(i) || addOptimisedHandler(i) || defaultAddInstructions(i);
   }
 
-  public boolean canStackify(BoundSymbol s) {
-    return false;
-  }
-
   public ArcObject reduce() {
     if (parts.longerThan(1)) {
       if (parts.car() instanceof InterpretedFunction) {
@@ -132,11 +128,13 @@ public class Invocation extends ArcObject {
     return s;
   }
 
-  private String sig(ArcObject o) {
+  public static String sig(ArcObject o) {
     if (o instanceof BoundSymbol) {
       return "bound";
     } else if (o instanceof Symbol) {
       return "free";
+    } else if (o instanceof StackSymbol) {
+      return "stack";
     } else if (o.literal()) {
       return "literal";
     } else if (o instanceof Quotation) {
@@ -234,11 +232,35 @@ public class Invocation extends ArcObject {
     return new Invocation(Pair.buildFrom(inlined));
   }
 
+  public ArcObject inline(StackSymbol p, ArcObject arg, int paramIndex) {
+    Pair pt = this.parts;
+    List inlined = new ArrayList();
+    while (!(pt instanceof Nil)) {
+      try {
+        inlined.add(pt.car().inline(p, arg, paramIndex));
+      } catch (Exception e) {
+        throw new ArcError("couldn't inline " + p + "->" + arg + ") in " + this + " : " + e, e);
+      }
+      pt = (Pair) pt.cdr();
+    }
+    return new Invocation(Pair.buildFrom(inlined));
+  }
+
   public ArcObject nest(int threshold) {
     Pair pt = this.parts;
     List inlined = new ArrayList();
     while (!(pt instanceof Nil)) {
       inlined.add(pt.car().nest(threshold));
+      pt = (Pair) pt.cdr();
+    }
+    return new Invocation(Pair.buildFrom(inlined));
+  }
+
+  public ArcObject replaceBoundSymbols(Map<Symbol, Integer> lexicalBindings) {
+    Pair pt = this.parts;
+    List inlined = new ArrayList();
+    while (!(pt instanceof Nil)) {
+      inlined.add(pt.car().replaceBoundSymbols(lexicalBindings));
       pt = (Pair) pt.cdr();
     }
     return new Invocation(Pair.buildFrom(inlined));

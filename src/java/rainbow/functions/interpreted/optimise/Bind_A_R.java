@@ -22,6 +22,6 @@ public class Bind_A_R extends InterpretedFunction {
     lc = new LexicalClosure(lexicalBindings.size(), lc);
     lc.add(args.car());
     lc.add(args.cdr());
-    vm.pushFrame(lc, this.instructions);
+    vm.pushInvocation(lc, this.instructions);
   }
 }

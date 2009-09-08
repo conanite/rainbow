@@ -40,4 +40,8 @@ public abstract class ArcNumber extends LiteralObject {
       throw new ArcError("Wrong argument type: " + caller + " expected a number, got " + argument);
     }
   }
+
+  public ArcObject mod(ArcNumber other) {
+    throw new ArcError("mod: not implemented for " + this.getClass() + "(" + this + ")");
+  }
 }

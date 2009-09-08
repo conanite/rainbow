@@ -7,6 +7,7 @@ import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 
 import java.util.List;
+import java.util.Map;
 
 public class Else extends ArcObject implements Conditional {
   public ArcObject ifExpression;
@@ -40,7 +41,7 @@ public class Else extends ArcObject implements Conditional {
   }
 
   public String toString() {
-    return ifExpression.toString();
+    return "else:" + ifExpression;
   }
 
   public int countReferences(int refs, BoundSymbol p) {
@@ -69,9 +70,21 @@ public class Else extends ArcObject implements Conditional {
     return e;
   }
 
+  public ArcObject inline(StackSymbol p, ArcObject arg, int paramIndex) {
+    Else e = new Else();
+    e.ifExpression = this.ifExpression.inline(p, arg, paramIndex).reduce();
+    return e;
+  }
+
   public ArcObject nest(int threshold) {
     Else e = new Else();
     e.ifExpression = this.ifExpression.nest(threshold);
+    return e;
+  }
+
+  public ArcObject replaceBoundSymbols(Map<Symbol, Integer> lexicalBindings) {
+    Else e = new Else();
+    e.ifExpression = this.ifExpression.replaceBoundSymbols(lexicalBindings);
     return e;
   }
 
@@ -79,5 +92,9 @@ public class Else extends ArcObject implements Conditional {
     v.accept(this);
     ifExpression.visit(v);
     v.end(this);
+  }
+
+  public String sig() {
+    return "_" + Invocation.sig(ifExpression);
   }
 }

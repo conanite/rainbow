@@ -1,14 +1,17 @@
 package rainbow.vm.interpreter;
 
+import rainbow.ArcError;
 import rainbow.Nil;
 import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 import rainbow.vm.instructions.cond.Cond;
-import rainbow.vm.instructions.cond.Cond_Lex;
 import rainbow.vm.interpreter.visitor.Visitor;
 
+import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class IfThen extends ArcObject implements Conditional {
   public ArcObject ifExpression;
@@ -37,20 +40,51 @@ public class IfThen extends ArcObject implements Conditional {
     }
   }
 
+  static Map<String, Method> handlers = new HashMap();
+
   public void addInstructions(List i) {
-    if (ifExpression instanceof BoundSymbol) {
-      Cond_Lex.addInstructions(i, (BoundSymbol) ifExpression, thenExpression, next);
-    } else {
-      ifExpression.addInstructions(i);
-      i.add(new Cond(thenExpression, (ArcObject) next));
+    String sig = sig();
+    String prefix = "rainbow.vm.instructions.cond.optimise.If";
+    String classname = prefix + sig;
+    try {
+      if (!handlers.containsKey(classname)) {
+        loadHandler(classname);
+        addInstructions(i);
+      } else {
+        Method m = handlers.get(classname);
+        if (m == null) {
+          defaultAddInstructions(i, sig);
+        } else {
+          m.invoke(null, i, ifExpression, thenExpression, next);
+        }
+      }
+    } catch (Exception e) {
+      throw new ArcError("Couldn't instantiate " + classname + ": " + e, e);
     }
+  }
+
+  static void loadHandler(String classname) {
+    try {
+      Class c = Class.forName(classname);
+      Method m = c.getMethod("addInstructions", List.class, ArcObject.class, ArcObject.class, ArcObject.class);
+      handlers.put(classname, m);
+    } catch (ClassNotFoundException e) {
+      handlers.put(classname, null);
+    } catch (NoSuchMethodException e) {
+      throw new ArcError("couldn't find handler method 'addInstructions(List,ArcObject,ArcObject,ArcObject) on " + classname + ": " + e, e);
+    }
+  }
+
+  private void defaultAddInstructions(List i, String sig) {
+    ifExpression.addInstructions(i);
+    i.add(new Cond(thenExpression, (ArcObject) next, sig));
   }
 
   public ArcObject reduce() {
     next = (Conditional)next.reduce();
     if (ifExpression instanceof Nil) {
       return (ArcObject) next;
-    } else if (reduceToIfExpr()) {
+    } else if (reduceToIfBound() || reduceToIfStack()) {
       Else e = new Else();
       e.take(ifExpression);
       return e;
@@ -59,7 +93,7 @@ public class IfThen extends ArcObject implements Conditional {
     }
   }
 
-  private boolean reduceToIfExpr() {
+  private boolean reduceToIfBound() {
     if (!(ifExpression instanceof BoundSymbol) || !(thenExpression instanceof BoundSymbol) || !(next instanceof Else)) {
       return false;
     } else {
@@ -70,8 +104,19 @@ public class IfThen extends ArcObject implements Conditional {
     }
   }
 
+  private boolean reduceToIfStack() {
+    if (!(ifExpression instanceof StackSymbol) || !(thenExpression instanceof StackSymbol) || !(next instanceof Else)) {
+      return false;
+    } else {
+      StackSymbol b1 = (StackSymbol) ifExpression;
+      StackSymbol b2 = (StackSymbol) thenExpression;
+      Else e = (Else) next;
+      return b1.isSameStackSymbol(b2) && (e.ifExpression instanceof Nil);
+    }
+  }
+
   public String toString() {
-    return ifExpression + " " + thenExpression + " " + next;
+    return "if:" + ifExpression + " then:" + thenExpression + " else:" + next;
   }
 
   public int countReferences(int refs, BoundSymbol p) {
@@ -113,11 +158,27 @@ public class IfThen extends ArcObject implements Conditional {
     return other;
   }
 
+  public ArcObject inline(StackSymbol p, ArcObject arg, int paramIndex) {
+    IfThen other = new IfThen();
+    other.ifExpression = this.ifExpression.inline(p, arg, paramIndex);
+    other.thenExpression = this.thenExpression.inline(p, arg, paramIndex);
+    other.next = (Conditional) this.next.inline(p, arg, paramIndex);
+    return other;
+  }
+
   public ArcObject nest(int threshold) {
     IfThen other = new IfThen();
     other.ifExpression = this.ifExpression.nest(threshold);
     other.thenExpression = this.thenExpression.nest(threshold);
     other.next = (Conditional) this.next.nest(threshold);
+    return other;
+  }
+
+  public ArcObject replaceBoundSymbols(Map<Symbol, Integer> lexicalBindings) {
+    IfThen other = new IfThen();
+    other.ifExpression = this.ifExpression.replaceBoundSymbols(lexicalBindings);
+    other.thenExpression = this.thenExpression.replaceBoundSymbols(lexicalBindings);
+    other.next = (Conditional) this.next.replaceBoundSymbols(lexicalBindings);
     return other;
   }
 
@@ -127,5 +188,20 @@ public class IfThen extends ArcObject implements Conditional {
     thenExpression.visit(v);
     next.visit(v);
     v.end(this);
+  }
+
+  public String sig() {
+    String s = "";
+    s += "_";
+    s += Invocation.sig(ifExpression);
+    s += "_";
+    s += Invocation.sig(thenExpression);
+    if (next instanceof Else) {
+      s += "_";
+      s += Invocation.sig(((Else)next).ifExpression);
+    } else {
+      s += "_other";
+    }
+    return s;
   }
 }

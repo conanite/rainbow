@@ -26,7 +26,7 @@ public class Bind_D_A_A_A_d extends InterpretedFunction {
     destructured = (Pair) destructured.cdr();
     lc.add(destructured.car());
 
-    vm.pushFrame(lc, this.instructions);
+    vm.pushInvocation(lc, this.instructions);
   }
 
   public void invoke(VM vm, LexicalClosure lc, Pair args) {

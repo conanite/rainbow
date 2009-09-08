@@ -21,7 +21,6 @@
 ;  not sure this is a mistake; strings may be subtly different from
 ;  lists of chars
 
-
 (assign do (annotate 'mac
              (fn args `((fn () ,@args)))))
 
