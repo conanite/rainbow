@@ -3,7 +3,7 @@ To download and build rainbow and open a REPL:
   git clone git://github.com/conanite/rainbow.git
   cd rainbow
   ant
-  ant           # yes, twice. The second time uses rainbow to build an optimised version of itself.
+  ant           # yes, twice. The second time uses rainbow to generate optimisations of itself
   cd src/arc
   java -server -jar rainbow.jar
 
@@ -54,6 +54,10 @@ You should see a report at the end resembling this:
   read-arc-dot-arc-content 33.195    29        90
   sort-random-numbers      90.66     84        121
   string-tokeniser         89.6      83        152
+
+Profile invocation counts and times for a function:
+
+  arc> (profiler (repeat 5 (tokens (rand-string 1000) #\0)))
 
 
 Rainbow command-line options:
