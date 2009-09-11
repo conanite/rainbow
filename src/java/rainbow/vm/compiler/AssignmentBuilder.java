@@ -20,7 +20,7 @@ public class AssignmentBuilder {
       } catch (NotPair notPair) {
         throw new ArcError("assign: unexpected: " + body);
       }
-      assignment.add(compile(vm, body.car(), lexicalBindings).reduce());
+      assignment.take(compile(vm, body.car(), lexicalBindings).reduce());
       body = body.cdr();
     }
     return assignment;

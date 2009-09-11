@@ -4,7 +4,7 @@ import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.vm.VM;
-import rainbow.vm.VMInterceptor;
+import rainbow.vm.interceptor.VMInterceptor;
 
 public class BreakThread extends Builtin {
   public BreakThread() {

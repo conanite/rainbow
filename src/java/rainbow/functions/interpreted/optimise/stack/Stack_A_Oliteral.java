@@ -13,7 +13,6 @@ import java.util.Map;
 
 public class Stack_A_Oliteral extends StackFunctionSupport {
   private ArcObject optExpr;
-  private InterpretedFunction curried;
 
   public Stack_A_Oliteral(InterpretedFunction original) {
     super(original.parameterList(), original.lexicalBindings, convert(original.lexicalBindings, original.body));
@@ -21,9 +20,6 @@ public class Stack_A_Oliteral extends StackFunctionSupport {
     ArcObject optParam = parameterList.cdr().car().cdr().car();
     if (canInline((Symbol) optParam, optExpr)) {
       curried = (InterpretedFunction) this.curry((Symbol) optParam, optExpr, false);
-      System.out.println("curried " + this + " to get " + curried);
-    } else {
-      System.out.println("not curryable: " + this);
     }
   }
 

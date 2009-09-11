@@ -2,59 +2,37 @@ package rainbow.functions.typing;
 
 import rainbow.ArcError;
 import rainbow.Nil;
+import rainbow.vm.VM;
 import rainbow.parser.ParseException;
 import rainbow.types.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Typing {
+  public static Symbol STRING = Symbol.mkSym("string");
+  public static Symbol SYM = Symbol.mkSym("sym");
+  public static Symbol INT = Symbol.mkSym("int");
+  public static Symbol NUM = Symbol.mkSym("num");
+  public static Symbol CONS = Symbol.mkSym("cons");
+  public static Symbol CHAR = Symbol.mkSym("char");
 
-  private static Map<String, Coercer> coercion = new HashMap();
-
-  public static ArcObject coerce(Pair args) {
-    ArcObject arg = args.car();
-    ArcObject toType = args.cdr().car();
-    ArcNumber base = null;
-    if (!(args.cdr().cdr() instanceof Nil)) {
-      base = (ArcNumber) args.cdr().cdr().car();
-    }
-    return coerce(arg, toType, base);
-  }
-
-  public static ArcObject coerce(ArcObject arg, ArcObject toType, ArcNumber base) {
-    String fromType = arg.type().toString();
-    if (fromType.equals(toType.toString())) {
-      return arg;
-    }
-    String key = fromType + "-" + toType.toString();
-    try {
-      return coercion.get(key).coerce(arg, base);
-    } catch (CantCoerce cc) {
-      throw new ArcError("Can't coerce " + arg + " to " + toType);
-    } catch (Exception e) {
-      throw new ArcError("Can't coerce " + arg + " ( a " + arg.type() + " ) to " + toType, e);
-    }
-  }
-
-  static {
-    coercion.put("string-cons", new Coercer() {
-      public ArcObject coerce(ArcObject original, ArcNumber base) {
-        String source = ((ArcString) original).value();
+  static void init() {
+    CONS.addCoercion(STRING, new Coercion("string-cons") {
+      public ArcObject coerce(ArcObject arg) {
+        String source = ((ArcString) arg).value();
         List<ArcCharacter> chars = new ArrayList(source.length());
         for (int i = 0; i < source.length(); i++) {
-          chars.add(new ArcCharacter(source.charAt(i)));
+          chars.add(ArcCharacter.make(source.charAt(i)));
         }
         return Pair.buildFrom(chars.toArray(new ArcObject[chars.size()]));
       }
     });
 
-    coercion.put("cons-string", new Coercer() {
-      public ArcObject coerce(ArcObject original, ArcNumber base) {
+    STRING.addCoercion(CONS, new Coercion("cons-string") {
+      public ArcObject coerce(ArcObject arg) {
         StringBuilder result = new StringBuilder();
-        Pair chars = (Pair) original;
+        Pair chars = (Pair) arg;
         while (!(chars instanceof Nil)) {
           result.append(((ArcCharacter) chars.car()).value());
           chars = (Pair) chars.cdr();
@@ -63,11 +41,13 @@ public class Typing {
       }
     });
 
-    coercion.put("int-string", new Coercer() {
-      public ArcObject coerce(ArcObject original, ArcNumber base) {
-        if (base == null) {
-          base = Rational.TEN;
-        }
+    STRING.addCoercion(INT, new Coercion("int-string") {
+      public ArcObject coerce(ArcObject arg) {
+        return coerce(arg, Rational.TEN);
+      }
+
+      public ArcObject coerce(ArcObject original, ArcObject arg2) {
+        ArcNumber base = (ArcNumber) arg2;
         ArcNumber n = (ArcNumber) original;
         if (n instanceof Complex) {
           return stringify((Complex) n);
@@ -81,10 +61,28 @@ public class Typing {
       }
     });
 
-    coercion.put("num-string", coercion.get("int-string"));
+    STRING.addCoercion(NUM, new Coercion("num-string") {
+      public ArcObject coerce(ArcObject arg) {
+        return coerce(arg, Rational.TEN);
+      }
 
-    coercion.put("string-sym", new Coercer() {
-      public ArcObject coerce(ArcObject original, ArcNumber base) {
+      public ArcObject coerce(ArcObject original, ArcObject arg2) {
+        ArcNumber base = (ArcNumber) arg2;
+        ArcNumber n = (ArcNumber) original;
+        if (n instanceof Complex) {
+          return stringify((Complex) n);
+        } else if (n instanceof Real && base.toInt() != 10) {
+          return cantCoerce();
+        } else if (n instanceof Rational) {
+          return stringify((Rational) n, base);
+        } else {
+          return stringify((Real) n, base);
+        }
+      }
+    });
+
+    SYM.addCoercion(STRING, new Coercion("string-sym") {
+      public ArcObject coerce(ArcObject original) {
         String source = ((ArcString) original).value();
         if ("".equals(source)) {
           return Symbol.EMPTY_STRING;
@@ -93,8 +91,8 @@ public class Typing {
       }
     });
 
-    coercion.put("sym-string", new Coercer() {
-      public ArcObject coerce(ArcObject original, ArcNumber base) {
+    STRING.addCoercion(SYM, new Coercion("sym-string") {
+      public ArcObject coerce(ArcObject original) {
         if (original instanceof Nil) {
           return ArcString.make("");
         }
@@ -103,54 +101,56 @@ public class Typing {
       }
     });
 
-    coercion.put("char-int", new Coercer() {
-      public ArcObject coerce(ArcObject original, ArcNumber base) {
+    INT.addCoercion(CHAR, new Coercion("char-int") {
+      public ArcObject coerce(ArcObject original) {
         char source = ((ArcCharacter) original).value();
         return Rational.make(source);
       }
     });
 
-    coercion.put("num-int", new Coercer() {
-      public ArcObject coerce(ArcObject original, ArcNumber base) {
+    INT.addCoercion(NUM, new Coercion("num-int") {
+      public ArcObject coerce(ArcObject original) {
         return ((ArcNumber) original).round();
       }
     });
 
-    coercion.put("int-num", new Coercer() {
-      public ArcObject coerce(ArcObject original, ArcNumber base) {
+    NUM.addCoercion(INT, new Coercion("int-num") {
+      public ArcObject coerce(ArcObject original) {
         return original;
       }
     });
 
-    coercion.put("int-char", new Coercer() {
-      public ArcObject coerce(ArcObject original, ArcNumber base) {
+    CHAR.addCoercion(INT, new Coercion("int-char") {
+      public ArcObject coerce(ArcObject original) {
         ArcNumber num = (ArcNumber) original;
         if (!num.isInteger()) {
           cantCoerce();
         }
-        return new ArcCharacter((char) num.toInt());
+        return ArcCharacter.make((char) num.toInt());
       }
     });
 
-    coercion.put("char-string", new Coercer() {
-      public ArcObject coerce(ArcObject original, ArcNumber base) {
+    STRING.addCoercion(CHAR, new Coercion("char-string") {
+      public ArcObject coerce(ArcObject original) {
         char source = ((ArcCharacter) original).value();
         return ArcString.make(new String(new char[]{source}));
       }
     });
 
-    coercion.put("char-sym", new Coercer() {
-      public ArcObject coerce(ArcObject original, ArcNumber base) {
+    SYM.addCoercion(CHAR, new Coercion("char-sym") {
+      public ArcObject coerce(ArcObject original) {
         char source = ((ArcCharacter) original).value();
         return Symbol.make(new String(new char[]{source}));
       }
     });
 
-    coercion.put("string-num", new Coercer() {
-      public ArcObject coerce(ArcObject original, ArcNumber base) {
-        if (base == null) {
-          base = Rational.TEN;
-        }
+    NUM.addCoercion(STRING, new Coercion("string-num") {
+      public ArcObject coerce(ArcObject original) {
+        return coerce(original, Rational.TEN);
+      }
+
+      public ArcObject coerce(ArcObject original, ArcObject b) {
+        ArcNumber base = (ArcNumber) b;
         String source = ((ArcString) original).value().toLowerCase();
         if (source.equals("+inf.0")) {
           return Real.positiveInfinity();
@@ -170,11 +170,13 @@ public class Typing {
       }
     });
 
-    coercion.put("string-int", new Coercer() {
-      public ArcObject coerce(ArcObject original, ArcNumber base) {
-        if (base == null) {
-          base = Rational.TEN;
-        }
+    INT.addCoercion(STRING, new Coercion("string-int") {
+      public ArcObject coerce(ArcObject original) {
+        return coerce(original, Rational.TEN);
+      }
+
+      public ArcObject coerce(ArcObject original, ArcObject b) {
+        ArcNumber base = (ArcNumber) b;
         String source = ((ArcString) original).value().toLowerCase();
         if (source.equals("+inf.0") || source.equals("-inf.0") || source.equals("+nan.0") || source.toLowerCase().endsWith("i")) {
           throw new CantCoerce();
@@ -262,14 +264,38 @@ public class Typing {
     return Real.make(result);
   }
 
-  interface Coercer {
-    ArcObject coerce(ArcObject original, ArcNumber base);
+  public static class Coercion extends ArcObject {
+    private String name;
+
+    Coercion(String name) {
+      this.name = name;
+    }
+
+    public ArcObject type() {
+      return Symbol.mkSym("fn");
+    }
+
+    public ArcObject coerce(ArcObject original) {
+      throw new ArcError("not implemented: " + name + ".coerce 1 arg");
+    }
+
+    public ArcObject coerce(ArcObject original, ArcObject base) {
+      throw new ArcError("not implemented: " + name + ".coerce 2 args");
+    }
+
+    public void invokef(VM vm, ArcObject arg) {
+      vm.pushA(coerce(arg));
+    }
+
+    public void invokef(VM vm, ArcObject arg1, ArcObject arg2) {
+      vm.pushA(coerce(arg1, arg2));
+    }
   }
 
   private static ArcObject cantCoerce() {
     throw new CantCoerce();
   }
 
-  private static class CantCoerce extends RuntimeException {
+  public static class CantCoerce extends RuntimeException {
   }
 }

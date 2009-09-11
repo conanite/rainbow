@@ -17,7 +17,9 @@ public class Table extends Builtin {
     Hash hash = new Hash();
     vm.pushA(hash);
     if (!(args instanceof Nil)) {
-      vm.pushFrame(new PopArg("table-initialiser"));
+      PopArg i = new PopArg("table-initialiser");
+      i.belongsTo(this);
+      vm.pushFrame(i);
       ArcObject f = args.car();
       f.invoke(vm, Pair.buildFrom(hash));
     }

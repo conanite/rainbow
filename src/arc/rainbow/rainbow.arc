@@ -62,12 +62,28 @@
 
 (mac profiler expr
   `(after (do (rainbow-profile) ,@expr)
-          (pr-profile-report (rainbow-profile-report))))
+          (show-profile-report (rainbow-profile-report))))
 
-(def pr-profile-report (report)
-  (each item report
-    (prn car.item #\tab cdr.item))
-  (prn))
+(def show-profile-report (report)
+  (prn "Invocation profiles")
+  (prn "=================")
+  (let r (text-column-writer 14 14 14 200)
+    (r "total-time" "own-time" "invocations" "fn")
+    (each item report!invocation-profile
+      (profile-report-fn r "" item))))
+
+(def show-instruction-profile (report)
+  (prn "Rainbow vm-instruction counts")
+  (prn "=============================")
+  (let r (text-column-writer 10 200)
+    (r "count" "instruction class")
+    (each (value . name) report!instruction-profile
+      (r value name))))
+
+(def profile-report-fn (r indent (all-nanos my-nanos count object kidz))
+  (r (string all-nanos 'ms) (string my-nanos 'ms) count (tostring:pr indent object))
+  (each item (sort car> kidz)
+    (profile-report-fn r (+ indent "  ") item)))
 
 (def at-toks (str)
   (with (s nil f nil)

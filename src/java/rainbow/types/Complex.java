@@ -77,6 +77,26 @@ public class Complex extends ArcNumber {
     return new Complex(this.real + other.real, this.imaginary + other.imaginary);
   }
 
+  public Complex plus(Rational other) {
+    return new Complex(this.real + other.toDouble(), this.imaginary);
+  }
+
+  public Complex plus(Real other) {
+    return new Complex(this.real + other.toDouble(), this.imaginary);
+  }
+
+  public ArcObject add(ArcObject other) {
+    if (other instanceof Complex) {
+      return (this).plus((Complex)other);
+    } else if (other instanceof Rational) {
+      return (this).plus((Rational) other);
+    } else if (other instanceof Real) {
+      return this.plus((Real) other);
+    } else {
+      throw new ArcError("+: expects a number, got " + other.type() + " " + other);
+    }
+  }
+
   public Complex inverse() {
     // http://en.wikipedia.org/wiki/Complex_numbers#The_field_of_complex_numbers
     // for a + bi

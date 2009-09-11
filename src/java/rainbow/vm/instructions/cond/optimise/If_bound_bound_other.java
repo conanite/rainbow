@@ -7,6 +7,7 @@ import rainbow.vm.Instruction;
 import rainbow.vm.VM;
 import rainbow.vm.instructions.cond.Cond;
 import rainbow.vm.interpreter.BoundSymbol;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.List;
 
@@ -41,6 +42,11 @@ public class If_bound_bound_other extends Instruction {
     }
   }
 
+  public void visit(Visitor v) {
+    super.visit(v);
+    elseInstructions.visit(v);
+  }
+
   public String toString() {
     return "(if " + ifExpr + " " + thenExpr + " " + elseExpr + ")";
   }
@@ -63,6 +69,11 @@ public class If_bound_bound_other extends Instruction {
       } else {
         vm.pushA(cond);
       }
+    }
+
+    public void visit(Visitor v) {
+      super.visit(v);
+      elseInstructions.visit(v);
     }
 
     public String toString() {

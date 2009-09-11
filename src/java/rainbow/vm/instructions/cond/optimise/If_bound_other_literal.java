@@ -8,6 +8,7 @@ import rainbow.vm.VM;
 import rainbow.vm.instructions.cond.Cond;
 import rainbow.vm.interpreter.BoundSymbol;
 import rainbow.vm.interpreter.Else;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.List;
 
@@ -34,6 +35,11 @@ public class If_bound_other_literal extends Instruction {
 
   public String toString() {
     return "(if[bol] " + ifExpr + " " + thenExpr + " " + elseExpr + ")";
+  }
+
+  public void visit(Visitor v) {
+    super.visit(v);
+    thenInstructions.visit(v);
   }
 
   public static void addInstructions(List i, ArcObject ifExpr, ArcObject thenExpr, ArcObject elseExpr) {

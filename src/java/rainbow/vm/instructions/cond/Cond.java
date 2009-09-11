@@ -5,6 +5,7 @@ import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.vm.Instruction;
 import rainbow.vm.VM;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -66,12 +67,13 @@ public class Cond extends Instruction {
 
   public void operate(VM vm) {
 //    invoke(sig);
-    ArcObject arg = vm.popA();
-    if (arg instanceof Nil) {
-      vm.pushConditional(elseInstructions);
-    } else {
-      vm.pushConditional(thenInstructions);
-    }
+    vm.pushConditional((vm.popA() instanceof Nil) ? elseInstructions : thenInstructions);
+  }
+
+  public void visit(Visitor v) {
+    super.visit(v);
+    thenInstructions.visit(v);
+    elseInstructions.visit(v);
   }
 
   public String toString() {

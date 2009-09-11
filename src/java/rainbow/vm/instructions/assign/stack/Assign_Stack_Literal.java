@@ -1,9 +1,8 @@
 package rainbow.vm.instructions.assign.stack;
 
-import rainbow.types.Symbol;
 import rainbow.types.ArcObject;
-import rainbow.vm.interpreter.StackSymbol;
 import rainbow.vm.VM;
+import rainbow.vm.interpreter.StackSymbol;
 
 import java.util.List;
 
@@ -20,7 +19,7 @@ public class Assign_Stack_Literal extends Assign_Stack {
     vm.pushA(value);
   }
 
-  public static void addInstructions(List i, StackSymbol name, Symbol value, boolean last) {
+  public static void addInstructions(List i, StackSymbol name, ArcObject value, boolean last) {
     if (last) {
       i.add(new Assign_Stack_Literal(name, value));
     } else {

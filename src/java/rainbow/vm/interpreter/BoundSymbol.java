@@ -49,7 +49,8 @@ public class BoundSymbol extends ArcObject {
   }
 
   public String toString() {
-    return name + "[" + nesting + ":" + index + "]";
+//    return name + "[" + nesting + ":" + index + "]";
+    return name.toString();
   }
 
   public boolean isSameBoundSymbol(BoundSymbol other) {

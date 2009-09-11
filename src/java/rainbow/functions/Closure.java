@@ -38,4 +38,12 @@ public class Closure extends ArcObject {
   public String toString() {
     return expression.toString();
   }
+
+  public String profileName() {
+    return expression.profileName();
+  }
+
+  public ArcObject fn() {
+    return expression;
+  }
 }

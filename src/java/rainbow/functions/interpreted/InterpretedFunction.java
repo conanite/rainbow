@@ -6,8 +6,10 @@ import rainbow.LexicalClosure;
 import rainbow.Nil;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
+import rainbow.types.ArcString;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
+import rainbow.vm.Instruction;
 import rainbow.vm.VM;
 import rainbow.vm.compiler.FunctionBodyBuilder;
 import rainbow.vm.compiler.FunctionParameterListBuilder;
@@ -15,17 +17,22 @@ import rainbow.vm.instructions.Close;
 import rainbow.vm.instructions.Literal;
 import rainbow.vm.instructions.PopArg;
 import rainbow.vm.interpreter.BoundSymbol;
+import rainbow.vm.interpreter.IfClause;
 import rainbow.vm.interpreter.Quotation;
 import rainbow.vm.interpreter.StackSymbol;
+import rainbow.vm.interpreter.visitor.FunctionOwnershipVisitor;
 import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.*;
 
 public abstract class InterpretedFunction extends ArcObject implements Cloneable {
+  protected ArcObject name = NIL;
   protected ArcObject parameterList;
   public final Map<Symbol, Integer> lexicalBindings;
   public ArcObject[] body;
   protected Pair instructions;
+  private InterpretedFunction lexicalOwner;
+  protected InterpretedFunction curried;
 
   protected InterpretedFunction(ArcObject parameterList, Map lexicalBindings, Pair body) {
     this.parameterList = parameterList;
@@ -34,9 +41,80 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
     buildInstructionList();
   }
 
+  public void unassigned(ArcObject name) {
+    if (this.name == name) {
+      this.name = NIL;
+    }
+  }
+
+  public void assigned(ArcObject name) {
+    this.name = name;
+
+    Visitor v = new FunctionOwnershipVisitor(this);
+    for (ArcObject o : body) {
+      o.visit(v);
+    }
+  }
+
+  public ArcObject assignedName() {
+    return name;
+  }
+
+  private String profileName;
+
+  public String profileName() {
+    if (profileName != null) {
+      return profileName;
+    }
+
+    if (name instanceof Nil) {
+      profileName = this.toString();
+      if (lexicalOwner != null) {
+        profileName += " in " + lexicalOwner.profileName();
+      }
+    } else {
+      profileName = assignedName().toString();
+    }
+
+    return profileName;
+  }
+
+  private String localProfileName;
+
+  public String localProfileName() {
+    if (localProfileName != null) {
+      return localProfileName;
+    }
+
+    if (name instanceof Nil) {
+      localProfileName = this.toString();
+    } else {
+      localProfileName = assignedName().toString();
+    }
+
+    return localProfileName;
+  }
+
+  public Pair ownerHierarchy() {
+    ArcString me = ArcString.make(localProfileName());
+    if (lexicalOwner != null) {
+      return new Pair(me, lexicalOwner.ownerHierarchy());
+    } else {
+      return new Pair(me, NIL);
+    }
+  }
+
+  public int lexicalDepth() {
+    if (lexicalOwner == null) {
+      return 1;
+    } else {
+      return 1 + lexicalOwner.lexicalDepth();
+    }
+  }
+
   public ArcObject reduce() {
     if (Console.stackfunctions && canIGoOnTheStack() && !(parameterList instanceof Nil)) {
-      return FunctionBodyBuilder.convertToStackParams(this);
+      return FunctionBodyBuilder.convertToStackParams(this); // todo: .reduce() this to break out of the if clause in curried optional-arg functions
     } else {
       return this;
     }
@@ -52,6 +130,23 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
     List i = new ArrayList();
     buildInstructions(i);
     instructions = Pair.buildFrom(i);
+    claimInstructions(this);
+  }
+
+  public void belongsTo(final InterpretedFunction container) {
+    lexicalOwner = container;
+  }
+
+  public InterpretedFunction lexicalOwner() {
+    return lexicalOwner;
+  }
+
+  private void claimInstructions(final InterpretedFunction owner) {
+    instructions.visit(new Visitor() {
+      public void accept(Instruction o) {
+        o.belongsTo(owner);
+      }
+    });
   }
 
   public void buildInstructions(List i) {
@@ -270,6 +365,9 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
       o.visit(v);
     }
     v.end(this);
+    if (curried != null) {
+      curried.visit(v);
+    }
   }
 
   public boolean isIdFn() {
@@ -294,11 +392,19 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
   }
 
   public String toString() {
+    if (isBracketFn()) {
+      String s = body[0].toString();
+      return "[" + s.substring(1, s.length() - 1) + "]";
+    }
     List<ArcObject> fn = new LinkedList<ArcObject>();
     fn.add(Symbol.mkSym("fn"));
     fn.add(parameterList());
     fn.addAll(Arrays.asList(body));
     return Pair.buildFrom(fn, NIL).toString();
+  }
+
+  private boolean isBracketFn() {
+    return parameterList instanceof Pair && parameterList.car() == Symbol.mkSym("_") && parameterList.cdr() instanceof Nil && body.length == 1;
   }
 
   public ArcObject parameterList() {
@@ -417,5 +523,9 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
     if (!args.hasLen(expected)) {
       throw new ArcError("error: " + this + " expects " + expected + " args, got " + args);
     }
+  }
+
+  public boolean isAifBody() {
+    return body.length == 1 && (body[0] instanceof IfClause) && ((IfClause)body[0]).isAifIf();
   }
 }

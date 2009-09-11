@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class SingleAssignment extends ArcObject {
   protected ArcObject name;
-  protected ArcObject expression;
+  public ArcObject expression;
   private SingleAssignment next;
 
   public SingleAssignment() {
@@ -39,7 +39,7 @@ public class SingleAssignment extends ArcObject {
   }
 
   public String toString() {
-    return name + " " + expression + "\n  ";
+    return name + " " + expression;
   }
 
   public void addInstructions(List i) {
@@ -137,5 +137,15 @@ public class SingleAssignment extends ArcObject {
     expression.visit(v);
     next.visit(v);
     v.end(this);
+  }
+
+  public boolean assignsTo(String name) {
+    if (this.name instanceof Symbol) {
+      return ((Symbol)this.name).name().equals(name);
+    } else if (this.name instanceof StackSymbol) {
+      return ((StackSymbol)this.name).name.name().equals(name);
+    } else {
+      return ((BoundSymbol)this.name).name.name().equals(name);
+    }
   }
 }

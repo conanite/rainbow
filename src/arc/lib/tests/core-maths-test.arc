@@ -39,7 +39,16 @@
 
       ("string concatenation ignores nil"
         (+ "a" "b" "c" nil)
-        "abc"))
+        "abc")
+
+      ("can't add a string to a number"
+        (on-err (fn (ex) "impossible") (fn () (+ 10 "11")))
+        "impossible")
+
+      ("can't add a number to a list"
+        (on-err (fn (ex) "impossible") (fn () (+ '(a b c) 4)))
+        "impossible")
+    )
 
     (suite "-"
       ("subtracts second arg from first"

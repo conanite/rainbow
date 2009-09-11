@@ -16,10 +16,7 @@
   "#\\return"  #\return))
 
 (def whitespace? (ch)
-  (if (is ch #\space) ch
-      (is ch #\newline) ch
-      (is ch #\tab) ch
-      (is ch #\return) ch))
+  (any? ch #\space #\newline #\tab #\return))
 
 (def slow-whitespace? (ch)
   (if (in ch #\space #\newline #\tab #\return) ch))
@@ -49,22 +46,13 @@
           (if whitespace?.c0   (list 'whitespace token start tokend)
               (is c0 #\#)      (list 'char (make-character token) start tokend) ; todo this is necessary for char token at end of stream (in-character state needs a next character to flush its token)
               (is c0 #\;)      (list 'comment token start tokend)
-              (in c0 #\. #\+ #\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
+              (any? c0 #\. #\+ #\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
               (on-err (fn (ex) (list 'sym (sym token) start tokend))
                       (fn () (list 'int (coerce token 'num) start tokend)))
               (list 'sym (if (is token "||") '|| (sym token)) start tokend))))))
 
 (def char-terminator (ch)
-  (or syntax-chars.ch whitespace?.ch (in ch #\" #\, #\#)))
-
-(mac fpush (x xs)
-  `(assign ,xs (cons ,x ,xs)))
-
-(mac fpop (xs)
-  (w/uniq gp
-  `(let ,gp (car ,xs)
-     (assign ,xs (cdr ,xs))
-     ,gp)))
+  (or syntax-chars.ch whitespace?.ch (any? ch #\" #\, #\#)))
 
 (def arc-tokeniser (char-stream)
   (with ((default in-string interpolating escaping in-character in-comment in-atom in-unquote) nil
@@ -114,7 +102,7 @@
                                  token
                                  (do (enq-token) (self)))))
        default-add-to-token (fn (ch)
-                                (assign token (+ token (coerce ch 'string))))
+                                (assign token (+ token (coerce ch 'string)))) ; for some unknown reason, (+ token ch) is slower
        initial-add-to-token (fn (ch)
                                 (assign token-start  char-count
                                         token        (coerce ch 'string)
@@ -292,8 +280,8 @@
       (do (if (no:is (right 1) (syntax-pairs (left 1)))
               (do (scar cdr.left  (unmatchify:cadr left))
                   (scar cdr.right (unmatchify:cadr right))))
-          (= (right 2) (left 2))
-          (= (left 3) (right 3)))
+          (sref right (left 2) 2)
+          (sref left (right 3) 3))
       (scar cdr.right (unmatchify:cadr right))))
 
 (def index-source (text (o keep-whitespace))

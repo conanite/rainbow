@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 public class Assignment extends ArcObject {
-  private SingleAssignment assignment;
+  public SingleAssignment assignment;
 
   public ArcObject type() {
     return Symbol.mkSym("assignment");
   }
 
-  public void add(ArcObject o) {
+  public void take(ArcObject o) {
     assignment.take(o);
   }
 

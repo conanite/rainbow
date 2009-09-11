@@ -16,6 +16,7 @@ public class Symbol extends ArcObject {
   private String name;
   private int hash;
   private ArcObject value;
+  private Map coerceFrom;
 
   protected Symbol(String name) {
     this.name = name;
@@ -113,5 +114,16 @@ public class Symbol extends ArcObject {
     } catch (ClassCastException e) {
       throw new ArcError("Wrong argument type: " + caller + " expected a Symbol, got " + argument);
     }
+  }
+
+  public void addCoercion(Symbol from, ArcObject function) {
+    if (coerceFrom == null) {
+      coerceFrom = new HashMap();
+    }
+    coerceFrom.put(from, function);
+  }
+
+  public ArcObject getCoercion(Symbol from) {
+    return (ArcObject) coerceFrom.get(from);
   }
 }

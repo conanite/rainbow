@@ -5,7 +5,7 @@ import rainbow.Nil;
 import rainbow.Truth;
 import rainbow.types.Pair.NotPair;
 import rainbow.vm.VM;
-import rainbow.vm.instructions.invoke.Invoke_N;
+import rainbow.vm.instructions.invoke.Invoke_N.Other;
 import rainbow.vm.interpreter.BoundSymbol;
 import rainbow.vm.interpreter.StackSymbol;
 import rainbow.vm.interpreter.visitor.Visitor;
@@ -58,10 +58,6 @@ public abstract class ArcObject {
 
   public ArcObject sref(ArcObject value, ArcObject index) {
     throw new ArcError("Can't sref " + this + "( a " + this.type() + "), other args were " + value + ", " + index);
-  }
-
-  public ArcObject sref(Pair args) {
-    throw new ArcError("Can't sref " + this.type());
   }
 
   public int compareTo(ArcObject right) {
@@ -127,7 +123,9 @@ public abstract class ArcObject {
       len++;
     }
     vm.pushA(this);
-    vm.pushFrame(new Invoke_N.Other(len));
+    Other i = new Other(len);
+    i.belongsTo(this);
+    vm.pushFrame(i);
     try {
       return vm.thread();
     } catch (Exception e) {
@@ -165,6 +163,18 @@ public abstract class ArcObject {
   }
 
   public void assigned(ArcObject name) {
+  }
+
+  public ArcObject assignedName() {
+    return NIL;
+  }
+
+  public String profileName() {
+    return assignedName().toString();
+  }
+
+  public ArcObject add(ArcObject other) {
+    throw new ArcError("add not implemented for " + type() + " " + this);
   }
 
   public static class NotNil extends Throwable {

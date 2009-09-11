@@ -141,4 +141,16 @@ public class Rational extends ArcNumber {
       return ArcString.make(num + "/" + den);
     }
   }
+
+  public ArcObject add(ArcObject other) {
+    if (other instanceof Complex) {
+      return ((Complex)other).plus(this);
+    } else if (other instanceof Real) {
+      return ((Real)other).plus(this);
+    } else if (other instanceof Rational) {
+      return this.plus((Rational) other);
+    } else {
+      throw new ArcError("+: expects a number, got " + other.type() + " " + other);
+    }
+  }
 }

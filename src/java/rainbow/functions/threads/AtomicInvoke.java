@@ -17,8 +17,7 @@ public class AtomicInvoke extends Builtin {
     super("atomic-invoke");
   }
 
-  public void invoke(VM vm, Pair args) {
-    ArcObject f = args.car();
+  public void invokef(VM vm, ArcObject f) {
     synchronized (lock) {
       while (vm != owner && owner != null) {
         try {
@@ -29,10 +28,16 @@ public class AtomicInvoke extends Builtin {
       }
       owner = vm;
       entryCount++;
-      vm.pushFrame(new ReleaseLock());
+      ReleaseLock i = new ReleaseLock();
+      i.belongsTo(this);
+      vm.pushFrame(i);
     }
 
     f.invoke(vm, ArcObject.NIL);
+  }
+
+  public void invoke(VM vm, Pair args) {
+    invokef(vm, args.car());
   }
 
   public static class ReleaseLock extends Instruction implements Finally {

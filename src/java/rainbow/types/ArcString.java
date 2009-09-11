@@ -2,6 +2,8 @@ package rainbow.types;
 
 import rainbow.ArcError;
 import rainbow.functions.Builtin;
+import rainbow.functions.typing.Typing.Coercion;
+import rainbow.functions.typing.Typing;
 import rainbow.vm.VM;
 
 public class ArcString extends LiteralObject {
@@ -24,7 +26,7 @@ public class ArcString extends LiteralObject {
     if (i < 0 || i >= string.value.length()) {
       throw new ArcError("string-ref: index " + i + " out of range [0, " + (string.value.length() - 1) + "] for string " + toString());
     }
-    vm.pushA(new ArcCharacter(string.value.charAt(i)));
+    vm.pushA(ArcCharacter.make(string.value.charAt(i)));
   }
 
   public String value() {
@@ -75,10 +77,6 @@ public class ArcString extends LiteralObject {
     return value;
   }
 
-  public ArcObject sref(Pair args) {
-    return sref(args.car(), args.cdr().car());
-  }
-
   public ArcObject type() {
     return TYPE;
   }
@@ -111,6 +109,16 @@ public class ArcString extends LiteralObject {
 
   public boolean isSame(ArcObject other) {
     return equals(other);
+  }
+
+  public ArcObject add(ArcObject other) {
+    StringBuilder s = new StringBuilder(value);
+    if (other instanceof ArcString) {
+      s.append(((ArcString) other).value());
+    } else {
+      s.append(((ArcString)((Coercion) Typing.STRING.getCoercion((Symbol) other.type())).coerce(other)).value());
+    }
+    return make(s.toString());
   }
 
   public static ArcString cast(ArcObject argument, Object caller) {

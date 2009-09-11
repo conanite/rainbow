@@ -13,7 +13,7 @@ public class Divide extends Builtin {
 
   public ArcObject invoke(Pair args) {
     if (args instanceof Nil) {
-      throw new ArcError("Function `-` expected at least 1 arg");
+      throw new ArcError("Function `/` expected at least 1 arg");
     }
 
     return Maths.precision(args).divide(args);

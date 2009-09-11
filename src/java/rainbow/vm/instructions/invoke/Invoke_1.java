@@ -58,7 +58,7 @@ public class Invoke_1 {
     }
 
     public ArcObject getInvokee(VM vm) {
-      return fn;
+      return fn.value();
     }
   }
 

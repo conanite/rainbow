@@ -11,7 +11,9 @@ public class OnErr extends Builtin {
   }
 
   public void invoke(VM vm, Pair args) {
-    vm.pushFrame(new Catch(args.car(), vm.ap()));
+    Catch c = new Catch(args.car(), vm.ap());
+    c.belongsTo(this);
+    vm.pushFrame(c);
     args.cdr().car().invoke(vm, NIL);
   }
 }

@@ -33,7 +33,8 @@ public class StackSymbol extends ArcObject {
   }
 
   public String toString() {
-    return name + "[" + index + "]";
+//    return name + "[" + index + "]";
+    return name.toString();
   }
 
   public boolean isSameStackSymbol(StackSymbol b2) {

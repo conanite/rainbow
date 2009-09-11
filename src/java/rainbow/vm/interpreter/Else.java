@@ -41,7 +41,7 @@ public class Else extends ArcObject implements Conditional {
   }
 
   public String toString() {
-    return "else:" + ifExpression;
+    return "" + ifExpression;
   }
 
   public int countReferences(int refs, BoundSymbol p) {

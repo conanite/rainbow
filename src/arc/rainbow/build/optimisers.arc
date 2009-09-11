@@ -103,7 +103,7 @@
         (is fn-type 'stack)
         (prn "    return fn.get(vm);")
         (is fn-type 'free)
-        (prn "    return fn;")))
+        (prn "    return fn.value();")))
   (prn "  }"))
 
 (def simple-to-string (args)

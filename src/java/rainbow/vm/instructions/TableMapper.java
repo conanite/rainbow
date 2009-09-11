@@ -19,7 +19,9 @@ public class TableMapper extends Instruction {
       vm.pushA(list.cdr());
       vm.pushFrame(this);
       Pair args = (Pair) list.car();
-      vm.pushFrame(new PopArg("map-table-iterator"));
+      PopArg i = new PopArg("map-table-iterator");
+      i.belongsTo(this);
+      vm.pushFrame(i);
       fn.invoke(vm, args);
     }
   }

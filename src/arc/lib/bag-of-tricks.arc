@@ -11,6 +11,30 @@
 
 (def nilfn args nil)
 
+;; fast (non-atomic) and naive push and pop 
+
+(mac fpush (x xs)
+  `(assign ,xs (cons ,x ,xs)))
+
+(mac fpop (xs)
+  (w/uniq gp
+  `(let ,gp (car ,xs)
+     (assign ,xs (cdr ,xs))
+     ,gp)))
+
+;; alternative to 'in that's faster and returns its arg if found (don't use to find nil!)
+(mac any? (x . choices)
+  (w/uniq g
+    `(let ,g ,x
+       (if ,@(mappend (fn (c) `((is ,g ,c) ,g)) choices)))))
+
+;; useful arguments to sort: (sort car< list-of-lists)
+(def car< args
+  (apply < (map car args)))
+
+(def car> args
+  (apply > (map car args)))
+
 (mac dbg (var)
   (w/uniq gvar
     `(let ,gvar ,var
@@ -95,13 +119,18 @@
       (do (eval (car exprs)) (eval-these (cdr exprs)))))
 
 (def trunc/pad (s n (o padding #\space))
-  (= s (string s))
+  (= s (tostring:pr s))
   (let lens (len s)
     (if (< lens n)
         (+ s (newstring (- n lens) padding))
         (is lens n)
         s
         (cut s 0 n))))
+
+(def text-column-writer cols
+  (fn args
+    (map (fn (col data) (pr:trunc/pad data col)) cols args)
+    (prn)))
 
 (def benchmark (times fun (o verbose nil))
   (pr "warm-up   ")
@@ -137,9 +166,6 @@
     (let bmfn `(fn (,gcount) (with ,withses (bmv ,gcount ,@body)))
       `(push (list ',name ,bmfn) bm-tests))))
 
-(def car< args
-  (apply < (map car args)))
-
 (def run-benchmark-suite (repeat-count)
   (w/table t
     (each (name test) (sort car< bm-tests)
@@ -148,13 +174,12 @@
         (= t.name result)
         (prn "avg " result!avg)))))
 
-(def rbs-row (title avg min max)
-  (prn (trunc/pad title 25) " " (trunc/pad avg 10) " " (trunc/pad min 10) " " (trunc/pad max 10)))
-
 (def rbs-report (report)
-  (rbs-row "" "avg" "min" "max")
-  (each (k v) (sort car< (tablist report))
-    (rbs-row k v!avg v!min v!max)))
+  (let r (text-column-writer 25 10 10 10)
+    (r "" "avg" "min" "max")
+    (each (k v) (sort car< (tablist report))
+      (r k v!avg v!min v!max)))
+  )
 
 (def rbs ((o count 200))
   (require-lib 'lib/bm-tests)

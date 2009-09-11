@@ -13,7 +13,6 @@ import java.util.Map;
 
 public class Bind_Oliteral extends InterpretedFunction {
   private ArcObject optExpr;
-  private InterpretedFunction curried;
 
   public Bind_Oliteral(ArcObject parameterList, Map lexicalBindings, Pair expandedBody) {
     super(parameterList, lexicalBindings, expandedBody);

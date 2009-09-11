@@ -2,6 +2,8 @@ package rainbow.vm.interpreter.visitor;
 
 import rainbow.functions.interpreted.InterpretedFunction;
 import rainbow.types.ArcObject;
+import rainbow.types.Pair;
+import rainbow.vm.Instruction;
 import rainbow.vm.interpreter.*;
 
 public class Visitor {
@@ -38,11 +40,19 @@ public class Visitor {
     acceptObject(o);
   }
 
+  public void accept(Instruction o) {
+    acceptObject(o);
+  }
+
   public void accept(Invocation o) {
     acceptObject(o);
   }
 
   public void accept(LastAssignment o) {
+    acceptObject(o);
+  }
+
+  public void accept(Pair o) {
     acceptObject(o);
   }
 
@@ -83,6 +93,10 @@ public class Visitor {
   }
 
   public void end(LastAssignment o) {
+    endObject(o);
+  }
+
+  public void end(Pair o) {
     endObject(o);
   }
 

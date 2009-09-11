@@ -57,7 +57,7 @@ public class Input extends LiteralObject {
     try {
       int c = getReader().read();
       getReader().unread(c);
-      return new ArcCharacter((char)c);
+      return ArcCharacter.make((char)c);
     } catch (IOException e) {
       throw new ArcError(e);
     }
@@ -73,7 +73,7 @@ public class Input extends LiteralObject {
     if (result < 0) {
       return NIL;
     }
-    return new ArcCharacter((char) result);
+    return ArcCharacter.make((char) result);
   }
 
   private PushbackReader getReader() {

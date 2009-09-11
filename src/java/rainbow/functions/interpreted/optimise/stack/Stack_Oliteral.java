@@ -13,7 +13,6 @@ import java.util.Map;
 
 public class Stack_Oliteral extends StackFunctionSupport {
   private ArcObject optExpr;
-  private InterpretedFunction curried;
 
   public Stack_Oliteral(InterpretedFunction original) {
     super(original.parameterList(), original.lexicalBindings, convert(original.lexicalBindings, original.body));

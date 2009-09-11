@@ -4,7 +4,7 @@ import rainbow.functions.Builtin;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
 import rainbow.vm.VM;
-import rainbow.vm.VMInterceptor;
+import rainbow.vm.interceptor.VMInterceptor;
 
 public class RainbowDebug extends Builtin {
   public RainbowDebug() {

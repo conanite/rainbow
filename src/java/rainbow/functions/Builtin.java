@@ -51,7 +51,11 @@ public abstract class Builtin extends ArcObject {
   }
 
   public String toString() {
-    return "<Builtin:" + (name == null || name.length() == 0 ? getClass().getSimpleName() : name) + ">";
+    return "[builtin:" + (name == null || name.length() == 0 ? getClass().getSimpleName() : name) + "]";
+  }
+
+  public String profileName() {
+    return toString();
   }
 
   public String name() {

@@ -25,7 +25,7 @@ public class ComplexArgs extends InterpretedFunction {
     vm.pushInvocation(lc, this.instructions);
   }
 
-  private static void complex(VM vm, LexicalClosure lc, ArcObject parameters, Pair args) {
+  private static void complex(VM vm, LexicalClosure lc, ArcObject parameters, ArcObject args) {
     while (!parameters.isNotPair()) {
       ArcObject nextParameter = parameters.car();
       ArcObject nextArg = args.car();
@@ -47,11 +47,11 @@ public class ComplexArgs extends InterpretedFunction {
         } catch (Pair.NotPair e) {
           throw new ArcError("Expected list argument for destructuring parameter " + nextParameter + ", got " + nextArg);
         }
-        complex(vm, lc, nextParameter, (Pair) nextArg);
+        complex(vm, lc, nextParameter, nextArg);
       }
 
       parameters = parameters.cdr();
-      args = (Pair) args.cdr();
+      args = args.cdr();
     }
 
     if (parameters instanceof Symbol) {

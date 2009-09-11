@@ -15,7 +15,9 @@ public class MapTable extends Builtin {
   public void invokef(VM vm, ArcObject f, ArcObject hash) {
     vm.pushA(hash);
     vm.pushA(((Hash) hash).toList());
-    vm.pushFrame(new TableMapper(f));
+    TableMapper i = new TableMapper(f);
+    i.belongsTo(this);
+    vm.pushFrame(i);
   }
 
   public void invoke(VM vm, Pair args) {

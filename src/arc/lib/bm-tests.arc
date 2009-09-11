@@ -1,6 +1,14 @@
 
 (require-lib 'lib/primes)
 
+(defbm arc-code-indexer
+  (a (load-file "arc.arc"))
+  (index-source a))
+
+(defbm read-arc-dot-arc-content
+  ()
+  (load-file "arc.arc"))
+
 (defbm string-tokeniser
   (s (rand-string 10000))
   (repeat 10 (tokens s #\0)))
@@ -17,6 +25,3 @@
   ()
   (gen-primes 10000))
 
-(defbm tokenise-index-arc-code
-  (a (load-file "arc.arc"))
-  (index-source a))

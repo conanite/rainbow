@@ -12,4 +12,8 @@ public abstract class LiteralObject extends ArcObject {
   public void addInstructions(List i) {
     i.add(new Literal(this));
   }
+
+  public String profileName() {
+    return "ref:" + type().toString();
+  }
 }

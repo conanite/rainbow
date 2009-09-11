@@ -1,10 +1,13 @@
 package rainbow.vm;
 
 import rainbow.LexicalClosure;
+import rainbow.vm.interpreter.visitor.Visitor;
 import rainbow.types.ArcObject;
 import rainbow.types.Symbol;
 
 public abstract class Instruction extends ArcObject {
+  private ArcObject owner;
+
 //  private static Map<Class<? extends Instruction>, Long> invocationCounts = new HashMap();
 //  private static final String spaces = "                                                                       ";
 //
@@ -56,4 +59,16 @@ public abstract class Instruction extends ArcObject {
   }
 
   public abstract void operate(VM vm);
+
+  public void belongsTo(ArcObject fn) {
+    this.owner = fn;
+  }
+
+  public void visit(Visitor v) {
+    v.accept(this);
+  }
+
+  public ArcObject owner() {
+    return owner;
+  }
 }

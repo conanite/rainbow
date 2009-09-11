@@ -3,6 +3,7 @@ package rainbow.types;
 import rainbow.ArcError;
 import rainbow.Nil;
 import rainbow.vm.VM;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.*;
 
@@ -70,10 +71,6 @@ public class Pair extends ArcObject {
     Rational index = Rational.cast(idx, this);
     long n = index.toInt();
     return nth(n).scar(value);
-  }
-
-  public ArcObject sref(Pair args) {
-    return sref(args.car(), args.cdr().car());
   }
 
   public boolean isCar(Symbol s) {
@@ -277,6 +274,10 @@ public class Pair extends ArcObject {
     return i < 0 || cdr().longerThan(i - 1);
   }
 
+  public String profileName() {
+    return "ref:" + type().toString();
+  }
+
   static class OOB extends RuntimeException {
   }
 
@@ -352,8 +353,33 @@ public class Pair extends ArcObject {
     return pair;
   }
 
+  public Pair add(ArcObject other) {
+    if (other instanceof Pair) {
+      List list = new ArrayList();
+      this.copyTo(list);
+      other.copyTo(list);
+      return Pair.buildFrom(list);
+    } else {
+      throw new ArcError("+ : expects cons, got " + other.type() + " " + other);
+    }
+  }
+
   public ArcObject rev() {
     return null;
+  }
+
+  public void visit(Visitor v) {
+    v.accept(this);
+    ArcObject o = this;
+    while (!o.isNotPair()) {
+      o.car().visit(v);
+      o = o.cdr();
+    }
+
+    if (!(o instanceof Nil)) {
+      o.visit(v);
+    }
+    v.end(this);
   }
 
   public boolean isProper() {

@@ -4,10 +4,12 @@ import rainbow.ArcError;
 
 public class ArcCharacter extends LiteralObject {
   public static final Symbol TYPE = Symbol.mkSym("char");
+  private static final ArcCharacter[] chars = new ArcCharacter[65536];
   private char value;
 
   public ArcCharacter(char value) {
     this.value = value;
+    chars[value] = this;
   }
 
   public static final ArcCharacter NULL = new ArcCharacter((char) 0) {
@@ -42,16 +44,16 @@ public class ArcCharacter extends LiteralObject {
 
 
   public static ArcCharacter make(Character ch) {
-    return new ArcCharacter(ch.charValue());
+    return chars[ch] == null ? new ArcCharacter(ch) : chars[ch];
   }
 
   public static ArcCharacter make(String representation) {
     if (representation.length() == 3) {
-      return new ArcCharacter(representation.charAt(2));
+      return make(representation.charAt(2));
     }
 
     if (representation.startsWith("#\\U") || representation.startsWith("#\\u")) {
-      return new ArcCharacter((char) Integer.parseInt(representation.substring(3), 16));
+      return make((char) Integer.parseInt(representation.substring(3), 16));
     }
 
     for (int i = 0; i < named.length; i++) {
@@ -62,7 +64,7 @@ public class ArcCharacter extends LiteralObject {
 
     try {
       int intValue = parseInt(representation);
-      return new ArcCharacter((char) intValue);
+      return make((char) intValue);
     } catch (Exception e) {
       throw new ArcError("Can't make character from " + representation);
     }

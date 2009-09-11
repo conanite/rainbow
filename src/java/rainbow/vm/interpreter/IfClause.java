@@ -89,4 +89,20 @@ public class IfClause extends ArcObject {
     first.visit(v);
     v.end(this);
   }
+
+  public boolean isAifIf() {
+    boolean b = first instanceof IfThen;
+    if (!b) {
+      return false;
+    }
+    return ((IfThen)first).ifExpression.toString().equals("it");
+  }
+
+  public ArcObject thenExpression() {
+    return ((IfThen)first).thenExpression;
+  }
+
+  public ArcObject elseExpression() {
+    return (ArcObject) ((IfThen)first).next;
+  }
 }

@@ -116,7 +116,7 @@ public class IfThen extends ArcObject implements Conditional {
   }
 
   public String toString() {
-    return "if:" + ifExpression + " then:" + thenExpression + " else:" + next;
+    return "" + ifExpression + " " + thenExpression + " " + next;
   }
 
   public int countReferences(int refs, BoundSymbol p) {

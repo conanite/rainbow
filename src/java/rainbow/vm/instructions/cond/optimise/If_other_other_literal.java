@@ -7,6 +7,7 @@ import rainbow.vm.Instruction;
 import rainbow.vm.VM;
 import rainbow.vm.instructions.cond.Cond;
 import rainbow.vm.interpreter.Else;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.List;
 
@@ -31,6 +32,11 @@ public class If_other_other_literal extends Instruction {
 
   public String toString() {
     return "(if[ool] [other] " + thenExpr + " " + elseExpr + ")";
+  }
+
+  public void visit(Visitor v) {
+    super.visit(v);
+    thenInstructions.visit(v);
   }
 
   public static void addInstructions(List i, ArcObject ifExpr, ArcObject thenExpr, ArcObject elseExpr) {

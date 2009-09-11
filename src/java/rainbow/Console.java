@@ -6,6 +6,8 @@ import rainbow.parser.ParseException;
 import rainbow.types.*;
 import rainbow.util.Argv;
 import rainbow.vm.VM;
+import rainbow.vm.Instruction;
+import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.io.*;
 import java.util.*;
@@ -169,11 +171,22 @@ public class Console {
     }
   }
 
+  private static Visitor mkVisitor(final ArcObject owner) {
+    return new Visitor() {
+      public void accept(Instruction o) {
+        o.belongsTo(owner);
+      }
+    };
+  }
+
   private static ArcObject compileAndEval(VM vm, ArcObject expression) {
     expression = rainbow.vm.compiler.Compiler.compile(vm, expression, new Map[0]).reduce();
     List i = new ArrayList();
     expression.addInstructions(i);
-    return vm.thread(null, Pair.buildFrom(i));
+    Pair instructions = Pair.buildFrom(i);
+    instructions.visit(mkVisitor(expression));
+    vm.pushInvocation(null, instructions);
+    return vm.thread();
   }
 
   public static Hash getEnvironment() throws ParseException {

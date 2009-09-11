@@ -1,5 +1,7 @@
 package rainbow.types;
 
+import rainbow.ArcError;
+
 import java.text.DecimalFormat;
 
 public class Real extends ArcNumber {
@@ -88,5 +90,25 @@ public class Real extends ArcNumber {
 
   public ArcObject round() {
     return Rational.make(Math.round(value));
+  }
+
+  public ArcObject plus(Rational r) {
+    return make(value + r.toDouble());
+  }
+
+  public ArcObject plus(Real r) {
+    return make(value + r.toDouble());
+  }
+
+  public ArcObject add(ArcObject other) {
+    if (other instanceof Complex) {
+      return ((Complex)other).plus(this);
+    } else if (other instanceof Rational) {
+      return (this).plus((Rational) other);
+    } else if (other instanceof Real) {
+      return this.plus((Real) other);
+    } else {
+      throw new ArcError("+: expects a number, got " + other.type() + " " + other);
+    }
   }
 }

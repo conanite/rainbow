@@ -13,7 +13,9 @@ public class CallWStdOut extends Builtin {
   }
 
   public void invoke(VM vm, Pair args) {
-    vm.pushFrame(new SetThreadLocal(IO.stdOut, IO.stdOut()));
+    SetThreadLocal i = new SetThreadLocal(IO.stdOut, IO.stdOut());
+    i.belongsTo(this);
+    vm.pushFrame(i);
     IO.stdOut.set(Output.cast(args.car(), this));
     args.cdr().car().invoke(vm, NIL);
   }

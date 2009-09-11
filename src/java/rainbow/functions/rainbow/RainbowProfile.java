@@ -3,7 +3,7 @@ package rainbow.functions.rainbow;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.vm.VM;
-import rainbow.vm.VMInterceptor;
+import rainbow.vm.interceptor.VMInterceptor;
 
 public class RainbowProfile extends Builtin {
   public RainbowProfile() {

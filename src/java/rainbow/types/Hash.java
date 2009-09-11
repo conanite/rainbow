@@ -9,7 +9,25 @@ import java.util.*;
 public class Hash extends LiteralObject {
   public static final Symbol TYPE = Symbol.mkSym("table");
 
+  private ArcObject name = NIL;
   LinkedHashMap map = new LinkedHashMap();
+  private Naming naming = new DontName();
+
+  public void unassigned(ArcObject name) {
+    if (this.name == name) {
+      this.name = NIL;
+      naming = new DontName();
+    }
+  }
+
+  public void assigned(ArcObject name) {
+    this.name = name;
+    naming = new DoName();
+  }
+
+  public ArcObject assignedName() {
+    return name;
+  }
 
   public void invoke(VM vm, Pair args) {
     vm.pushA(this.value(args.car()).or(args.cdr().car()));
@@ -33,15 +51,14 @@ public class Hash extends LiteralObject {
     return size();
   }
 
-  public ArcObject sref(Pair args) {
-    return sref(args.car(), args.cdr().car());
-  }
-
   public ArcObject sref(ArcObject value, ArcObject key) {
     if (value instanceof Nil) {
+      ArcObject previous = value(key);
       unref(key);
+      naming.unname(previous, key);
     } else {
       map.put(key, value);
+      naming.name(value, key);
     }
     return value;
   }
@@ -83,5 +100,25 @@ public class Hash extends LiteralObject {
     } catch (ClassCastException e) {
       throw new ArcError("Wrong argument type: " + caller + " expected a hash, got " + argument + ", a " + argument.type());
     }
+  }
+
+  interface Naming {
+    void name(ArcObject o, ArcObject name);
+    void unname(ArcObject o, ArcObject name);
+  }
+
+  class DoName implements Naming {
+    public void name(ArcObject o, ArcObject name) {
+      o.assigned(new Pair(name, Hash.this.name));
+    }
+
+    public void unname(ArcObject o, ArcObject name) {
+      o.unassigned(new Pair(name, Hash.this.name));
+    }
+  }
+
+  class DontName implements Naming {
+    public void name(ArcObject o, ArcObject name) { }
+    public void unname(ArcObject o, ArcObject name) { }
   }
 }

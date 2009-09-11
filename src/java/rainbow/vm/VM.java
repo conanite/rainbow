@@ -7,12 +7,13 @@ import rainbow.types.ArcException;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
+import rainbow.vm.interceptor.ProfileData;
 import rainbow.vm.instructions.Catch;
 import rainbow.vm.instructions.Finally;
+import rainbow.vm.interceptor.VMInterceptor;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class VM extends ArcObject {
   public static final Symbol TYPE = Symbol.mkSym("thread");
@@ -41,7 +42,8 @@ public class VM extends ArcObject {
   private VMInterceptor interceptor = VMInterceptor.NULL;
   private boolean dead = false;
   private int ipThreshold;
-  public Map<String, Integer> profileData;
+
+  public ProfileData profileData;
   public int debug_target_frame;
 
   public ArcObject thread(LexicalClosure lc, Pair instructions) { // todo dump this, inline to callers
@@ -77,7 +79,6 @@ public class VM extends ArcObject {
           currentParams = params[ip];
           Instruction i = (Instruction) ins[ip].car();
           ins[ip] = ((Pair) ins[ip].cdr());
-//          Instruction.invoke(i);
           i.operate(this);
           interceptor.check(this);
         }
@@ -322,6 +323,7 @@ public class VM extends ArcObject {
 
   public void setInterceptor(VMInterceptor interceptor) {
     this.interceptor = interceptor;
+    interceptor.install(this);
   }
 
   public ArcObject type() {
@@ -382,6 +384,19 @@ public class VM extends ArcObject {
 
   private void copy(Object[] src, Object[] dest) {
     System.arraycopy(src, 0, dest, 0, src.length);
+  }
+
+  public Instruction nextInstruction() {
+    if (!hasInstructions()) {
+      return null;
+    }
+
+    if (ins[ip] instanceof Nil) {
+      ip--;
+      return nextInstruction();
+    }
+
+    return (Instruction) ins[ip].car();
   }
 }
 

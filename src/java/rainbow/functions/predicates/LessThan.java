@@ -4,10 +4,23 @@ import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.Nil;
+import rainbow.vm.VM;
 
 public class LessThan extends Builtin {
   public LessThan() {
     super("<");
+  }
+
+  public void invokef(VM vm) {
+    vm.pushA(T);
+  }
+
+  public void invokef(VM vm, ArcObject arg1) {
+    vm.pushA(T);
+  }
+
+  public void invokef(VM vm, ArcObject arg1, ArcObject arg2) {
+    vm.pushA(arg1.compareTo(arg2) >= 0 ? NIL : T);
   }
 
   public ArcObject invoke(Pair args) {

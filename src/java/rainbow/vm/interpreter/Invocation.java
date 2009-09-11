@@ -7,18 +7,16 @@ import rainbow.functions.interpreted.optimise.Bind;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
+import rainbow.util.Decompiler;
 import rainbow.vm.Instruction;
 import rainbow.vm.instructions.invoke.*;
 import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Invocation extends ArcObject {
-  private final Pair parts;
+  public final Pair parts;
 
   public Invocation(Pair parts) {
     this.parts = parts;
@@ -29,7 +27,7 @@ public class Invocation extends ArcObject {
   }
 
   public String toString() {
-    return parts.toString();
+    return Decompiler.decompile(this).toString();
   }
 
   public void addInstructions(List i) {
