@@ -20,14 +20,14 @@ public class IfBuilder {
     while(body.len() > 0) {
       switch ((int) body.len()) {
         case 0: break;
-        case 1: clause.add(new Else()); body = body.cdr(); break;
+        case 1: clause.append(new Else()); body = body.cdr(); break;
         case 2:
-          clause.add(new IfThen());
+          clause.append(new IfThen());
           body = body.cdr();
           ((Pair)body).setCdr(new Pair(ArcObject.NIL, ArcObject.NIL));
           body = body.cdr();
           break;
-        default: clause.add(new IfThen()); body = body.cdr().cdr(); break;
+        default: clause.append(new IfThen()); body = body.cdr().cdr(); break;
       }
     }
 

@@ -39,7 +39,6 @@ public class Console {
     (Symbol.mkSym("*argv*")).setValue(Pair.buildFrom(programArgs));
     (Symbol.mkSym("*env*")).setValue(getEnvironment());
     (Symbol.mkSym("call*")).setValue(new Hash());
-    (Symbol.mkSym("call*")).setValue(new Hash());
     (Symbol.mkSym("sig")).setValue(new Hash());
 
     if (!argv.present("--no-libs")) {

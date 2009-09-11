@@ -2,7 +2,8 @@ To download and build rainbow and open a REPL:
 
   git clone git://github.com/conanite/rainbow.git
   cd rainbow
-  ant jar
+  ant
+  ant           # yes, twice. The second time uses rainbow to build an optimised version of itself.
   cd src/arc
   java -server -jar rainbow.jar
 
@@ -18,7 +19,7 @@ Welder, an arc IDE:
 
   arc> (welder "rainbow/welder.arc")
 
-A filesystem browser
+A filesystem browser that opens files in welder
 
   arc> (fsb)
 
@@ -34,9 +35,30 @@ A web application that plots z <- z^2 + c, the Mandelbrot formula:
 
   arc> (start-spiral-app)
 
+Run all tests:
 
-Command-line options:
+  arc> (rat)
+  passed: 409
+  failed: 0
+
+Run benchmark suite:
+
+  arc> (rbs)
+
+You should see a report at the end resembling this:
+
+                           avg       min       max
+  arc-code-indexer         201.845   173       353
+  find-top-numbers         63.815    61        78
+  generate-primes          31.105    30        37
+  read-arc-dot-arc-content 33.195    29        90
+  sort-random-numbers      90.66     84        121
+  string-tokeniser         89.6      83        152
+
+
+Rainbow command-line options:
   -f file1 ... fileN        # evaluate each file
   -e '(arc axpr)'           # evaluate arc expr (after having evaluated -f, if specified)
   -args a b c               # sets "*argv*" in the arc environment to (a b c). This option, if present, must be specified last.
-
+  -q                        # no REPL
+  --no-libs                 # don't load any arc libraries. Not even arc.arc.

@@ -15,7 +15,7 @@ public class IfClause extends ArcObject {
     return TYPE;
   }
 
-  public void add(Conditional c) {
+  public void append(Conditional c) {
     if (first != null) {
       first.add(c);
     } else {
