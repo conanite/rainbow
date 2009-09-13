@@ -1,5 +1,6 @@
 
 (require-lib 'lib/primes)
+(require-lib 'lib/nbody)
 
 (defbm arc-code-indexer
   (a (load-file "arc.arc"))
@@ -25,3 +26,6 @@
   ()
   (gen-primes 10000))
 
+(defbm nbody-200
+  ()
+  (nbody 200))

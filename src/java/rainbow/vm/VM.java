@@ -62,11 +62,20 @@ public class VM extends ArcObject {
     if (error != null) {
       ArcException ae = error;
       error = null;
-      throw new ArcError("Unhandled exception on thread#" + threadId + ": " + ae.getOriginal().getMessage(), ae.getOriginal());
+      List<ArcObject> stackTrace = ae.getStackTrace();
+      String msg = "\nAt instruction " + ae.getOperating();
+      if (stackTrace != null) {
+        for (ArcObject o : stackTrace) {
+          msg += "\n" + o.profileName();
+        }
+      }
+      throw new ArcError("Unhandled exception on thread#" + threadId + ": " + ae.getOriginal().getMessage() + msg, ae.getOriginal());
     }
     interceptor.end(this);
     return popA();
   }
+
+  private Instruction operating;
 
   private void loop() {
     interceptor.check(this);
@@ -77,9 +86,9 @@ public class VM extends ArcObject {
         } else {
           currentLc = lcs[ip];
           currentParams = params[ip];
-          Instruction i = (Instruction) ins[ip].car();
+          operating = (Instruction) ins[ip].car();
           ins[ip] = ((Pair) ins[ip].cdr());
-          i.operate(this);
+          operating.operate(this);
           interceptor.check(this);
         }
       } catch (Throwable e) {
@@ -97,18 +106,26 @@ public class VM extends ArcObject {
   }
 
   private void handleError(Throwable e) {
+    List stackTrace = new ArrayList(ip - ipThreshold);
     List instructions = new ArrayList();
     List lexClosures = new ArrayList();
 
     while (ip >= ipThreshold && (!(peekI().car() instanceof Catch))) {
-      if (peekI().car() instanceof Finally) {
+      ArcObject nextInstruction = peekI().car();
+      if (nextInstruction instanceof Finally) {
         instructions.add(peekI());
         lexClosures.add(peekL());
+      }
+      if (nextInstruction instanceof Instruction) {
+        ArcObject instructionOwner = ((Instruction) peekI().car()).owner();
+        if (instructionOwner != null) {
+          stackTrace.add(instructionOwner);
+        }
       }
       popFrame();
     }
 
-    this.error = new ArcException(e);
+    this.error = new ArcException(e, operating, stackTrace);
 
     for (int i = instructions.size() - 1; i >= 0; i--) {
       pushInvocation((LexicalClosure) lexClosures.get(i), (Pair) instructions.get(i));

@@ -115,10 +115,6 @@ public class ArcCharacter extends LiteralObject {
     return this == other || (other instanceof ArcCharacter && ((ArcCharacter) other).value == this.value);
   }
 
-  public boolean isSame(ArcObject other) {
-    return equals(other);
-  }
-
   public static ArcCharacter cast(ArcObject argument, Object caller) {
     try {
       return (ArcCharacter) argument;
