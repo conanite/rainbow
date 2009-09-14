@@ -21,6 +21,8 @@ import rainbow.vm.interpreter.IfClause;
 import rainbow.vm.interpreter.Quotation;
 import rainbow.vm.interpreter.StackSymbol;
 import rainbow.vm.interpreter.visitor.FunctionOwnershipVisitor;
+import rainbow.vm.interpreter.visitor.MeasureLexicalReach;
+import rainbow.vm.interpreter.visitor.ReferenceCounter;
 import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.util.*;
@@ -178,19 +180,15 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
             || (arg instanceof Quotation)
             || (arg instanceof Symbol)
             || (arg instanceof BoundSymbol)
-            || (countReferences(p) <= 1);
+            || (countReferences(p) <= 1); // todo this last condition allows inlining of invocations, it's dubious and may cause out-of-order evaluation!
   }
 
   private int countReferences(BoundSymbol p) {
-    int refs = 0;
+    ReferenceCounter v = new ReferenceCounter(p);
     for (ArcObject o : body) {
-      refs = o.countReferences(refs, p);
+      o.visit(v);
     }
-    return refs;
-  }
-
-  public int countReferences(int refs, BoundSymbol p) {
-    return refs + countReferences(maybeNest(p));
+    return v.count();
   }
 
   private BoundSymbol maybeNest(BoundSymbol p) {
@@ -221,6 +219,10 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
       }
     }
     return false;
+  }
+
+  public boolean nests() {
+    return !(parameterList instanceof Nil);
   }
 
   public boolean assigns(int nesting) {
@@ -291,71 +293,9 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
   public boolean requiresClosure() { // todo should ignore (do ...) forms because they get inlined anyway
     // todo but must make sure (fn () ...) is counted as requiring closure if it's an arg in an invocation
     // in other words, (fn () ...) doesn't require a closure if it's in fn position of an invocation
-    return highestLexicalScopeReference() > -1;
-  }
-
-  public int highestLexicalScopeReference() {
-    int highest = -1;
-    for (ArcObject expr : body) {
-      int eh = expr.highestLexicalScopeReference();
-      if (eh > highest) {
-        highest = eh;
-      }
-      highest = FunctionBodyBuilder.highestLexScopeReference(highest, parameterList, false);
-    }
-
-    if (parameterList() instanceof Nil || this instanceof StackFunctionSupport) {
-      return highest;
-    } else {
-      return highest - 1;
-    }
-  }
-
-  public List findReferrers(final BoundSymbol b) {
-    final List stack = new ArrayList();
-    final List referrers = new ArrayList();
-
-    Visitor v = new Visitor() {
-      int fNesting = 0;
-      int lNesting = 0;
-      BoundSymbol target = b;
-
-      public void accept(InterpretedFunction f) {
-        stack.add(0, f);
-        fNesting++;
-        if (!(f.parameterList instanceof Nil)) {
-          target = target.nest(0);
-        }
-      }
-
-      public void acceptObject(ArcObject o) {
-        stack.add(0, o);
-      }
-
-      public void endObject(ArcObject o) {
-        stack.remove(0);
-      }
-
-      public void end(InterpretedFunction f) {
-        stack.remove(0);
-        fNesting--;
-        if (!(f.parameterList instanceof Nil)) {
-          target = target.unnest();
-        }
-      }
-
-      public void accept(BoundSymbol b) {
-        if (b.isSameBoundSymbol(target) && stack.size() > 0) {
-          referrers.add(stack.get(0));
-        }
-      }
-    };
-
-    for (ArcObject o : body) {
-      o.visit(v);
-    }
-
-    return referrers;
+    MeasureLexicalReach v = new MeasureLexicalReach();
+    visit(v);
+    return v.reach() > -1;
   }
 
   public void visit(Visitor v) {

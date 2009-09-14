@@ -63,19 +63,6 @@ public class SingleAssignment extends ArcObject {
     return Symbol.mkSym("assignment");
   }
 
-  public int countReferences(int refs, BoundSymbol p) {
-    refs = name.countReferences(refs, p);
-    refs = expression.countReferences(refs, p);
-    return next.countReferences(refs, p);
-  }
-
-  public int highestLexicalScopeReference() {
-    int n = name.highestLexicalScopeReference();
-    int me = expression.highestLexicalScopeReference();
-    int other = next.highestLexicalScopeReference();
-    return Math.max(n, Math.max(me, other));
-  }
-
   public boolean assigns(int nesting) {
     return true;
   }
@@ -123,12 +110,6 @@ public class SingleAssignment extends ArcObject {
     sa.expression = this.expression.replaceBoundSymbols(lexicalBindings);
     sa.next = (SingleAssignment) this.next.replaceBoundSymbols(lexicalBindings);
     return sa;
-  }
-
-  public void collectReferences(BoundSymbol b, List bs) {
-    name.collectReferences(b, bs);
-    expression.collectReferences(b, bs);
-    next.collectReferences(b, bs);
   }
 
   public void visit(Visitor v) {

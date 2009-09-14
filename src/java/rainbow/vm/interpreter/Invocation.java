@@ -177,10 +177,6 @@ public class Invocation extends ArcObject {
     return true;
   }
 
-  public int highestLexicalScopeReference() {
-    return parts.highestLexicalScopeReference();
-  }
-
   public boolean assigns(int nesting) {
     Pair pt = this.parts;
     while (!(pt instanceof Nil)) {
@@ -190,15 +186,6 @@ public class Invocation extends ArcObject {
       pt = (Pair) pt.cdr();
     }
     return false;
-  }
-
-  public int countReferences(int refs, BoundSymbol p) {
-    Pair pt = this.parts;
-    while (!(pt instanceof Nil)) {
-      refs = pt.car().countReferences(refs, p);
-      pt = (Pair) pt.cdr();
-    }
-    return refs;
   }
 
   public boolean hasClosures() {

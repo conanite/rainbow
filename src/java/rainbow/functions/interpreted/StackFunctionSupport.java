@@ -32,6 +32,10 @@ public abstract class StackFunctionSupport extends InterpretedFunction {
             || (body.length == 1 && body[0] instanceof StackSymbol && p.isSameStackSymbol((StackSymbol) body[0]));
   }
 
+  public boolean nests() {
+    return false;
+  }
+
   public ArcObject curry(Symbol param, ArcObject arg, boolean requiresNesting) {
     Integer paramIndex = lexicalBindings.get(param);
     StackSymbol p = new StackSymbol(param, paramIndex);

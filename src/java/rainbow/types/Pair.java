@@ -386,12 +386,6 @@ public class Pair extends ArcObject {
     return isProper(this);
   }
 
-  public int highestLexicalScopeReference() {
-    int hcar = car.highestLexicalScopeReference();
-    int hcdr = cdr.highestLexicalScopeReference();
-    return hcar > hcdr ? hcar : hcdr;
-  }
-
   public static boolean isProper(ArcObject pair) {
     while (!pair.isNotPair()) {
       pair = pair.cdr();

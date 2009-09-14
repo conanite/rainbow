@@ -22,7 +22,7 @@ public class Bind extends InterpretedFunction {
     try {
       args.mustBeNil();
     } catch (NotNil notNil) {
-      throw new ArcError("expected 1 arg, got " + args);
+      throw new ArcError("expected 0 args, got " + args);
     }
     vm.pushInvocation(lc, this.instructions);
   }

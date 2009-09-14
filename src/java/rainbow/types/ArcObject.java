@@ -141,10 +141,6 @@ public abstract class ArcObject {
     throw new ArcError("longer than: not a proper list: ends with " + this);
   }
 
-  public int countReferences(int refs, BoundSymbol p) {
-    return refs;
-  }
-
   public ArcObject nest(int threshold) {
     return this;
   }
@@ -182,10 +178,6 @@ public abstract class ArcObject {
 
   public ArcObject reduce() {
     return this;
-  }
-
-  public int highestLexicalScopeReference() {
-    return Integer.MIN_VALUE;
   }
 
   public boolean hasClosures() {

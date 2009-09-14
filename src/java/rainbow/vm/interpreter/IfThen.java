@@ -119,19 +119,6 @@ public class IfThen extends ArcObject implements Conditional {
     return "" + ifExpression + " " + thenExpression + " " + next;
   }
 
-  public int countReferences(int refs, BoundSymbol p) {
-    refs = ifExpression.countReferences(refs, p);
-    refs = thenExpression.countReferences(refs, p);
-    return next.countReferences(refs, p);
-  }
-
-  public int highestLexicalScopeReference() {
-    int hif = ifExpression.highestLexicalScopeReference();
-    int hthen = thenExpression.highestLexicalScopeReference();
-    int helse = next.highestLexicalScopeReference();
-    return Math.max(Math.max(hif, hthen), helse);
-  }
-
   public boolean assigns(int nesting) {
     return ifExpression.assigns(nesting) || thenExpression.assigns(nesting) || next.assigns(nesting);
   }

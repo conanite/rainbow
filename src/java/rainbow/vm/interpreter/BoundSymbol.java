@@ -57,18 +57,6 @@ public class BoundSymbol extends ArcObject {
     return nesting == other.nesting && name == other.name && index == other.index;
   }
 
-  public int countReferences(int refs, BoundSymbol p) {
-    if (isSameBoundSymbol(p)) {
-      return refs + 1;
-    } else {
-      return refs;
-    }
-  }
-
-  public int highestLexicalScopeReference() {
-    return nesting;
-  }
-
   public BoundSymbol nest(int threshold) {
     if (nesting >= threshold) {
       return BoundSymbol.make(name, nesting + 1, index);

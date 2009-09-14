@@ -44,14 +44,6 @@ public class IfClause extends ArcObject {
     return "(if " + first + ")";
   }
 
-  public int countReferences(int refs, BoundSymbol p) {
-    return first.countReferences(refs, p);
-  }
-
-  public int highestLexicalScopeReference() {
-    return first.highestLexicalScopeReference();
-  }
-
   public boolean assigns(int nesting) {
     return first.assigns(nesting);
   }

@@ -13,16 +13,12 @@ public interface Conditional {
   void addInstructions(List i);
   ArcObject reduce();
 
-  int highestLexicalScopeReference();
-
   boolean assigns(int nesting);
 
   boolean hasClosures();
 
   ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int nesting, int paramIndex);
   ArcObject inline(StackSymbol p, ArcObject arg, int paramIndex);
-
-  int countReferences(int refs, BoundSymbol p);
 
   ArcObject nest(int threshold);
 

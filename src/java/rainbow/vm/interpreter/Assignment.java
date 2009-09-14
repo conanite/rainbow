@@ -44,14 +44,6 @@ public class Assignment extends ArcObject {
     return "(assign " + assignment + ")";
   }
 
-  public int countReferences(int refs, BoundSymbol p) {
-    return assignment.countReferences(refs, p);
-  }
-
-  public int highestLexicalScopeReference() {
-    return assignment.highestLexicalScopeReference();
-  }
-
   public boolean assigns(int nesting) {
     return assignment.assigns(nesting);
   }

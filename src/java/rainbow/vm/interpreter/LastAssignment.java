@@ -33,17 +33,6 @@ public class LastAssignment extends SingleAssignment {
     addMyInstructions(i, true);
   }
 
-  public int countReferences(int refs, BoundSymbol p) {
-    refs = name.countReferences(refs, p);
-    return expression.countReferences(refs, p);
-  }
-
-  public int highestLexicalScopeReference() {
-    int n = name.highestLexicalScopeReference();
-    int e = expression.highestLexicalScopeReference();
-    return e > n ? e : n;
-  }
-
   public boolean hasClosures() {
     if (expression instanceof InterpretedFunction) {
       return ((InterpretedFunction) expression).requiresClosure();
@@ -83,11 +72,6 @@ public class LastAssignment extends SingleAssignment {
     sa.name = this.name.replaceBoundSymbols(lexicalBindings);
     sa.expression = this.expression.replaceBoundSymbols(lexicalBindings);
     return sa;
-  }
-
-  public void collectReferences(BoundSymbol b, List bs) {
-    name.collectReferences(b, bs);
-    expression.collectReferences(b, bs);
   }
 
   public void visit(Visitor v) {

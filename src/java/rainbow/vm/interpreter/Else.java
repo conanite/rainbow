@@ -44,14 +44,6 @@ public class Else extends ArcObject implements Conditional {
     return "" + ifExpression;
   }
 
-  public int countReferences(int refs, BoundSymbol p) {
-    return ifExpression.countReferences(refs, p);
-  }
-
-  public int highestLexicalScopeReference() {
-    return ifExpression.highestLexicalScopeReference();
-  }
-
   public boolean assigns(int nesting) {
     return ifExpression.assigns(nesting);
   }

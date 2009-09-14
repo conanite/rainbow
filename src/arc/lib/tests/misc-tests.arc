@@ -2,6 +2,10 @@
   (assign x (+ x 1))
   x)
 
+(def test-break-closure (x)
+  (let y (* x 2)
+    (atomic-invoke (fn () (fn () (+ x y))))))
+
 (register-test '(suite "miscellaneous tests"
 
   ("w/bars should ignore nil elements"
@@ -25,8 +29,11 @@
 
      ("assignment within a function"
        (test-stack-assignment 10)
-       11
-     )
+       11)
+
+     ("closure with no args referencing outer args"
+       ((test-break-closure 2)) ; this shouldn't work on rainbow, I don't know how it does ...
+       6)
 
      ("special case: inlining literals; scheme and rainbow do the same thing (shouldn't this be a bug?)"
        ((fn (f) (cons (f) (f)) )

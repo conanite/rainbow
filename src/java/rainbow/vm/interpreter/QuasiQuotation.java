@@ -32,10 +32,6 @@ public class QuasiQuotation extends ArcObject {
     return "`" + target;
   }
 
-  public int highestLexicalScopeReference() {
-    return highestLexicalScopeReference(Integer.MIN_VALUE, target);
-  }
-
   private List<ArcObject> unquotes() {
     List l = new ArrayList();
     appendUnquotes(l, target, 1);
@@ -81,35 +77,6 @@ public class QuasiQuotation extends ArcObject {
         }
       }
     }
-  }
-
-  private int highestLexicalScopeReference(int highest, ArcObject expr) { // todo this won't work for nested quasiquotes, should use unquotes() instead
-    if (isUnQuote(expr)) {
-      int me = expr.cdr().car().highestLexicalScopeReference();
-      return me > highest ? me : highest;
-
-    } else if (isUnQuoteSplicing(expr)) {
-      int me = expr.cdr().car().highestLexicalScopeReference();
-      return me > highest ? me : highest;
-
-    }
-
-    while (!expr.isNotPair()) {
-      if (isUnQuote(expr)) { // catch post-dot unquotes
-        highest = highestLexicalScopeReference(highest, expr);
-        expr = expr.cdr().cdr();
-      } else {
-        final ArcObject current = expr.car();
-        expr = expr.cdr();
-        if (isUnQuoteSplicing(current)) {
-          highest = highestLexicalScopeReference(highest, current);
-        } else if (isUnQuote(current) || isPair(current)) {
-          highest = highestLexicalScopeReference(highest, current);
-        }
-      }
-    }
-
-    return highest;
   }
 
   public static void addInstructions(List i, ArcObject target) {
@@ -220,20 +187,6 @@ public class QuasiQuotation extends ArcObject {
       }
     }
     return false;
-  }
-
-  public int countReferences(int refs, BoundSymbol p) {
-    for (ArcObject o : unquotes()) {
-      refs = o.countReferences(refs, p);
-    }
-    return refs;
-  }
-
-
-  public void collectReferences(BoundSymbol b, List bs) {
-    for (ArcObject o : unquotes()) {
-      o.collectReferences(b, bs);
-    }
   }
 
   public ArcObject inline(BoundSymbol p, ArcObject arg, boolean unnest, int lexicalNesting, int paramIndex) {
