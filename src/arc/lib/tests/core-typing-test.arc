@@ -243,6 +243,10 @@
           (coerce #\A 'int)
           65)
 
+        ("char to int with unused base arg"
+          (coerce #\n 'int)
+          110)
+
         ("char to string"
           (coerce #\A 'string)
           "A")

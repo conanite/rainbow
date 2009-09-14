@@ -106,6 +106,10 @@ public class Typing {
         char source = ((ArcCharacter) original).value();
         return Rational.make(source);
       }
+
+      public ArcObject coerce(ArcObject original, ArcObject unused) {
+        return coerce(original);
+      }
     });
 
     INT.addCoercion(NUM, new Coercion("num-int") {
