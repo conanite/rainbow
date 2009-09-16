@@ -1,3 +1,12 @@
+(dfn dfn-test (string:foo ?:bar)
+  (pr "foo is a " type.foo " and bar is " bar))
+
+(dfn dfn-test2 (string:foo . len:bar)
+  (pr "foo is a " type.foo " and there are " bar " bars"))
+
+(dfn dfn-test3 (foo . bar)
+  (pr "foo is a " type.foo " and bar is " bar))
+
 (def test-stack-assignment (x)
   (assign x (+ x 1))
   x)
@@ -17,6 +26,24 @@
   ("make sure faster no works properly"
     (map no '(a nil 4 nil (x y z) nil (obj x 1 y 2) nil))
     (nil t nil t nil t nil t))
+
+  (suite "dfn: a superior def"
+    ("use to stringify"
+      (tostring:dfn-test 'hello)
+      "foo is a string and bar is nil")
+
+    ("? for optionals: given"
+      (tostring:dfn-test 'hello 1234)
+      "foo is a string and bar is 1234")
+
+    ("handles rest param"
+      (tostring:dfn-test2 'resting 'a 'b 'c 'd)
+      "foo is a string and there are 4 bars")
+
+    ("without ssyntax is identical to def"
+      (tostring:dfn-test3 'a 'b 'c 'd)
+      "foo is a sym and bar is (b c d)")
+  )
 
   (suite "watch out for dangerous optimisations"
      ("special case: swap two values"

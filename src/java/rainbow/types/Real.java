@@ -89,6 +89,19 @@ public class Real extends ArcNumber {
   }
 
   public ArcObject round() {
+    long r = Math.round(value);
+    if (Math.abs(value - r) == 0.5 && r % 2 == 1) {
+      if (r < value) {
+        return Rational.make(r + 1);
+      } else {
+        return Rational.make(r - 1);
+      }
+    } else {
+      return Rational.make(r);
+    }
+  }
+
+  public ArcObject roundJava() {
     return Rational.make(Math.round(value));
   }
 
@@ -98,6 +111,24 @@ public class Real extends ArcNumber {
 
   public ArcObject plus(Real r) {
     return make(value + r.toDouble());
+  }
+
+  public ArcObject sqrt() {
+    return make(Math.sqrt(value));
+  }
+
+  public ArcObject multiply(ArcNumber other) {
+    return make(value * other.toDouble());
+  }
+
+  public ArcObject multiply(ArcObject other) {
+    if (other instanceof Complex) {
+      return ((Complex)other).multiply(this);
+    } else if (other instanceof ArcNumber) {
+      return (this).multiply((ArcNumber) other);
+    } else {
+      throw new ArcError("*: expects a number, got " + other.type() + " " + other);
+    }
   }
 
   public ArcObject add(ArcObject other) {

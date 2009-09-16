@@ -244,7 +244,7 @@
           65)
 
         ("char to int with unused base arg"
-          (coerce #\n 'int)
+          (coerce #\n 'int 16)
           110)
 
         ("char to string"
@@ -279,6 +279,36 @@
         ("fraction to string in another base"
           (coerce 41/13 'string 8)
           "51/15")
+
+        ("num->int: round to even"
+          (list (coerce 1.5 'int)
+                (coerce 2.5 'int)
+                (coerce 3.5 'int)
+                (coerce 4.5 'int)
+                (coerce 5.5 'int)
+                (coerce 6.5 'int))
+          (2 2 4 4 6 6)
+        )
+
+        ("num->int scheme rounds to even if decimal fraction == 0.5"
+          (list (coerce 3/2 'int)
+                (coerce 5/2 'int)
+                (coerce 7/2 'int)
+                (coerce 9/2 'int)
+                (coerce 11/2 'int)
+                (coerce 13/2 'int))
+          (2 2 4 4 6 6)
+        )
+
+        ("num->int with unused base arg"
+          (list (coerce 3/2 'int 16)
+                (coerce 5/2 'int 16)
+                (coerce 7/2 'int 16)
+                (coerce 9/2 'int 16)
+                (coerce 11/2 'int 16)
+                (coerce 13/2 'int 16))
+          (2 2 4 4 6 6)
+        )
 
         ("double to int"
           (coerce 3.14 'int)

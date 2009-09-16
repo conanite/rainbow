@@ -148,7 +148,7 @@
           (= (cells `(,col ,row))
              (fn (status focus count)
                  (with (fg   (mine-colours (or count 0))
-                        text (if (and count (is status 'exposed))
+                        text (if (and count (> count 0) (is status 'exposed))
                                  "<html><b>#(count)</b></html>"
                                  ""))
                    (configure-bean cell

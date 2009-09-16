@@ -16,6 +16,10 @@ public abstract class ArcNumber extends LiteralObject {
 
   public abstract ArcObject round();
 
+  public ArcObject roundJava() {
+    throw new ArcError("round[closest] not implemented for " + this.getClass() + "(" + this + ")");
+  }
+
   public boolean literal() {
     return true;
   }

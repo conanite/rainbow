@@ -64,6 +64,21 @@ public class Complex extends ArcNumber {
     return new Real(real);
   }
 
+  public ArcObject multiply(ArcNumber other) {
+    double d = other.toDouble();
+    return new Complex(this.real * d, this.imaginary * d);
+  }
+
+  public ArcObject multiply(ArcObject other) {
+    if (other instanceof Complex) {
+      return times((Complex)other);
+    } else {
+      ArcNumber n = (ArcNumber) other;
+      double d = n.toDouble();
+      return new Complex(this.real * d, this.imaginary * d);
+    }
+  }
+
   public Complex times(Complex c) {
     double r1 = this.real;
     double r2 = c.real;
@@ -137,6 +152,10 @@ public class Complex extends ArcNumber {
     } else {
       return this.log().times(exponent.toDouble()).exp();
     }
+  }
+
+  public ArcObject sqrt() {
+    return expt(Real.make(0.5));
   }
 
   private Complex exp() {

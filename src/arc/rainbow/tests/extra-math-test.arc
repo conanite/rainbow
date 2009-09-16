@@ -108,6 +108,10 @@
     ("create from negative parts"
       (make-complex -0.123 -0.456)
       -0.123-0.456i)
+
+    ("square root"
+      (sqrt 1+2i)
+      1.272019649514069+0.7861513777574233i)      
   )
 
   (suite "sine"

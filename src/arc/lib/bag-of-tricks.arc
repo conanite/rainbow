@@ -5,6 +5,12 @@
   (if xs
       (cons (f (car xs)) (map1 f (cdr xs)))))
 
+; like map1, but caters for improper lists
+(def map2 (f xs)
+  (if (no xs)   nil
+      (atom xs) (f xs)
+                (cons (f:car xs) (map2 f cdr.xs))))
+
 (mac afnwith (withses . body)
   (let w (pair withses)
     `((afn ,(map car w) ,@body) ,@(map cadr w))))
@@ -77,39 +83,12 @@
 (mac atdef (name args . body)
   `(def ,name ,args (atomic ,@body)))
 
-(def find-in-path (file)
-  (alet (string file ".arc")
-    (if (file-exists it) it)))
-
-(assign *required-libs* ())
-
-(def require-lib (required)
-  (let arc-lib string.required
-    (if (no (find arc-lib *required-libs*))
-      (aif (find-in-path arc-lib)
-        (do (push arc-lib *required-libs*)
-            (load it))
-        (err:string "Didn't find " arc-lib)))))
-
-(mac requires (func lib)
-  `(def ,func args
-    (require-lib ',lib)
-    (apply ,func args)))
-
-(mac require-by-name (path . funcs)
-  `(do
-     ,@(map [quasiquote (requires ,_ ,(string path _))] funcs)))
-
 (def readstring (f)
   (awhen (readc f)
     (tostring
       (writec it)
       (whiler c (readc f) nil
         (writec c)))))
-
-(def load-file (fname)
-  (w/infile f (if (is (type fname) 'string) fname (coerce fname 'string))
-    (readstring f)))
 
 (def write-file (fname text)
   (w/outfile f fname (w/stdout f (pr text))))
@@ -168,11 +147,12 @@
 
 (def run-benchmark-suite (repeat-count)
   (w/table t
-    (each (name test) (sort car< bm-tests)
-      (prn "executing benchmark " name)
-      (let result (test repeat-count)
-        (= t.name result)
-        (prn "avg " result!avg)))))
+    (with (i 0 n (len bm-tests))
+      (each (name test) (sort car< bm-tests)
+        (prn "benchmark " (++ i) " of " n " " name)
+        (let result (test repeat-count)
+          (= t.name result)
+          (prn "avg " result!avg))))))
 
 (def rbs-report (report)
   (let r (text-column-writer 25 10 10 10)
@@ -182,6 +162,60 @@
   )
 
 (def rbs ((o count 200))
-  (require-lib 'lib/bm-tests)
+  (wipe bm-tests)
+  (load "lib/bm-tests.arc")
   (rbs-report (run-benchmark-suite count)))
 
+(mac dfn (name params . body)
+  `(= ,name (fn ,(dfn-params params)
+              (with ,(dfn-withses params)
+                ,@body))))
+
+(def dfn-p-mapper (p)
+  (if (acons p) (map2 dfn-p-mapper p)
+                (let toks (tokens (coerce p 'string) #\:)
+                  (if cdr.toks
+                      (if (is car.toks "?")
+                          `(o ,(sym:cadr toks))
+                          (sym:cadr toks))
+                      p))))
+
+(def dfn-params (params)
+  (map2 dfn-p-mapper params))
+
+(def dfn-param (p)
+  (let toks (tokens (coerce p 'string) #\:)
+    (if (and cdr.toks (isnt car.toks "?"))
+        `(,(sym:cadr toks) (,(sym:car toks) ,(sym:cadr toks))))))
+
+(def dfn-withses (params)
+  (mappend idfn (accum x
+    (afnwith (p params)
+      (if (no p)   nil
+          (atom p) (aif dfn-param.p x.it)
+                   (do (self:car p) (self:cdr p)))))))
+
+(dfn load-file (string:fname)
+  (w/infile f fname (readstring f)))
+
+(def find-in-path (file)
+  (alet (string file ".arc")
+    (if (file-exists it) it)))
+
+(assign *required-libs* ())
+
+(dfn require-lib (string:arc-lib)
+  (if (no (find arc-lib *required-libs*))
+    (aif (find-in-path arc-lib)
+      (do (push arc-lib *required-libs*)
+          (load it))
+      (err:string "Didn't find " arc-lib))))
+
+(mac requires (func lib)
+  `(def ,func args
+    (require-lib ',lib)
+    (apply ,func args)))
+
+(mac require-by-name (path . funcs)
+  `(do
+     ,@(map [quasiquote (requires ,_ ,(string path _))] funcs)))

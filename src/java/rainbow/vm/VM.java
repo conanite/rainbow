@@ -35,13 +35,13 @@ public class VM extends ArcObject {
   public Pair[] ins = new Pair[100];
   public int ip = -1;
 
-  private LexicalClosure currentLc;
-  private ArcObject[] currentParams;
+  public LexicalClosure currentLc;
+  public ArcObject[] currentParams;
 
-  private ArcException error;
+  public ArcException error;
   private VMInterceptor interceptor = VMInterceptor.NULL;
-  private boolean dead = false;
-  private int ipThreshold;
+  public boolean dead = false;
+  public int ipThreshold;
 
   public ProfileData profileData;
   public int debug_target_frame;
@@ -356,10 +356,22 @@ public class VM extends ArcObject {
   public void copyTo(VM vm) {
     vm.ap = this.ap;
     vm.ip = this.ip;
-    vm.ins = this.ins.clone();
-    vm.args = this.args.clone();
-    vm.lcs = this.lcs.clone();
-    vm.params = this.params.clone();
+    if (vm.ins.length < this.ins.length) {
+      vm.ins = this.ins.clone();
+      vm.lcs = this.lcs.clone();
+      vm.params = this.params.clone();
+    } else {
+      copy(this.ins, vm.ins);
+      copy(this.lcs, vm.lcs);
+      copy(this.params, vm.params);
+    }
+
+    if (vm.args.length != this.args.length) {
+      vm.args = this.args.clone();
+    } else {
+      copy(this.args, vm.args);
+    }
+
     vm.currentLc = this.currentLc;
     vm.error = this.error;
     vm.interceptor = this.interceptor;

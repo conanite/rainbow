@@ -116,6 +116,10 @@ public class Typing {
       public ArcObject coerce(ArcObject original) {
         return ((ArcNumber) original).round();
       }
+
+      public ArcObject coerce(ArcObject original, ArcObject unused) {
+        return coerce(original);
+      }
     });
 
     NUM.addCoercion(INT, new Coercion("int-num") {
@@ -185,9 +189,9 @@ public class Typing {
         if (source.equals("+inf.0") || source.equals("-inf.0") || source.equals("+nan.0") || source.toLowerCase().endsWith("i")) {
           throw new CantCoerce();
         } else if (source.contains(".") || (base.toInt() < 15 && source.matches(".+[eE].+"))) {
-          return ((Real) coerceDouble(source, base.toInt())).round();
+          return ((Real) coerceDouble(source, base.toInt())).roundJava();
         } else if (source.contains("/")) {
-          return ((Rational) coerceFraction(source, base.toInt())).round();
+          return ((Rational) coerceFraction(source, base.toInt())).roundJava();
         } else {
           return coerceInt(source, base.toInt());
         }

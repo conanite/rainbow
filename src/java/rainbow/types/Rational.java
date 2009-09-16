@@ -127,6 +127,17 @@ public class Rational extends ArcNumber {
   public ArcObject round() {
     if (denominator == 1L) {
       return this;
+    } else if (denominator == 2L) {
+      long r = numerator / denominator;
+      return Rational.make(r + ((r % 2 == 1) ? 1 : 0));
+    } else {
+      return Rational.make(Math.round(((double)numerator) / ((double)denominator)));
+    }
+  }
+
+  public ArcObject roundJava() {
+    if (denominator == 1L) {
+      return this;
     } else {
       return Rational.make(Math.round(((double)numerator) / ((double)denominator)));
     }
@@ -139,6 +150,27 @@ public class Rational extends ArcNumber {
     } else {
       String den = Long.toString(denominator, (int) base.toInt());
       return ArcString.make(num + "/" + den);
+    }
+  }
+
+  public ArcObject sqrt() {
+    double d = Math.sqrt((double) numerator / (double) denominator);
+    if ((long)d == d) {
+      return make((long) d);
+    } else {
+      return Real.make(d);
+    }
+  }
+
+  public ArcObject multiply(ArcObject other) {
+    if (other instanceof Complex) {
+      return ((Complex)other).multiply(this);
+    } else if (other instanceof Real) {
+      return ((Real)other).multiply(this);
+    } else if (other instanceof Rational) {
+      return this.times((Rational) other);
+    } else {
+      throw new ArcError("*: expects a number, got " + other.type() + " " + other);
     }
   }
 

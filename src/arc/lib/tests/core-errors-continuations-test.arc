@@ -1,9 +1,25 @@
+(def test-find-char (str c)
+  (catch
+    (let i -1
+      (each ch (coerce str 'cons)
+        (++ i)
+        (if (is ch c)
+            (throw i))))))
+
 (register-test '(suite "Foundation Tests"
   (suite "Errors and Continuations"
     (suite "ccc"
       ("use ccc to return a value"
         (ccc (fn (esc) (esc "bailout value") 42))
         "bailout value")
+
+      ("catch expands to ccc: call throw"
+        (test-find-char "abcdefg" #\d)
+        3)
+
+      ("catch expands to ccc: nil result"
+        (test-find-char "abcdefg" #\z)
+        nil)
 
       ("support continuation-passing style to calculate hypoteneuse"
         ( (fn ((cps* cpsplus cps-sqrt cps-pyth))

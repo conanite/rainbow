@@ -50,19 +50,16 @@
 (def merge-sequences (seqs)
   (with (nseq  nil
          sortf (fn (a b) 
-                   (or (< car.a car.b)
+                   (or (car< a b)
                        (and (is car.a car.b)
-                            (in cadr.a 'note-off 'instrument)))))
-    (each seq seqs
-      (each tk seq
-        (insort sortf tk nseq)))
-    nseq))
+                            (any? cadr.a 'note-off 'instrument)))))
+    (sort sortf (apply + seqs))))
 
 (mac add-note-on (seq tick channel note vol)
-  `(push (list ,tick 'note-on ,channel ,note ,vol) ,seq))
+  `(fpush (list ,tick 'note-on ,channel ,note ,vol) ,seq))
 
 (mac add-note-off (seq tick channel note)
-  `(push (list ,tick 'note-off ,channel ,note) ,seq))
+  `(fpush (list ,tick 'note-off ,channel ,note) ,seq))
 
 (def create-sequence (ch events)
   (with (seq nil tick 0 process-note nil octavise nil trillo-mordant nil staccato nil pre-arpeggio nil)
@@ -100,7 +97,6 @@
        process-note (fn ((note vol duration . options))
                     (let already-processed nil
                       (each opt options
-                        (prn "option " opt)
                         (let processed-now
                           (if (and (acons opt) (is car.opt 'arp))
                               (pre-arpeggio note vol cdr.opt)
@@ -184,7 +180,6 @@
     (fn (seq)
       (withs (incr 0
               f2   (fn ((note vol duration . options))
-                       (prn "crescendo " note " " vol " " duration " " options " incr: " incr)
                        `(,note ,(+ vol (int:++ incr incrs)) ,duration ,@options))
               f1   (fn (note)
                        (if (is (type:car note) 'sym) note (f2 note)))

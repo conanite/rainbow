@@ -2,19 +2,19 @@ package rainbow.functions.maths;
 
 import rainbow.functions.Builtin;
 import rainbow.types.*;
+import rainbow.vm.VM;
 
 public class Sqrt extends Builtin {
   public Sqrt() {
     super("sqrt");
   }
 
-  public ArcObject invoke(Pair args) {
-    checkMaxArgCount(args, getClass(), 1);
-    double result = Math.sqrt(ArcNumber.cast(args.car(), this).toDouble());
-    if ((long)result == result) {
-      return Rational.make((long) result);
-    } else {
-      return new Real(result);
-    }
+  public void invokef(VM vm, ArcObject arg) {
+    vm.pushA(arg.sqrt());
+  }
+
+  public void invoke(VM vm, Pair args) {
+    checkExactArgsCount(args, 1, getClass());
+    invokef(vm, args.car());
   }
 }

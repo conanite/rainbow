@@ -173,6 +173,14 @@ public abstract class ArcObject {
     throw new ArcError("add not implemented for " + type() + " " + this);
   }
 
+  public ArcObject sqrt() {
+    throw new ArcError("sqrt not implemented for " + type() + " " + this);
+  }
+
+  public ArcObject multiply(ArcObject arcObject) {
+    throw new ArcError("multiply not implemented for " + type() + " " + this);
+  }
+
   public static class NotNil extends Throwable {
   }
 
