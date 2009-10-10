@@ -5,8 +5,8 @@ import rainbow.parser.ArcParser;
 import rainbow.parser.ParseException;
 import rainbow.types.*;
 import rainbow.util.Argv;
-import rainbow.vm.VM;
 import rainbow.vm.Instruction;
+import rainbow.vm.VM;
 import rainbow.vm.interpreter.visitor.Visitor;
 
 import java.io.*;

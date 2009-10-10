@@ -19,6 +19,9 @@
          (is type.method 'sym)  `(java-static-invoke ,,class ',method ,@args)
                                 `(java-static-invoke ,,class ,method ,@args))))
 
+(mac java-imports (pkg . classes)
+  `(do ,@(map (fn (_) `(java-import ,(string pkg "." _))) classes)))
+
 (def java-accessor (dir name)
   (let prop-chars (coerce (string name) 'cons)
     (sym+ dir (upcase-initial name))))
@@ -114,4 +117,7 @@
         (no:cdr toks)
         car.toks
         `(string ,@toks))))
+
+
+
 

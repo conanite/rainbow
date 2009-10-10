@@ -3,8 +3,8 @@ package rainbow.vm.instructions.invoke;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.VM;
 import rainbow.vm.Instruction;
+import rainbow.vm.VM;
 import rainbow.vm.interpreter.BoundSymbol;
 
 import java.util.List;

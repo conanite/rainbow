@@ -15,7 +15,7 @@ public class LexicalClosure {
 
   public void add(ArcObject value) {
     if (count >= bindings.length) {
-      throw new Error("Can't add " + value + " to bindings: already full (" + count + ") " + Pair.buildFrom(bindings));
+      throw new ArcError("Can't add " + value + " to bindings: already full (" + count + ") " + Pair.buildFrom(bindings));
     }
     bindings[count] = value;
     count++;

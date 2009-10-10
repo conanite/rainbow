@@ -19,7 +19,7 @@ public class ShellInvoke extends Builtin {
       SystemFunctions.copyStream(SystemFunctions.createProcess(ArcString.cast(args.car(), this)), IO.stdOut());
       return NIL;
     } catch (IOException e) {
-      throw new ArcError("system: failed to run " + args.car());
+      throw new ArcError("system: failed to run " + args.car() + ": " + e, e);
     }
   }
 }

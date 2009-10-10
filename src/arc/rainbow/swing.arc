@@ -39,8 +39,9 @@
     (each (name value) (pair name-value-pairs)
       (it 'addAttribute (style-constant name) (if (is value t) t (awt-color value))))))
 
-(mac courier (font-size)
-  `(Font new "Courier" font-plain* ,font-size))
+(def make-font (name size) (Font new name font-plain* size))
+
+(def courier (font-size) (make-font "Courier" font-size))
 
 (mac dim (x y)
   `(java-new "java.awt.Dimension" ,x ,y))

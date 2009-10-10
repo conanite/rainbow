@@ -36,7 +36,7 @@ public class ArcSocket extends LiteralObject {
       ArcString address = ArcString.make(socket.getInetAddress().toString());
       return Pair.buildFrom(
               new SocketInputPort(in, address),
-              new SocketOutputPort(out, address),
+              new SocketOutputPort(out),
               address);
     } catch (IOException e) {
       throw new ArcError("socket-accept: " + ss.getLocalPort() + " failed : " + e.getMessage(), e);

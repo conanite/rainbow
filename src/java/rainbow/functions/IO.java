@@ -57,24 +57,26 @@ public abstract class IO {
       ((Output) port).close();
     } else if (port instanceof ArcSocket) {
       ((ArcSocket) port).close();
+    } else if (port instanceof JavaObject) {
+      ((JavaObject) port).close();
     } else {
       throw new ArcError("close: expected Input or Output object; got " + port);
     }
   }
 
   public static Output chooseOutputPort(ArcObject port, Object caller) {
-    if (!(port instanceof Nil)) {
-      return Output.cast(port, caller);
-    } else {
+    if (port instanceof Nil) {
       return stdOut();
+    } else {
+      return Output.cast(port, caller);
     }
   }
 
   public static Input chooseInputPort(ArcObject port, Object caller) {
-    if (!(port instanceof Nil)) {
-      return Input.cast(port, caller);
-    } else {
+    if (port instanceof Nil) {
       return stdIn();
+    } else {
+      return Input.cast(port, caller);
     }
   }
 

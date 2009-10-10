@@ -26,17 +26,17 @@
 
 (assign night-colour-scheme (obj
   background        (awt-color 'black)
-  caret             (awt-color 'white)
-  default           (swing-style 'foreground 'gray      'background 'black)
+  caret             (awt-color 'yellow)
+  default           (swing-style 'foreground 'white     'background 'black)
   syntax            (swing-style 'foreground 'gray)
   unmatched-syntax  (swing-style 'foreground 'black     'background 'red   'bold t )
   paren-match       (swing-style 'foreground 'gray      'background 'blue)
   search-highlight  (swing-style 'background 'yellow)
-  sym               (swing-style 'foreground "#80D080")
-  sym-string        (swing-style 'foreground "#80D080")
-  sym-fn            (swing-style 'foreground "#C0D0C0"  'bold t)
-  sym-mac           (swing-style 'foreground "#9090B0"  'bold t)
-  string            (swing-style 'foreground "#C0D0D0")
+  sym               (swing-style 'foreground "#D0F0A0")
+  sym-string        (swing-style 'foreground "#DDEEEE")
+  sym-fn            (swing-style 'foreground 'white  'bold t)
+  sym-mac           (swing-style 'foreground "#9090F0"  'bold t)
+  string            (swing-style 'foreground "#DDEEEE")
   int               (swing-style 'foreground "#808040")
   char              (swing-style 'foreground "#706090")
   comment           (swing-style 'foreground "#604060"  'italic t)
@@ -546,7 +546,7 @@
   (when (and editor!dirty (> (- (msec) editor!dirty) 400))
         (wipe editor!dirty)
         (welder-save-editor-content editor)
-        (time (welder-reindex editor))
+        (welder-reindex editor)
         (later (colourise editor)
                (editor!frame 'setTitle (welder-window-title editor))))
   (sleep 0.1)
@@ -655,7 +655,7 @@
 (welder-init (editor)
   (configure-bean editor!pane
     'caretColor      colour-scheme!caret
-    'font            (courier font-size)
+    'font            (make-font "Courier" font-size)
     'selectionColor  colour-scheme!selection
     'background      colour-scheme!background))
 

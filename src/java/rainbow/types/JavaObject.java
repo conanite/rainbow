@@ -6,6 +6,10 @@ import rainbow.Nil;
 import rainbow.functions.Closure;
 import rainbow.functions.interpreted.InterpretedFunction;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.IOException;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -280,6 +284,10 @@ public class JavaObject extends LiteralObject {
       return true;
     } else if (Character.class.isAssignableFrom(parameterType) && arcObject instanceof ArcCharacter) {
       return true;
+    } else if (OutputStream.class.isAssignableFrom(parameterType) && arcObject instanceof Output) {
+      return true;
+    } else if (InputStream.class.isAssignableFrom(parameterType) && arcObject instanceof Input) {
+      return true;
     } else if (parameterType == String.class && (arcObject instanceof ArcString || arcObject instanceof Symbol)) {
       return true;
     } else if (parameterType == List.class && arcObject instanceof Pair) {
@@ -291,11 +299,24 @@ public class JavaObject extends LiteralObject {
     } else if (parameterType.isInterface() && (arcObject instanceof Hash || arcObject instanceof InterpretedFunction || arcObject instanceof Closure)) {
       return true;
     } else if (parameterType.isArray()) {
-      return arcObject instanceof Pair;
+      return matchArrayType(parameterType, arcObject);
     } else if (parameterType.isAssignableFrom(arcObject.unwrap().getClass())) {
       return true;
     }
     return false;
+  }
+
+  private static boolean matchArrayType(Class parameterType, ArcObject arcObject) {
+    Class componentType = parameterType.getComponentType();
+    if (componentType.isPrimitive()) {
+      if (!(arcObject instanceof JavaObject)) {
+        return false;
+      }
+      Object wrapped = ((JavaObject)arcObject).unwrap();
+      return (wrapped.getClass().isArray() && wrapped.getClass().getComponentType() == componentType);
+    } else {
+      return arcObject instanceof Pair;
+    }
   }
 
   private static boolean isPrimitiveNumber(Class p) {
@@ -316,9 +337,19 @@ public class JavaObject extends LiteralObject {
     } else if (o instanceof Character) {
       return ArcCharacter.make((Character) o);
     } else if (o.getClass().isArray()) {
-      return wrapList((Object[]) o);
+      Class arrayClass = o.getClass();
+      Class componentClass = arrayClass.getComponentType();
+      if (componentClass.isPrimitive()) {
+        return new JavaObject(o);
+      } else {
+        return wrapList((Object[]) o);
+      }
     } else if (o instanceof List) {
       return wrapList((List) o);
+    } else if (o instanceof InputStream) {
+      return new Input((InputStream) o);
+    } else if (o instanceof OutputStream) {
+      return new Output(new PrintStream((OutputStream) o));
     } else if (o instanceof Map) {
       return wrapMap((Map) o);
     } else if (o instanceof Boolean) {
@@ -356,5 +387,19 @@ public class JavaObject extends LiteralObject {
       hash.sref(wrap(value), wrap(key));
     }
     return hash;
+  }
+
+  public void close() {
+    try {
+      if (object instanceof InputStream) {
+        ((InputStream)object).close();
+      } else if (object instanceof OutputStream) {
+        ((OutputStream)object).close();
+      } else {
+        throw new ArcError("close: unexpected object: " + this);
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }

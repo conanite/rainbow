@@ -14,6 +14,7 @@ import rainbow.functions.java.*;
 import rainbow.functions.lists.*;
 import rainbow.functions.maths.*;
 import rainbow.functions.network.ClientIp;
+import rainbow.functions.network.Connect;
 import rainbow.functions.network.OpenSocket;
 import rainbow.functions.network.SocketAccept;
 import rainbow.functions.predicates.*;
@@ -160,6 +161,7 @@ public class Environment {
     new OpenSocket();
     new ClientIp();
     new SocketAccept();
+    new Connect();
 
     new OutFile();
     new InFile();
