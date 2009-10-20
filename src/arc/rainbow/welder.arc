@@ -61,11 +61,15 @@
   comment           (swing-style 'foreground "#909090"  'italic t)
   selection         (awt-color   "#202060")))
 
-(assign font-size 14)
-(assign colour-scheme night-colour-scheme)
-(assign file-chooser (new-file-chooser))
-(assign welder-actions* (table))
-(assign welder-key-bindings* (table))
+
+(assign font-size            12
+        font-family          "Monaco"
+        colour-scheme        night-colour-scheme
+        file-chooser         (new-file-chooser)
+        welder-actions*      (table)
+        welder-key-bindings* (table))
+
+(def editor-font () (make-font font-family font-size))
 
 (mac dot () `(editor!caret 'getDot))
 
@@ -175,17 +179,17 @@
 (defweld bigger-font "Enlarge font"
          "Increase font size"
          (zap [+ _ 2] font-size)
-         (configure-bean editor!pane 'font (courier font-size)))
+         (configure-bean editor!pane 'font (editor-font)))
 
 (defweld littler-font "Reduce font"
          "Reduce font size"
          (zap [- _ 2] font-size)
-         (configure-bean editor!pane 'font (courier font-size)))
+         (configure-bean editor!pane 'font (editor-font)))
 
 (defweld reset-font "Reset font"
          "Reset font size to default"
          (assign font-size 12)
-         (configure-bean editor!pane 'font (courier font-size)))
+         (configure-bean editor!pane 'font (editor-font)))
 
 (defweld expand-macro "Macex"
          "Macro-expands the form under the caret"
@@ -625,12 +629,12 @@
                        (hilite))
                      (prn "no hits for " search-term)))
     (def next    ((o offset-from-dot 1))
-                 (move [or (find [< (+ offset-from-dot (dot) -1) _] hits)
-                           (car hits)]))
+                 (move (fn () (or (find [< (+ offset-from-dot (dot) -1) _] hits)
+                                  (car hits)))))
     (def prev    ()
-                 (move [let rhits (rev hits)
+                 (move (fn () (let rhits (rev hits)
                             (or (find [> (dot) _] rhits)
-                                (car rhits))]))
+                                (car rhits))))))
     (def hide    ()
                  (wipe hit)
                  (unhilite)
@@ -655,7 +659,7 @@
 (welder-init (editor)
   (configure-bean editor!pane
     'caretColor      colour-scheme!caret
-    'font            (make-font "Courier" font-size)
+    'font            (editor-font)
     'selectionColor  colour-scheme!selection
     'background      colour-scheme!background))
 
