@@ -99,6 +99,7 @@ public class VM extends ArcObject {
 
   public void loadCurrentContext() {
     currentLc = peekL();
+    currentParams = params[ip];
   }
 
   public boolean hasInstructions() {

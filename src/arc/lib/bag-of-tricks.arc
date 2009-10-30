@@ -55,6 +55,8 @@
 (mac nobj args ; with thanks to http://arclanguage.org/item?id=7478 and http://arclanguage.org/item?id=7480
   `(obj ,@(mappend [list _ _] args)))
 
+(def prerr args (w/stdout (stderr) (apply pr args)))
+
 (let make-def (fn ((name args . body))
                   `(= ,name (fn ,args ,@body)))
   (mac make-obj args

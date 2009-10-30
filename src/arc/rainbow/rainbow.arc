@@ -63,6 +63,52 @@
 (def canonical-path (file)
   ((File new file) 'getCanonicalPath))
 
+(mac err? body
+  `(on-err (fn (ex)
+               (w/stdout (stderr)
+                 (prn (details ex))
+                 (prn ',body))
+               nil)
+           (fn ()   ,@body)))
+
+(with (profiled-threads nil
+       old-new-thread   new-thread
+       merge-fn         nil
+       merge-single-fn  nil
+       to-report        nil
+       merged-report    nil)
+
+  (def to-report (th)
+    (if (is (type th) 'thread)
+        ((rainbow-profile-report th) 'invocation-profile)
+        th))
+
+  (def merge-item (merged item)
+    (aif (find [is _.3 item.3] merged)
+         (do (for i 0 2 (++ it.i item.i))
+             (merge-fn it.4 item.4)
+             merged)
+         (cons item merged)))
+
+  (dfn merge-fn (to-report:left to-report:right)
+    (if right
+        (merge-fn (merge-item left car.right) cdr.right))
+    left)
+
+  (def profiling-on ()
+    (assign new-thread (fn (f)
+      (let nt (old-new-thread (fn () (rainbow-profile) (f)))
+        (push nt profiled-threads)
+        nt)))
+    t)
+
+  (def profiling-off ()
+    (assign new-thread old-new-thread)
+    (show-profile-report (obj invocation-profile
+                              (reduce merge-fn profiled-threads)))
+    (wipe profiled-threads))
+)
+
 (mac profiler expr
   `(after (do (rainbow-profile) ,@expr)
           (show-profile-report (rainbow-profile-report))))
@@ -72,7 +118,7 @@
   (prn "=================")
   (let r (text-column-writer 14 14 14 200)
     (r "total-time" "own-time" "invocations" "fn")
-    (each item report!invocation-profile
+    (each item (sort car> report!invocation-profile)
       (profile-report-fn r "" item))))
 
 (def show-instruction-profile (report)
@@ -83,8 +129,11 @@
     (each (value . name) report!instruction-profile
       (r value name))))
 
+(def millify (time)
+  (/ (int (* time 1000)) 1000.0))
+
 (def profile-report-fn (r indent (all-nanos my-nanos count object kidz))
-  (r (string all-nanos 'ms) (string my-nanos 'ms) count (tostring:pr indent object))
+  (r (string millify.all-nanos 'ms) (string millify.my-nanos 'ms) count (tostring:pr indent object))
   (each item (sort car> kidz)
     (profile-report-fn r (+ indent "  ") item)))
 
