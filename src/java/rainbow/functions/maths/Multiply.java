@@ -30,7 +30,7 @@ public class Multiply extends Builtin {
 
   public ArcObject invoke(Pair args) {
     if (args instanceof Nil) {
-      return Rational.ZERO;
+      return Rational.ONE;
     }
     ArcObject result = args.car();
     ArcObject rest = args.cdr();
@@ -39,7 +39,5 @@ public class Multiply extends Builtin {
       rest = rest.cdr();
     }
     return result;
-
-//    return Maths.precision(args).multiply(args);
   }
 }

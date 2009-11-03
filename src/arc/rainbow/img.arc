@@ -3,8 +3,10 @@
 (java-import "java.awt.image.BufferedImage")
 (java-import "javax.imageio.ImageIO")
 
+(assign default-image-type BufferedImage.TYPE_INT_ARGB)
+
 (def new-img (width height)
-  (BufferedImage new width height (BufferedImage TYPE_INT_ARGB)))
+  (BufferedImage new width height default-image-type))
 
 (def << (arg shift) (* arg (coerce (expt 2 shift) 'int)))
 
@@ -29,7 +31,7 @@
       (let plot-point (fn (x y)
                           (withs (k (string x "," y)
                                  already (seen k))
-                            (= (seen k) t)
+                            (sref seen t k)
                             (gc 'fillRect x y 1 1)
                             already))
       (list

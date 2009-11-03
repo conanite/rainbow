@@ -1,10 +1,11 @@
 package rainbow.vm.interceptor;
 
-import rainbow.types.*;
 import rainbow.functions.interpreted.InterpretedFunction;
+import rainbow.types.*;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class FunctionProfile {
@@ -15,6 +16,7 @@ public class FunctionProfile {
   public long totalNanoTime;
   public List<FunctionProfile> children = new ArrayList();
   public FunctionProfile parent;
+  public Map<String, InvocationCounter> callerCounts = new HashMap();
 
   public void addNanoTime(long nanos) {
     this.nanoTime += nanos;
@@ -38,7 +40,11 @@ public class FunctionProfile {
     for (FunctionProfile child : children) {
       kidz = new Pair(child.toPair(), kidz);
     }
-    return new Pair(totalNanos, new Pair(nanos, new Pair(invs, new Pair(fn, new Pair(kidz, ArcObject.NIL)))));
+    Pair callers = ArcObject.NIL;
+    for (InvocationCounter ic : callerCounts.values()) {
+      callers = new Pair(ic.toPair(), callers);
+    }
+    return Pair.buildFrom(totalNanos, nanos, invs, fn, kidz, callers);
   }
 
   static FunctionProfile get(Map<String, FunctionProfile> map, ArcObject function) {
@@ -60,5 +66,13 @@ public class FunctionProfile {
     }
 
     return fp;
+  }
+
+  public void addAncestor(ArcObject invocation) {
+    if (invocation == null) {
+      return;
+    }
+
+    InvocationCounter.get(callerCounts, invocation).count++;
   }
 }

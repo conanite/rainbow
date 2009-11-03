@@ -1,6 +1,7 @@
 ; more efficient than (is x nil)
 (def no (x) (if x nil t))
 
+; same as map1 but avoids unnecessary call to no
 (def map1 (f xs)
   (if xs
       (cons (f (car xs)) (map1 f (cdr xs)))))
@@ -10,6 +11,23 @@
   (if (no xs)   nil
       (atom xs) (f xs)
                 (cons (f:car xs) (map2 f cdr.xs))))
+
+; like map but doesn't cons.
+; I would like to call this 'each, but that name is already taken.
+(def iter (f xs)
+  (when xs
+    (f car.xs)
+    (iter f cdr.xs)))
+
+; same as pr but uses iter instead of map1
+; news show forum page 10 times with 5 items: calls cons 438240 times for 10 page views: 43824 per page view
+; with this pr: 397781cons/10 page views = 39778 per page view
+;
+; gain: 10% fewer conses. need to measure and see if this represents an actual perf improvement
+;
+(def pr args
+  (iter disp args)
+  car.args)
 
 (mac afnwith (withses . body)
   (let w (pair withses)

@@ -81,6 +81,7 @@
     moveTo : function(newx, newy) {
       x(newx);
       y(newy);
+      $("spiral_form").submit();
     },
 
     install : function() {

@@ -72,6 +72,14 @@
         1/30 ))
 
     (suite "*"
+      ("returns 1 for zero args"
+        (*)
+        1)
+
+      ("returns 1 for zero args via apply"
+        (apply * nil)
+        1)
+
       ("multiplies integers"
         (* 23 7)
         161)

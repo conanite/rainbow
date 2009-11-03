@@ -148,12 +148,12 @@
   (spiral-params req
     (zap [+ _ (* x-offset nc)] x)
     (zap [+ _ (* y-offset nc)] y)
-    (tag (a href (string "javascript:$s.moveTo(" x ", " y ");"))
+    (tag (a href (string "javascript:$s.moveTo(" x ", " y ", event);"))
          (spiral-img (string "img_" x-offset "_" y-offset) x y 100 75 ox oy zoom))))
 
 ;(assign nb-array '(-81 -9 -3 -1 0 1 3 9 81))
-;(assign nb-array '(-64 -8 -1 0 1 8 64))
-(assign nb-array '(-10 -1 0 1 10))
+(assign nb-array '(-64 -8 -1 0 1 8 64))
+;(assign nb-array '(-10 -1 0 1 10))
 ;(assign nb-array '(-1 0 1))
 
 (def neighbours (req)
@@ -193,7 +193,7 @@
   (with (z 0+0i
          n 0
          repeats 0)
-    (while (and (small z) (< n 8000) (< repeats 1000))
+    (while (and (small z) (< n 10000) (< repeats 1000))
       (assign n       (+ n 1)
               z       (+ c (* z z))
               repeats (if (apply plt (complex-parts z))

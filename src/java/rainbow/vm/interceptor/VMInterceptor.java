@@ -76,7 +76,9 @@ public enum VMInterceptor {
         if (fn instanceof Closure) {
           fn = ((Closure)fn).fn();
         }
-        FunctionProfile.get(vm.profileData.invocationProfile, fn).invocationCount++;
+        FunctionProfile thisProfile = FunctionProfile.get(vm.profileData.invocationProfile, fn);
+        thisProfile.addAncestor(next.owner());
+        thisProfile.invocationCount++;
         vm.profileData.lastInvokee = fn;
       } else if (next.owner() != null) {
         vm.profileData.lastInvokee = next.owner();
