@@ -1,7 +1,21 @@
-(assign profile-reporter
-        (text-column-writer 14 14 14 200)
-        caller-count-reporter
-        (text-column-writer 42 14 200))
+(mac profiler expr
+  `(after (do (rainbow-profile) ,@expr)
+          (html-prof ((rainbow-profile-report) 'invocation-profile))))
+
+(assign new-thread-without-profiling new-thread)
+
+(let profiled-threads nil
+  (def profiling-on ()
+    (assign new-thread (fn (f)
+      (let nt (new-thread-without-profiling (fn () (rainbow-profile) (f)))
+        (push nt profiled-threads)
+        nt)))
+    t)
+
+  (def profiling-off ()
+    (assign new-thread new-thread-without-profiling)
+    (html-prof (reduce merge-invocation-profiles profiled-threads))
+    (wipe profiled-threads)))
 
 (def merge-caller-counts (left right)
   (let mcc (listtab left)
@@ -27,140 +41,108 @@
       (merge-invocation-profiles (merge-profile-item left car.right) cdr.right)
       left))
 
-(assign new-thread-without-profiling new-thread)
-
-(let profiled-threads nil
-  (def profiling-on ()
-    (assign new-thread (fn (f)
-      (let nt (new-thread-without-profiling (fn () (rainbow-profile) (f)))
-        (push nt profiled-threads)
-        nt)))
-    t)
-
-  (def profiling-off ()
-    (assign new-thread new-thread-without-profiling)
-    (show-profile-report (obj invocation-profile
-                              (reduce merge-invocation-profiles profiled-threads)))
-    (wipe profiled-threads)))
-
-(mac profiler expr
-  `(after (do (rainbow-profile) ,@expr)
-          (html-prof (rainbow-profile-report))))
-
-(def show-profile-report (report)
-  (prn "Invocation profiles")
-  (prn "=================")
-  (profile-reporter "total-time" "own-time" "invocations" "fn")
-  (each item (sort car> report!invocation-profile)
-    (profile-report-fn "" item)))
-
-(def show-instruction-profile (report)
-  (prn "Rainbow vm-instruction counts")
-  (prn "=============================")
-  (let r (text-column-writer 10 200)
-    (r "count" "instruction class")
-    (each (value . name) report!instruction-profile
-      (r value name))))
-
 (def millify (time)
   (/ (int (* time 1000)) 1000.0))
 
-(def profile-report-fn (indent (all-nanos my-nanos count object kidz callers))
-  (profile-reporter (string millify.all-nanos 'ms) (string millify.my-nanos 'ms) count (tostring:pr indent object))
-  (each (f c) callers
-    (caller-count-reporter "" (+ indent "  " c) f))
-  (each item (sort car> kidz)
-    (profile-report-fn (+ indent "  ") item)))
+(def percentify (time total)
+  (/ (int (* 1000.0 (/ time total))) 10.0))
 
 (attribute tr         class          opstring)
+(attribute tr         id             opstring)
 (attribute table      class          opstring)
 (attribute th         colspan        opnum)
+(attribute a          name           opstring)
 
-(def prof-tr (indent parent (all-nanos my-nanos count object kidz callers))
+(def id-for-fn (ids fn-as-string)
+  (or ids.fn-as-string
+      (= ids.fn-as-string (uniq))))
+
+(def prof-tr (ids indent parent overall (all-nanos my-nanos count object kidz callers))
   (prn)
-  (tag (tr class 'profiled)
-    (tag td (pr:string millify.all-nanos 'ms))
-    (tag td (pr:string millify.my-nanos 'ms))
+  (tag (tr class 'profiled id (id-for-fn ids object))
+    (tag td (pr millify.all-nanos 'ms " (" (percentify all-nanos overall) "%)" ))
+    (tag td (pr millify.my-nanos 'ms))
     (tag td pr.count)
-    (tag (td style "padding-left:#(indent)px;") (pr object)))
-  (prof-tr-callers object parent indent callers)
+    (tag (td style "padding-left:#(indent)px;")
+      (tag (a name (id-for-fn ids object))
+        (pr-escaped object))))
+  (prof-tr-callers ids object parent indent callers)
   (each item (sort car> kidz)
-    (prof-tr (+ indent 12) object item)))
+    (prof-tr ids (+ indent 12) object overall item)))
 
-(def prof-tr-callers (self parent indent callers)
-  (when callers
+(def only-parent (parent callers)
+  (and (is len.callers 1)
+       (is caar.callers parent)))
+
+(def pr-caller (caller self parent)
+  (if (is self caller)   (pr "<b>&lt;self&gt;</b>")
+      (is parent caller) (pr "<b>&lt;parent&gt;</b>")
+                         pr-escaped.caller))
+
+(def prof-tr-callers (ids self parent indent callers)
+  (when (and callers (no:only-parent parent callers))
     (prn)
     (tag tr
-      (tag td)
-      (tag td)
-      (tag td)
-      (tag (td style "padding-left:#(indent)px;")
+      (tag td) (tag td) (tag td)
+      (tag (td style "padding-left:#((+ indent 12))px;")
         (tag (table class 'callers)
-          (tag tr (tag (th colspan 2 align 'left ) (pr "callers")))
+          (tag tr (tag (th colspan 2) (pr "callers")))
           (each (caller count) callers
             (tag tr
               (tag (td class 'count) (pr count))
-              (tag td (pr (if (is self caller)
-                              "<b>&lt;self&gt;</b>"
-                              (is parent caller)
-                              "<b>&lt;parent&gt;</b>"
-                              caller))))))))))
+              (tag td
+                (tag (a href (string #\# (id-for-fn ids caller)))
+                  (pr-caller caller self parent))))))))))
 
 (assign html-prof-style "
-table {
-  border-spacing: 0px;
-  border-collapse: separate;
-}
-
-table.callers {
-  border: 1px solid #EEF;
-}
-
-table.callers td.count {
-  width: 10%;
-  padding-left: 5px;
-}
-
-td {
-  vertical-align: top;
-  font: 10pt monospace;
-  padding-right: 10px;
-}
-
-tr.profiled>td {
-  border-top: 1px solid gray;
-}
-
-th {
-  white-space: nowrap;
-}
-
+table { border-spacing: 0px; border-collapse: separate; }
+table.callers { border: 1px solid #EEF; }
+table.callers td.count { width: 10%; padding-left: 5px; }
+td { vertical-align: top; font: 10pt monospace; padding-right: 10px; }
+tr.profiled>td {border-top: 1px solid gray; }
+th { white-space: nowrap; text-align: left; }
 ")
 
 (def html-prof-help ()
-  (tag div
+  (tag (div style "width:600px;")
     (tag p
       (tag b (pr "total time"))
-      (pr " - is the total time spent within the function, including lexically nested functions"))
+      (pr " - is the total time spent within the function, including lexically
+              nested functions"))
     (tag p
       (tag b (pr "own time"))
-      (pr " - is the time spent within the function, not including lexically nested functions"))
+      (pr " - is the time spent within the function, not including lexically
+              nested functions"))
     (tag p
       (tag b (pr "invocations"))
-      (pr " - is the number of times the function was invoked"))
+      (pr " - is the number of times the function was invoked. Some functions
+              have an apparently impossible invocation count of zero - these
+              are usually of the form (fn nil ...) ; they are (do ...) forms
+              that rainbow optimizes away so they never get counted."))
+    (tag p
+      (tag b (pr "function and callers"))
+      (pr " - names the function being profiled. If the function has a global
+              shows that name, otherwise shows the code for the function. The
+              code is partially macro-compressed where rainbow can recognise
+              simple macro-expanded forms (do, let, afn). Indentation in this
+              column represents lexical nesting of functions."))
     (tag p
       (tag b (pr "callers"))
-      (pr " - breakdown of invocation count by caller"))
+      (pr " - breakdown of invocation count by caller. Not shown if parent is
+              the sole caller"))
     (tag p
       (tag b (pr "callers: '&lt;self&gt;'"))
-      (pr " - number of times a function calls itself directly (e.g. via (afn ...) or (rfn ...))"))
+      (pr " - number of times a function calls itself directly
+              (e.g. via (afn ...) or (rfn ...))"))
     (tag p
       (tag b (pr "callers: '&lt;parent&gt;'"))
-      (pr " - number of times a function is called by the lexically enclosing function (the most common case, e.g. (let ...) and (with ...))"))
-  ))
+      (pr " - number of times a function is called by the lexically enclosing
+              function (the most common case, e.g. (let ...) and (with ...))"))))
 
 (def html-prof (prof)
-  (let f "profile-report-#((msec)).html"
+  (with (f "profile-report-#((msec)).html"
+         fnids (table)
+         overall-time (apply + (map car prof)))
     (w/outfile o f
       (w/stdout o
         (tag html
@@ -171,7 +153,8 @@ th {
               (tag tr
                 (tag th (pr "total time"))
                 (tag th (pr "own time"))
-                (tag th (pr "invocations")))
-              (each item (sort car> prof!invocation-profile)
-                (prof-tr 5 nil item)))))))
+                (tag th (pr "invocations"))
+                (tag th (pr "function and callers")))
+              (each item (sort car> prof)
+                (prof-tr fnids 5 nil overall-time item)))))))
     (system "open #(f)")))

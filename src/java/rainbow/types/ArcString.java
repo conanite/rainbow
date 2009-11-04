@@ -98,7 +98,7 @@ public class ArcString extends LiteralObject {
   }
 
   public boolean equals(Object object) {
-    return this == object || object instanceof ArcString && ((ArcString) object).value.equals(this.value);
+    return this == object || (object instanceof ArcString && ((ArcString) object).value.equals(this.value));
   }
 
   public void srefChar(Rational index, ArcCharacter value) {
