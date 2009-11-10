@@ -65,23 +65,26 @@ public enum VMInterceptor {
 
     public void check(VM vm) {
       updateNanoTime(vm);
-      Instruction next = vm.nextInstruction();
-      if (next == null) {
+      Instruction thisInstruction = vm.nextInstruction();
+      if (thisInstruction == null) {
         return;
       }
       vm.loadCurrentContext();
-      addInstruction(next, vm);
-      if (next instanceof Invoke) {
-        ArcObject fn = ((Invoke) next).getInvokee(vm);
+      addInstruction(thisInstruction, vm);
+      if (thisInstruction instanceof Invoke) {
+        ArcObject fn = ((Invoke) thisInstruction).getInvokee(vm);
         if (fn instanceof Closure) {
           fn = ((Closure)fn).fn();
         }
         FunctionProfile thisProfile = FunctionProfile.get(vm.profileData.invocationProfile, fn);
-        thisProfile.addAncestor(next.owner());
+        ArcObject caller = thisInstruction.owner();
+        thisProfile.addCaller(caller);
+        FunctionProfile.get(vm.profileData.invocationProfile, caller).addCallee(fn);
         thisProfile.invocationCount++;
         vm.profileData.lastInvokee = fn;
-      } else if (next.owner() != null) {
-        vm.profileData.lastInvokee = next.owner();
+
+      } else if (thisInstruction.owner() != null) {
+        vm.profileData.lastInvokee = thisInstruction.owner();
       } else {
         vm.profileData.lastInvokee = ArcObject.NIL;
       }

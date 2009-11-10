@@ -52,12 +52,14 @@
     `(let ,g ,x
        (if ,@(mappend (fn (c) `((is ,g ,c) ,g)) choices)))))
 
-;; useful arguments to sort: (sort car< list-of-lists)
-(def car< args
-  (apply < (map car args)))
+(mac sortfn (name comparer transform)
+ `(def ,name args
+    (apply ,comparer (map ,transform args))))
 
-(def car> args
-  (apply > (map car args)))
+;; useful arguments to sort: (sort car< list-of-lists)
+(sortfn car< < car)
+(sortfn car> > car)
+(sortfn cadr> > cadr)
 
 (mac dbg (var)
   (w/uniq gvar

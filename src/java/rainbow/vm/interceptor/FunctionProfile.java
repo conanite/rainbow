@@ -17,6 +17,7 @@ public class FunctionProfile {
   public List<FunctionProfile> children = new ArrayList();
   public FunctionProfile parent;
   public Map<String, InvocationCounter> callerCounts = new HashMap();
+  public Map<String, InvocationCounter> calleeCounts = new HashMap();
 
   public void addNanoTime(long nanos) {
     this.nanoTime += nanos;
@@ -40,11 +41,15 @@ public class FunctionProfile {
     for (FunctionProfile child : children) {
       kidz = new Pair(child.toPair(), kidz);
     }
+    return Pair.buildFrom(totalNanos, nanos, invs, fn, kidz, toPair(callerCounts), toPair(calleeCounts));
+  }
+
+  private Pair toPair(Map<String, InvocationCounter> cc) {
     Pair callers = ArcObject.NIL;
-    for (InvocationCounter ic : callerCounts.values()) {
+    for (InvocationCounter ic : cc.values()) {
       callers = new Pair(ic.toPair(), callers);
     }
-    return Pair.buildFrom(totalNanos, nanos, invs, fn, kidz, callers);
+    return callers;
   }
 
   static FunctionProfile get(Map<String, FunctionProfile> map, ArcObject function) {
@@ -68,11 +73,17 @@ public class FunctionProfile {
     return fp;
   }
 
-  public void addAncestor(ArcObject invocation) {
+  public void addCaller(ArcObject invocation) {
     if (invocation == null) {
       return;
     }
-
     InvocationCounter.get(callerCounts, invocation).count++;
+  }
+
+  public void addCallee(ArcObject invocation) {
+    if (invocation == null) {
+      return;
+    }
+    InvocationCounter.get(calleeCounts, invocation).count++;
   }
 }

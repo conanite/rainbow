@@ -33,6 +33,7 @@
        (do (for i 0 2 (++ it.i item.i))
            (= it.4 (merge-invocation-profiles it.4 item.4))
            (= it.5 (merge-caller-counts it.5 item.5))
+           (= it.6 (merge-caller-counts it.6 item.6))
            merged)
        (cons item merged)))
 
@@ -57,7 +58,7 @@
   (or ids.fn-as-string
       (= ids.fn-as-string (uniq))))
 
-(def prof-tr (ids indent parent overall (all-nanos my-nanos count object kidz callers))
+(def prof-tr (ids indent parent overall (all-nanos my-nanos count object kidz callers callees))
   (prn)
   (tag (tr class 'profiled id (id-for-fn ids object))
     (tag td (pr millify.all-nanos 'ms " (" (percentify all-nanos overall) "%)" ))
@@ -66,33 +67,36 @@
     (tag (td style "padding-left:#(indent)px;")
       (tag (a name (id-for-fn ids object))
         (pr-escaped object))))
-  (prof-tr-callers ids object parent indent callers)
+  (prof-tr-callers 'callers ids object parent nil indent callers)
+  (prof-tr-callers 'callees ids object parent (only-child kidz) indent callees)
   (each item (sort car> kidz)
     (prof-tr ids (+ indent 12) object overall item)))
 
-(def only-parent (parent callers)
-  (and (is len.callers 1)
-       (is caar.callers parent)))
+(def only-child (kidz) (if (is len.kidz 1) kidz.0.3))
 
-(def pr-caller (caller self parent)
+(def only-parent (parent callers)
+  (and (is len.callers 1) (is caar.callers parent)))
+
+(def pr-caller (caller self parent child)
   (if (is self caller)   (pr "<b>&lt;self&gt;</b>")
       (is parent caller) (pr "<b>&lt;parent&gt;</b>")
+      (is child caller)  (pr "<b>&lt;child&gt;</b>")
                          pr-escaped.caller))
 
-(def prof-tr-callers (ids self parent indent callers)
+(def prof-tr-callers (label ids self parent child indent callers)
   (when (and callers (no:only-parent parent callers))
     (prn)
     (tag tr
       (tag td) (tag td) (tag td)
       (tag (td style "padding-left:#((+ indent 12))px;")
         (tag (table class 'callers)
-          (tag tr (tag (th colspan 2) (pr "callers")))
-          (each (caller count) callers
+          (tag tr (tag (th colspan 2) (pr label)))
+          (each (caller count) (sort cadr> callers)
             (tag tr
               (tag (td class 'count) (pr count))
               (tag td
                 (tag (a href (string #\# (id-for-fn ids caller)))
-                  (pr-caller caller self parent))))))))))
+                  (pr-caller caller self parent child))))))))))
 
 (assign html-prof-style "
 table { border-spacing: 0px; border-collapse: separate; }
