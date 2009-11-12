@@ -109,11 +109,16 @@ public class Console {
     ArcParser parser = new ArcParser(System.in);
     while (true) {
       System.out.print("arc> ");
-      ArcObject expression = parser.parseOneLine();
-      if (expression == null) {
-        System.exit(0);
+      try {
+        ArcObject expression = parser.parseOneLine();
+        if (expression == null) {
+          System.exit(0);
+        }
+        interpret(vm, expression);
+      } catch (ParseException e) {
+        e.printStackTrace();
+        parser.ReInit(System.in);
       }
-      interpret(vm, expression);
     }
   }
 
