@@ -7,9 +7,9 @@ import rainbow.types.ArcException;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.vm.interceptor.ProfileData;
 import rainbow.vm.instructions.Catch;
 import rainbow.vm.instructions.Finally;
+import rainbow.vm.interceptor.ProfileData;
 import rainbow.vm.interceptor.VMInterceptor;
 
 import java.util.ArrayList;

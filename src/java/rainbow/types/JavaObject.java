@@ -231,7 +231,14 @@ public class JavaObject extends LiteralObject {
   private static Method findMethod(Class c, String methodName, Pair args) {
     Method m = findMethodIfPresent(c, methodName, args);
     if (m == null) {
-      throw new ArcError("no method " + methodName + " found on " + c + " to accept " + args + " (types: " + types(args) + " )");
+      String candidates = "";
+      for (int i = 0; i < c.getMethods().length; i++) {
+        Method method = c.getMethods()[i];
+        if (method.getName().equals(methodName)) {
+          candidates += method.toString() + "\n";
+        }
+      }
+      throw new ArcError("no method " + methodName + " found on " + c + " to accept " + args + "\n (types: " + types(args) + " )\n candidate methods:\n" + candidates);
     } else {
       return m;
     }
@@ -257,7 +264,7 @@ public class JavaObject extends LiteralObject {
     if (args instanceof Nil) {
       return "";
     } else if (args instanceof Pair) {
-      return typeOf(args.car()) + types(args.cdr());
+      return typeOf(args.car()) + " " + types(args.cdr());
     } else {
       return typeOf(args);
     }
@@ -283,6 +290,8 @@ public class JavaObject extends LiteralObject {
     } else if (Number.class.isAssignableFrom(parameterType) && arcObject instanceof ArcNumber) {
       return true;
     } else if (Character.class.isAssignableFrom(parameterType) && arcObject instanceof ArcCharacter) {
+      return true;
+    } else if (parameterType == Character.TYPE && arcObject instanceof ArcCharacter) {
       return true;
     } else if (OutputStream.class.isAssignableFrom(parameterType) && arcObject instanceof Output) {
       return true;

@@ -33,7 +33,7 @@ public class ArcSocket extends LiteralObject {
       Socket socket = ss.accept();
       InputStream in = socket.getInputStream();
       OutputStream out = socket.getOutputStream();
-      ArcString address = ArcString.make(socket.getInetAddress().toString());
+      ArcString address = ArcString.make(socket.getInetAddress().getHostAddress());
       return Pair.buildFrom(
               new SocketInputPort(in, address),
               new SocketOutputPort(out),

@@ -19,12 +19,7 @@
     (f car.xs)
     (iter f cdr.xs)))
 
-; same as pr but uses iter instead of map1
-; news show forum page 10 times with 5 items: calls cons 438240 times for 10 page views: 43824 per page view
-; with this pr: 397781cons/10 page views = 39778 per page view
-;
-; gain: 10% fewer conses. need to measure and see if this represents an actual perf improvement
-;
+; same as pr but uses iter instead of map1. Fewer conses, but not a major perf win
 (def pr args
   (iter disp args)
   car.args)
@@ -241,3 +236,16 @@
 (mac require-by-name (path . funcs)
   `(do
      ,@(map [quasiquote (requires ,_ ,(string path _))] funcs)))
+     
+(def as-output (f)
+  (if (is type.f 'output)
+      f
+      (outfile f)))
+
+; w/thanks to aw
+(mac toerr body
+  `(w/stdout (stderr) ,@body))
+
+(mac define-dirs (collection-name prefix . names)
+  `(do (= ,collection-name ',names)
+       (= ,@(mappend [list _ (string "arc/" prefix _)] names))))

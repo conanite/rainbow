@@ -1,4 +1,4 @@
-(java-import "javax.swing.tree.TreeModel")
+(java-import javax.swing.tree.TreeModel)
 (require-lib "rainbow/swing")
 (require-lib "rainbow/welder")
 
@@ -10,6 +10,9 @@
 
 (assign pb-cache (table))
 
+(def dir-name (path)
+  (apply string (intersperse "/" (rev:cdr:rev:tokens path #\/))))
+
 (def make-tree-node (root isleaf kidfn)
   (or= pb-cache.root
     (let children nil
@@ -20,7 +23,7 @@
         (nth         (index) ((kids) index))
         (count       ()      (aif (kids) (len it) 0))
         (leaf        ()      isleaf)
-        (child-index (child)
+        (child-index     (child)
           (index-of child (map rep (kids)))))))))
 
 (def make-node (root)
@@ -45,33 +48,46 @@
       (addTreeModelListener    (listener)       (push listener listeners))
       (removeTreeModelListener (listener)       (zap [rem listener _] listeners))))))
 
-(def refresh-path-browser (tree root)
+(def refresh-fsb (tree root)
   (with (expanded-paths (tree 'getExpandedDescendants (tree 'getPathForRow 0))
-         selection-paths tree!getSelectionPaths
-         model (pb-tree-model root))
-    (tree 'setModel model)
+         selection-paths tree!getSelectionPaths)
+    (tree 'setModel (pb-tree-model root))
     (each (path node) pb-cache (rep.node!invalidate))
     (while expanded-paths!hasMoreElements
       (tree 'expandPath expanded-paths!nextElement))
-    (tree 'addSelectionPaths selection-paths)))
+    (tree 'addSelectionPaths selection-paths))
+    tree!grabFocus)
 
-(def delete-file (tree)
-  (let node (rep tree!getSelectionPath!getLastPathComponent)
-    (when (and node (no:is node!name "(arc-path)"))
-      (prn "deleting " (node!name))
-      (rmfile (node!name))
-      (refresh-path-browser tree))))
+(def delete-file (node)
+  (when node (rmfile (node!name))))
+
+(def insert-new-file (node)
+  (if (dir-exists (node!name))
+      (aif (prompt "file name:")
+           ((File new "#((node!name))/#(it)") 'createNewFile))))
+ 
+(def rename-file (node)
+  (aif (prompt "rename file to:")
+       (let root (node!name)
+         (mvfile "#(root)" "#(dir-name.root)/#(it)"))))
+
+(def selected-node (tree)
+  (rep tree!getSelectionPath!getLastPathComponent))
 
 (def fsb ((o root "."))
-  (withs (f (frame 20 100 320 800 "arc-path browser")
+  (withs (f (frame 20 100 320 800 "browser")
           tree     (java-new "javax.swing.JTree")
           renderer (bean "javax.swing.JLabel")
           model    (pb-tree-model root)
-          sc       (scroll-pane tree colour-scheme!background))
+          sc       (scroll-pane tree colour-scheme!background)
+          refreshfully (fn (f) (f:selected-node tree)
+                               (refresh-fsb tree root)))
     (tree 'setModel model)
     (on-key-press tree
-      'enter (welder (((rep tree!getSelectionPath!getLastPathComponent) 'name)))
-      'delete (delete-file tree)
-      'f5    (refresh-path-browser tree root))
+      'enter      (welder (((selected-node tree) 'name)))
+      'delete     (refreshfully delete-file)
+      'space      (refreshfully rename-file)
+      'meta-n     (refreshfully insert-new-file)
+      'f5         (refresh-fsb tree root))
     (f 'add sc)
     f!show))

@@ -1,4 +1,3 @@
-
 (java-import javax.sound.midi.MidiSystem)
 
 (mac define-notes note-names

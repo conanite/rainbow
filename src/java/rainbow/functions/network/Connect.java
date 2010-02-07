@@ -32,9 +32,8 @@ public class Connect extends Builtin {
 
   }
 
-  public ArcObject invoke(Pair args) {
-    checkExactArgsCount(args, 2, getClass());
-    ArcNumber n = ArcNumber.cast(args.car(), this);
-    return new ArcSocket((int) n.toInt());
+  public void invoke(VM vm, Pair args) {
+    checkMaxArgCount(args, getClass(), 2);
+    invokef(vm, args.car(), args.cdr().car());
   }
 }

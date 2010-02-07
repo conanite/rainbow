@@ -1,11 +1,12 @@
 package rainbow.functions.fs;
 
+import rainbow.ArcError;
 import rainbow.functions.Builtin;
 import rainbow.types.ArcObject;
-import rainbow.types.Pair;
 import rainbow.types.ArcString;
-import rainbow.ArcError;
+import rainbow.types.Pair;
 
+import javax.swing.*;
 import java.io.File;
 
 public class MvFile extends Builtin {
@@ -21,6 +22,9 @@ public class MvFile extends Builtin {
     } catch (Exception e) {
       throw new ArcError("couldn't rename " + of + " to " + nf + ": " + e, e);
     }
+
+    JTree tree;
+    tree.getSelectionPath()
     return NIL;
   }
 }

@@ -1,15 +1,10 @@
-(java-import java.lang.Integer)
-(java-import java.lang.Float)
-(java-import java.awt.Font)
-(java-import javax.swing.KeyStroke)
-(java-import javax.swing.JMenuBar)
-(java-import javax.swing.JLabel)
-(java-import java.awt.event.KeyListener)
-(java-import javax.swing.SwingUtilities)
-(java-import javax.swing.SwingConstants)
-(java-import javax.swing.JFileChooser)
-(java-import javax.swing.BoxLayout)
-(java-import javax.swing.ScrollPaneConstants)
+(java-imports java
+  (lang Integer Float)
+  (awt Font event.KeyListener))
+
+(java-imports javax.swing
+  KeyStroke JMenuBar JLabel SwingUtilities SwingConstants
+  JFileChooser BoxLayout ScrollPaneConstants JOptionPane)
 
 (= java-int-type                Integer.TYPE
    java-float-type              Float.TYPE
@@ -58,11 +53,11 @@
 (mac key-dispatcher bindings
    (w/uniq gkey
      `(fn (,gkey)
-          (if ,@((afn (bb1)
+          (if ,@(afnwith (bb1 (pair bindings))
                       (if bb1
                         (let (key-char body) (car bb1)
                           (cons `(is ,gkey ,key-char)
-                                 (cons body (self (cdr bb1))))))) (pair bindings))))))
+                                 (cons body (self (cdr bb1)))))))))))
 
 (mac on-key (component var . actions)
   (w/uniq (gev)
@@ -75,6 +70,15 @@
     `(,component 'addKeyListener
                  (fn (,gev)
                      ((key-dispatcher ,@key-bindings) (convert-key-event ,gev))))))
+
+(def key-event-test ()
+  "run this, focus the window, hit keys on your
+   keyboard, the console will show the corresponding
+   rainbow key code for use with the on-key and
+   on-key-press macros"
+  (let f (frame 10 10 200 200)
+    (on-key f k (prn k))
+    (f 'show)))
 
 (mac on-char (component fun)
   `(,component 'addKeyListener
@@ -226,3 +230,6 @@
         (jta 'setText text)
         w!show
         jta!grabFocus)))
+
+(def prompt (txt)
+  (JOptionPane showInputDialog txt))

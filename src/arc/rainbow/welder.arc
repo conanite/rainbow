@@ -27,7 +27,7 @@
 (assign night-colour-scheme (obj
   background        (awt-color 'black)
   caret             (awt-color 'yellow)
-  default           (swing-style 'foreground 'white     'background 'black)
+  default           (swing-style 'foreground 'white     'background 'black 'bold t)
   syntax            (swing-style 'foreground 'gray)
   unmatched-syntax  (swing-style 'foreground 'black     'background 'red   'bold t )
   paren-match       (swing-style 'foreground 'gray      'background 'blue)
@@ -206,6 +206,7 @@
 
 (defweld kill-form "Kill form"
   "Kill the form under the caret"
+  (prn "killing form")
   (whenlet this-form (find-form-around editor!index (dot))
     (prn "target form " this-form)
     (editor!doc 'remove
@@ -310,7 +311,6 @@
 
 (defkey 'shift-9     'insert-closing-paren
         'shift-quote 'insert-closing-dbl-quote
-        'meta-delete 'kill-form
         'escape      'dismiss
         'f1          'go-to-source
         'shift-f1    'help
@@ -326,6 +326,7 @@
         'meta-n      'new
         'enter       'newline-indent
         'meta-f      'show-search
+        'meta-back_space    'kill-form
         'meta-d             'duplicate
         'meta-z             'undo
         'meta-p             'pop-form
@@ -566,7 +567,6 @@
 
 (def welder-open (editor file)
   (= editor!file file)
-  (prn "welder: opening " file)
   (editor!pane 'setText (load-file file)))
 
 (def on-close-editor (editor)
@@ -726,7 +726,6 @@
              it!frame!toFront
              it)
          (let editor (editor-pane)
-           (prn "new welder for " wname)
            (= open-welders.wname editor)
            (= editor!wname wname)
            (map [_ editor] rev.welder-initialisers)

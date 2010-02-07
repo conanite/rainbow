@@ -267,6 +267,7 @@
       rondo-passage-6-left))
 
 (def rondo ()
+  (= tick-size 0.119)
   (play-sequence (make-music 
     0 rondo-right-hand
     0 rondo-left-hand)))

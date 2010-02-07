@@ -43,7 +43,7 @@
    measure/-2 (end-measure c2 b2 g4 b4 d5 d4 s3/2/0)
    measure/-1 `(,(chord c2 '(12 16 3 5) 100 16)) )
 
-(= measures (+ ;'((instrument 0 6))
+(= measures (+ '((instrument 0 6))
                (home c4)
                (measure c4 2 7 5 3)
                (measure b3 3 5 7 3)

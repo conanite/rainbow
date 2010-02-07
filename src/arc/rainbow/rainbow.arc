@@ -19,8 +19,13 @@
          (is type.method 'sym)  `(java-static-invoke ,,class ',method ,@args)
                                 `(java-static-invoke ,,class ,method ,@args))))
 
+(def java-importer (pkg item)
+  (if (isa item 'cons) `(java-imports ,(string pkg "." car.item) ,@(cdr item))
+                       `(java-import  ,(string pkg "." item))))
+
 (mac java-imports (pkg . classes)
-  `(do ,@(map (fn (_) `(java-import ,(string pkg "." _))) classes)))
+  `(do ,@(map [java-importer pkg _] classes)))
+;  `(do ,@(map (fn (_) `(java-import ,(string pkg "." _))) classes)))
 
 (def java-accessor (dir name)
   (let prop-chars (coerce (string name) 'cons)

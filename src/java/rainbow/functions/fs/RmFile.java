@@ -14,9 +14,14 @@ public class RmFile extends Builtin {
   public ArcObject invoke(Pair args) {
     String path = ArcString.cast(args.car(), this).value();
     File f = new File(path);
-    boolean deleted = f.delete();
-    if (!deleted) {
-      throw new ArcError("rmfile: unable to delete " + path);
+    if (!f.delete()) {
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {
+      }
+      if (f.exists() && !f.delete()) {
+        throw new ArcError("rmfile: unable to delete " + path);
+      }
     }
     return NIL;
   }

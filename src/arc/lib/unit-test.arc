@@ -81,6 +81,7 @@
                   lib/tests/core-predicates-test
                   lib/tests/core-special-forms-test
                   lib/tests/core-typing-test
+                  lib/tests/wikimedia-parser-test
                   lib/tests/parser-test))
     (if (bound 'java-new)
         (map loader '(rainbow/tests/anarki-compatibility-test
