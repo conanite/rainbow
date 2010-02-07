@@ -228,25 +228,24 @@
   (awhen (previous-indent editor (dot))
     (later (editor!doc 'insertString (dot) it colour-scheme!default))))
 
-(def find-newline (editor position forwards fun)
+(def find-newline (editor position direction fun)
   (withs (text (all-text editor)
           text-len (text-length editor!doc)
-          step [(if forwards + -) _ 1]
-          found [is (text _) #\newline]
-          nl nil)
+          nl nil
+          in-bounds [< _ text-len]
+          found [is text._ #\newline])
     (loop (= nl position)
-          (and (> nl 0)
-               (< nl text-len)
-               (~found nl))
-          (zap step nl))
-    (found&fun nl)))
+          (and (> nl 0) (in-bounds nl) (~found nl))
+          (zap [direction _ 1] nl))
+    (in-bounds&found&fun nl)))
 
 (def previous-line (editor position fun)
   (let text (all-text editor)
-    (if (is (text position) #\newline)
+    (if (or (>= position len.text)
+            (is (text position) #\newline))
         (-- position))
-    (find-newline editor position nil (fn (begin)
-      (find-newline editor position t (fn (end)
+    (find-newline editor position - (fn (begin)
+      (find-newline editor position + (fn (end)
         (fun (cut text begin end) begin end)))))))
 
 (def previous-indent (editor position)
