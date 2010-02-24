@@ -148,7 +148,7 @@
   (spiral-params req
     (zap [+ _ (* x-offset nc)] x)
     (zap [+ _ (* y-offset nc)] y)
-    (tag (a href (string "javascript:$s.moveTo(" x ", " y ", event);"))
+    (tag (a href (string "javascript:$s.moveTo(" x ", " y ");"))
          (spiral-img (string "img_" x-offset "_" y-offset) x y 100 75 ox oy zoom))))
 
 ;(assign nb-array '(-81 -9 -3 -1 0 1 3 9 81))
@@ -257,16 +257,4 @@
 (map (fn ((k v)) (= (type-header* k) (gen-type-header v)))
      '((javascript "text/javascript")
        (css        "text/css")))
-
-
-;; old coordinates:
-; /animate?x=-0.39&y=-0.47&x0=-0.55&y0=-0.63&ox=-0.94625&oy=-0.77609375&nc=0.0008&zoom=1.2&frames=600
-; /spiral?x=-0.465&y=-0.543&ox=-1.04&oy=-0.74&nc=0.0008&zoom=1.2
-; /spiral?x=-0.154&y=-0.644&ox=-0.733984375&oy=-0.759375&zoom=1&nc=0.006
-; /spiral?x=-0.667957&y=-0.32&x0=-0.667978&y0=-0.32&ox=-0.90390625&oy=-0.5171875&nc=0.005&zoom=1&frames=10
-; /animate?x=-0.662957&y=-0.32&x0=-0.662957&y0=-0.35&ox=-0.90390625&oy=-0.5171875&nc=0.005&zoom=1&frames=200
-; /animate?x=0.254&y=0.003&x0=0.264&y0=0.003&ox=0.2&oy=-0.03&nc=0.003&zoom=0.589824&frames=200
-; /spiral?x=0.25048&y=0&x0=0.263&y0=0.003&ox=0.20576&oy=-0.218928&nc=0.00001&zoom=0.589824&frames=200
-
-
 

@@ -1,4 +1,4 @@
-(require-lib 'rainbow/midi)
+(require-lib 'lib/midi/midi)
 
 (def measure (base i1 i2 i3 i4)
   (= i1 (+ base i1)
@@ -43,7 +43,8 @@
    measure/-2 (end-measure c2 b2 g4 b4 d5 d4 s3/2/0)
    measure/-1 `(,(chord c2 '(12 16 3 5) 100 16)) )
 
-(= measures (+ '((instrument 0 6))
+(defseq prelude-measures
+             '((instrument 0 6))
                (home c4)
                (measure c4 2 7 5 3)
                (measure b3 3 5 7 3)
@@ -68,10 +69,4 @@
                (measure c2 12 7 3 6)
                measure/-3
                measure/-2
-               measure/-1))
-
-(def prelude ()
-  (= tick-size 0.2)
-  (play-sequence (make-music
-    0 measures
-  )))
+               measure/-1)

@@ -246,6 +246,6 @@
 (mac toerr body
   `(w/stdout (stderr) ,@body))
 
-(mac define-dirs (collection-name prefix . names)
-  `(do (= ,collection-name ',names)
-       (= ,@(mappend [list _ (string "arc/" prefix _)] names))))
+(mac define-dirs (collection-name . names)
+  `(do ,@(map (fn (_) `(def ,_ ((o f "")) (string "arc/" ',collection-name ',_ f))) names)
+       (= ,collection-name (list ,@names))))

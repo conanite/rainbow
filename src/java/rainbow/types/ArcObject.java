@@ -29,7 +29,11 @@ public abstract class ArcObject {
   }
 
   public void invoke(VM vm, Pair args) {
-    ((Hash) TYPE_DISPATCHER_TABLE.value()).value(type()).invoke(vm, new Pair(this, args));
+    ArcObject fn = ((Hash) TYPE_DISPATCHER_TABLE.value()).value(type());
+    if (fn instanceof Nil) {
+      throw new ArcError("No handler for " + type() + " in call* table: called " + this + " with args " + args);
+    }
+    fn.invoke(vm, new Pair(this, args));
   }
 
   public void invokef(VM vm) {

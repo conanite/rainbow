@@ -25,7 +25,7 @@ public class Nil extends Pair {
   }
 
   public void invoke(VM vm, Pair args) {
-    throw new ArcError("Function dispatch on inappropriate object: " + this);
+    throw new ArcError("Function dispatch on inappropriate object: " + this + " with args " + args);
   }
 
   public void mustBePairOrNil() throws NotPair {

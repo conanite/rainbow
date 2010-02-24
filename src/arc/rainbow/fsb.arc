@@ -63,8 +63,13 @@
 
 (def insert-new-file (node)
   (if (dir-exists (node!name))
-      (aif (prompt "file name:")
+      (aif (prompt "new file name:")
            ((File new "#((node!name))/#(it)") 'createNewFile))))
+ 
+(def insert-new-dir (node)
+  (if (dir-exists (node!name))
+      (aif (prompt "new directory name:")
+           ((File new "#((node!name))/#(it)") 'mkdir))))
  
 (def rename-file (node)
   (aif (prompt "rename file to:")
@@ -88,6 +93,7 @@
       'delete     (refreshfully delete-file)
       'space      (refreshfully rename-file)
       'meta-n     (refreshfully insert-new-file)
+      'meta-d     (refreshfully insert-new-dir)
       'f5         (refresh-fsb tree root))
     (f 'add sc)
     f!show))

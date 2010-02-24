@@ -207,6 +207,8 @@ public class JavaObject extends LiteralObject {
   private static Object convert(Object o, Class javaType) {
     if (o == Boolean.FALSE && !(javaType == Boolean.class || javaType == Boolean.TYPE)) {
       return null;
+    } else if (javaType == Byte.class || javaType == Byte.TYPE) {
+      return ((Long) o).byteValue();
     } else if (javaType == Integer.class || javaType == Integer.TYPE) {
       return ((Long) o).intValue();
     } else if (javaType == Long.class || javaType == Long.TYPE || javaType == Double.class || javaType == Double.TYPE) {
@@ -329,7 +331,7 @@ public class JavaObject extends LiteralObject {
   }
 
   private static boolean isPrimitiveNumber(Class p) {
-    return p == Integer.TYPE || p == Long.TYPE || p == Double.TYPE || p == Float.TYPE;
+    return p == Byte.TYPE || p == Short.TYPE || p == Integer.TYPE || p == Long.TYPE || p == Double.TYPE || p == Float.TYPE;
   }
 
   public static ArcObject wrap(Object o) {

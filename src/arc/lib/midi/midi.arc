@@ -1,8 +1,15 @@
-(java-import javax.sound.midi.MidiSystem)
+
+(def mk-note (pitch args)
+  (if (is car.args 'transpose)
+      (fn new-args (mk-note (+ pitch cadr.args) new-args))
+      (cons pitch args)))
+
+(mac note-fn (pitch)
+  `(fn args (mk-note ,pitch args)))
 
 (mac define-notes note-names
   (let note 15
-    `(= ,@(mappend (fn (name) `(,name ,(++ note))) note-names))))
+    `(= ,@(mappend [list _ `(note-fn ,(++ note))] note-names))))
 
 (define-notes   e0 f0 f0s g0 g0s a0 a0s b0
   c1 c1s d1 d1s e1 f1 f1s g1 g1s a1 a1s b1
@@ -14,37 +21,79 @@
   c7 c7s d7 d7s e7 f7 f7s g7 g7s a7 a7s b7
   c8 c8s d8 d8s e8 f8 f8s g8 g8s a8 a8s b8)
 
-(def transform (seq (o nt idfn) (o vt idfn) (o lt idfn))
+; english names; almost as bad as Imperial units of measure
+(= hemidemisemiquaver  1
+   demisemiquaver      2
+   demisemiquaver+     3
+   semiquaver          4
+   semiquaver+         6
+   quaver              8
+   quaver+            12
+   crotchet           16
+   crotchet+          24
+   crotchet++         28
+   minim              32
+   minim+             48
+   minim++            56
+   semibreve          64
+   semibreve+         96
+   semibreve++       112
+   breve             128)
+
+(= sixtyfourth   hemidemisemiquaver
+   thirtysecond  demisemiquaver
+   sixteenth     semiquaver
+   eighth        quaver
+   quarter       crotchet
+   half          minim
+   whole         semibreve)
+
+(= ppp-    1  ppp     4  ppp+   10
+   pp-    15  pp     21  pp+    27
+   p-     32  p      38  p+     44
+   mp-    49  mp     55  mp+    61
+   mf-    66  mf     72  mf+    78
+   f-     83  f      89  f+     95
+   ff-   100  ff    106  ff+   110
+   fff-  119  fff   123  fff+  127)
+
+(def note-apply (f note)
+  (if (atom note)                 note
+      (in car.note 'speed 'pause) note
+      f.note))
+
+(def chord-apply (f note)
+  (if (atom note)                 note
+      (in car.note 'speed 'pause) note
+      (map [note-apply f _] note)))
+
+(def mono notes
+  (map [note-apply list _] notes))
+
+(def transform (seqs (o nt idfn) (o vt idfn) (o lt idfn))
   (let f (fn ((note volume length . options))
+             (if (acons volume) (err:tostring:pr "got a cons for volume: note " note " volume " volume))
              (if (is note 'pause)
                  (list 'pause lt.volume)
+                 (is note 'speed)
+                 (list 'speed volume)
                  `(,nt.note ,vt.volume ,lt.length ,@options)))
-    (map [if (acons car._) (map f _) (f _)] seq)))
+    (map [chord-apply f _] (apply + seqs))))
 
 (defs
   tick (tick-count) (do (sleep (* tick-size sub-tick)) (++ tick-count sub-tick))
-  transpose    (n) (fn (seq) (transform seq (fn (note) (+ n note))))
-  stretch-note (l) (fn (seq) (transform seq idfn idfn (fn (length) (* l length))))
-  amp          (n) (fn (seq) (transform seq idfn (fn (vol) (+ vol n))))
-)
+  transpose    (n) 
+               (let interval (car (n))
+                   (fn seqs (transform seqs (fn (note) (+ interval note)))))
+  stretch-note (l) (fn seqs (transform seqs idfn idfn (fn (length) (* l length))))
+  amp          (n) (fn seqs (transform seqs idfn (fn (vol) (+ vol n)))))
 
-(= midiops    (table)
-   sub-tick   1/2
+(= sub-tick   1/4
    tick-size  0.119
    tick-count 0
    stop-music nil
-   quiet      (amp -10)
-   loud       (amp 10))
-
-(def stop () (= stop-music t))
-
-(mac defmidi (name args . body)
-  `(= (midiops ',name) (fn ,args ,@body)))
-
-(defmidi note-on       (channels ch note-number volume) (channels.ch 'noteOn  note-number (if (> volume 127) 127 volume)))
-(defmidi note-off      (channels ch note-number)        (channels.ch 'noteOff note-number))
-(defmidi instrument    (channels ch bank program)       (channels.ch 'programChange bank program))
-(defmidi set-tick-size (channels new-tick-size)         (= tick-size new-tick-size))
+   quiet      (amp -16)
+   loud       (amp 16))
 
 (def merge-sequences (seqs)
   (with (nseq  nil
@@ -61,7 +110,8 @@
   `(fpush (list ,tick 'note-off ,channel ,note) ,seq))
 
 (def create-sequence (ch events)
-  (with (seq nil tick 0 process-note nil octavise nil trillo-mordant nil staccato nil pre-arpeggio nil)
+  (with (seq nil tick 0 process-note nil octavise nil
+         trillo-mordant nil staccato nil pre-arpeggio nil)
     (= trillo-mordant (fn (note vol duration (upper lower))
                     (with (trillo-note  (+ note upper)
                            mordant-note (+ note lower)
@@ -103,15 +153,18 @@
                               (trillo-mordant note vol duration cdr.opt)
                               (is opt 'staccato)
                               (staccato note vol duration)
-                              (is opt 'octavise) 
+                              (is opt 'octavise)
                               (octavise note vol duration))
                            (or= already-processed processed-now)))
                       (unless already-processed
                         (add-note-on  seq tick ch note vol)
                         (add-note-off seq (+ tick duration) ch note)))))
     (each event events
+      (prn "event: " event)
       (if (is car.event 'instrument)
           (push (list tick 'instrument ch event.1 event.2) seq)
+          (is car.event 'speed)
+          (do (prn "speed " event.1) (push (list tick 'speed event.1) seq))
           (is car.event 'pause)
           (++ tick cadr.event)
           (let this-tick 999999999
@@ -126,34 +179,33 @@
 
 (def make-music spec
   (let channels (pair spec)
-    (merge-sequences (map create-sequence 
-                         (map car channels) 
-                         (map cadr channels)))))
-
-(def play-sequence (seq)
-  (= stop-music nil)
-  (let synth (MidiSystem getSynthesizer)
-    (synth 'open)
-    (with (channels   (synth 'getChannels)
-           tick-count 0)
-      (thread
-        (while (and seq (no stop-music))
-          (let (next-tick command . args) pop.seq
-            (while (> next-tick tick-count) (zap [tick _] tick-count))
-            (pr ".")
-            (apply midiops.command channels args)))))))
-
-(def repeat-list (n xs)
-  (afnwith (n n)
+      (merge-sequences (map create-sequence 
+                            (map car channels)
+                            (map cadr channels)))))
+                            
+(def repeat-list (n . xs)
+  (afnwith (n n xs (apply + xs))
     (if (is n 1) xs
-        (+ xs (self (- n 1))))))
+        (+ xs (self (- n 1) xs)))))
 
 (def loud/quiet (seq)
   (+ (loud seq) (quiet seq)))
 
-(def chord (base intervals vol duration . options)
-  `((,base ,vol ,duration ,@options)
-    ,@(map (fn (_) `(,(++ base _) ,vol ,duration ,@options)) intervals)))
+(def regularise-chord-durations (intervals durations)
+  (if (in (type durations) 'int 'num)
+    (times (+ 1 (len intervals)) durations)
+    durations))
+
+(def chord (base intervals vol durations . options)
+  (let lengths (regularise-chord-durations intervals durations)
+    (cons (apply base vol car.lengths options)
+          (map (fn (n l) (apply (base 'transpose n) vol l options)) 
+               intervals
+               cdr.lengths))))
+
+(def chord-arp (base intervals vol durations arp-intervals . options)
+  (let (first . others) (apply chord base intervals vol durations options)
+    (cons (+ first (list:cons 'arp arp-intervals)) others)))
 
 (def apply-template (vol-len notes)
   (let f (fn (chord vl)
@@ -171,12 +223,11 @@
       ab     notes  `(0 ,notes)
       abab   notes  `(0 ,notes 0 ,notes)
       bcac   notes  `(,(car notes) ,(cdr notes) 0 ,(cdr notes))
-      octave (base) `(,base ,(+ base 12))
-)
+      octave (base) `(,base ,(+ base 12)))
 
 (def crescendo (vol-increment note-count)
   (let incrs (/ vol-increment note-count)
-    (fn (seq)
+    (fn seqs
       (withs (incr 0
               f2   (fn ((note vol duration . options))
                        `(,note ,(+ vol (int:++ incr incrs)) ,duration ,@options))
@@ -184,7 +235,7 @@
                        (if (is (type:car note) 'sym) note (f2 note)))
               f    (fn (notes)
                        (if (is (type:car notes) 'sym) notes (map f1 notes))))
-        (map f seq)))))
+        (map f (apply + seqs))))))
 
 (def times (n item)
   (if (is n 0) nil
@@ -198,22 +249,29 @@
 
 (def octavise-alt (seq)
   (let f (fn (((note vol duration . options)))
-             `(((,note ,vol ,(/ duration 2) ,@options)) ((,(+ note 12) ,vol ,(/ duration 2) ,@options))))
+             `(((,note ,vol ,(/ duration 2) ,@options)) 
+               ((,(+ note 12) ,vol ,(/ duration 2) ,@options))))
     (mappend f seq)))
 
 (def octavise-chord (seq)
   (let f (fn (((note vol duration . options)))
-             `((,note ,vol ,duration ,@options) (,(+ note 12) ,vol ,duration ,@options)))
-    (map f seq)))
+             `((,note ,vol ,duration ,@options)
+               (,(+ note 12) ,vol ,duration ,@options)))
+    (map [if (is (type:car _) 'cons) f._ _] seq)))
+
+(def transpose-note (semitones)
+  (let f (fn (n)
+             (cons (+ semitones car.n) cdr.n))
+    (fn (note) (note-apply f note))))
 
 (mac four-note-sequence args
   (let f (fn (seq3)
              (list (mksym 's seq3.0 '/ seq3.1 '/ seq3.2)
-                   '(n v1 (o v2 75) (o dur 1))
-                   `(list (list:list n v1 dur) 
-                          (list:list (+ n ,seq3.0) v2 dur)
-                          (list:list (+ n ,seq3.1) v2 dur)
-                          (list:list (+ n ,seq3.2) v2 dur))))
+                   '(note v1 (o v2 mf) (o length 1))
+                   `(mono (note v1 length) 
+                          ((note 'transpose ,seq3.0) v2 length)
+                          ((note 'transpose ,seq3.1) v2 length)
+                          ((note 'transpose ,seq3.2) v2 length))))
     `(defs ,@(mappend f (tuples args 3)))))
 
 (four-note-sequence
@@ -224,6 +282,7 @@
   -2 -3 -5
   -2 -3 -2
   -1 -3 -5
+  -1 -3 -1
   -1  0 -3
   -1  0 -1
   -1  0  2
@@ -239,27 +298,14 @@
    3 -3  0
    3 -4  0
    5  0 -3
-   5  2 -2)
+   5  2 -2
+   7  4  7
+   9  6  9
+  12  4 12)
 
 (def major-scale (base v1 v2 dur)
   (+ (s2/4/5 base v1 v2 dur)
-     (s2/4/5 (+ base 7) v2 v2 dur)))
+     (s2/4/5 (base 'transpose 7) v2 v2 dur)))
 
-(def test-programs ()
-  (thread
-    (= tick-size 0.04)
-    (for i 0 127
-      (prn "program " i)
-      (play-sequence (make-music 0
-        `( (instrument 0 ,i)
-           ((,c4  100 8))
-           ((,e4  100 8))
-           ((,g4  100 8))
-           ((,a4s 100 8))
-           ((,a4  100 8))
-           ((,f4  100 8))
-           ((,d4  100 8))
-           ((,b3  100 8))
-           ((,c4  100 8))
-        ))))))
-
+(mac defseq (name . seqs) `(= ,name (makeseq ,@seqs)))
+(mac makeseq seqs `(+ ,@seqs))

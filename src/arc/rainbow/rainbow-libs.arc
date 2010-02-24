@@ -19,4 +19,5 @@
 ;(run-all-tests)
 
 (require-by-name rainbow/ welder fsb tetris mines)
+(require-by-name rainbow/midi/ rondo prelude)
 (requires start-spiral-app rainbow/spiral)

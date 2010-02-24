@@ -513,7 +513,10 @@
       (if (and (> finish begin) (< start end))
           (aif (and (is kind 'syntax) (syntax-char-names tok))
                  (colour-region doc
-                   (if (or (is tok 'right-paren) (is tok 'right-bracket)) (- finish 1) start)
+                   (if (or (is tok 'right-paren) 
+                           (is tok 'right-bracket))
+                       (- finish 1)
+                       start)
                    (len it)
                    'syntax
                    t)
@@ -562,7 +565,9 @@
     (= editor!index idx)))
 
 (def welder-window-title (editor)
-  "#((or editor!file "*scratch*")) - #(editor!line-count) lines, #((len editor!index)) tokens - Arc Welder")
+  (string (or editor!file "*scratch*") " - "
+          editor!line-count " lines, "
+          (len editor!index) " tokens - Arc Welder"))
 
 (def welder-open (editor file)
   (= editor!file file)
@@ -671,7 +676,7 @@
     (on-update editor)))
 
 (welder-init (editor)
-  (let f (frame 360 100 1200 800 "Arc Welder")
+  (let f (frame 360 0 640 1000 "Arc Welder")
     (= editor!frame f)
     (= editor!show-help
        (help-window f))
