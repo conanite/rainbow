@@ -113,7 +113,7 @@
   (repeat-list 4 (s7/4/7 a3 80) (s7/4/7 a3 70))
   (s9/6/9 a3 80)   (s9/6/9 a3 70)
   (s7/4/7 a3 80)   (s7/4/7 a3 70)
-  (s12/4/12 a3 80) (s12/4/12 a3 70)))
+  (s12/4/12 e3 80) (s12/4/12 e3 70)))
 
 (defseq rondo-passage-7-left
   (mono (a3 75 2 'staccato) (a3 75 2 'staccato))
@@ -128,8 +128,8 @@
     (rondo-passage-3-left-motif a3 2)
     (rondo-passage-3-left-motif a3 2))
   (mono:a3 100 4 'staccato)
-  (list (chord a3 '(4 3 5) 127 4)
-        (chord a3 '(4 3 5) 127 4)))
+  (list (chord a3 '(4 7 12) 127 4)
+        (chord a3 '(4 7 12) 127 4)))
 
 (defseq rondo-passage-4-opening
   (s1/0/-2  c6s 70) (s2/0/-1  a5  96)
@@ -163,9 +163,7 @@
 (def rondo-theme-3-end-2 (first?)
   (with (tf (if first? staccatoise octavise-alt)) (+
     (tf:s5/2/-2 f4s 85 75 2)
-    (if first?
-        (mono (a4  95 4))
-        (mono (a4  95 4) (a5 95 4))))))
+    (list:chord a4 '(12) 95 4))))
 
 (def rondo-theme (cresc) (+
     (s-2/-3/-2 b4 80)
@@ -185,13 +183,13 @@
     ,(chord-arp c6s '(-4 -9 -12) 100 '(8 4 4 4) '(-12 -9 -4))
     (pause 4))
   (rondo-theme-7-transition)
-  `(,(chord d6 '(-5 -3) 100 8))))
+  `(,(chord d6 '(-5 -8) 100 8))))
 
 (def rondo-theme-7-a5-chord (vol length)
   (chord-arp a5 '(4 -5) vol length '(5) 'staccato))
 
 (def rondo-theme-7-e5-chord (vol)
-  (chord-arp e5 '(4 3) vol 2 '(9) 'staccato))
+  (chord-arp e5 '(4 7) vol 2 '(9) 'staccato))
 
 (def rondo-theme-7-a5-e5-chord-sequence ()
   (cons (rondo-theme-7-a5-chord 64 8)
@@ -224,7 +222,7 @@
       (rondo-theme-7)
       (rondo-theme-7-a5-e5-chord-sequence)
       ((crescendo 10 12) (+
-        (list (chord a4 '(4 3 5) 96 6))
+        (list (chord a4 '(4 7 12) 96 6))
         (loud:octavise-chord:mono
           (c5s 70 2 'staccato)
           (a4 96 6)
@@ -237,8 +235,8 @@
           (e5 70 2 'staccato)
           '(speed 4/5)
           (a4 97 4 'staccato)))))
-    (list '(speed 2/3) (chord a4 '(4 3 5) 127 4)
-          '(speed 1/2) (chord a4 '(4 3 5) 127 4)))
+    (list '(speed 2/3) (chord a4 '(4 7 12) 127 4)
+          '(speed 1/2) (chord a4 '(4 7 12) 127 4)))
 
 (defseq rondo-passage-6
   (rondo-theme-3 nil)
