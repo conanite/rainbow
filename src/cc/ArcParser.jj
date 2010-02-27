@@ -86,7 +86,7 @@ TOKEN : /* identifier */
 | < #INITIAL : <LETTER> | <GREEK> | <SPECIAL_INITIAL> >
 | < #LETTER : ["a"-"z","A"-"Z"] >
 | < #GREEK : ["\u0391"-"\u03A9","\u03B1"-"\u03C9"] >
-| < #SPECIAL_INITIAL : ["+","-","$","%","&","*","/","<","=",">","?","^","_","~", "|","#"] >
+| < #SPECIAL_INITIAL : ["+","-","$","%","&","*","/","<","=",">","?","^","_","~", "|"] >
 | < #SPECIAL_SUBSEQUENT : [".","!",":"] >
 | < #SUBSEQUENT : <INITIAL> | <DIGIT> | <SPECIAL_SUBSEQUENT> >
 }
@@ -118,6 +118,11 @@ TOKEN : /* characters */
 | < #NULL_CHARACTER      : "#\\null"                                                          >
 | < #ASCII_CHARACTER     : "#\\" <DIGIT> (<DIGIT>)+                                           >
 | < #UNICODE_CHARACTER   : "#\\" ["u", "U"] (["0"-"9", "a"-"f", "A"-"F"])+                    >
+}
+
+TOKEN : /* hex numbers */
+{
+  < HEX_INTEGER : "#" ("X" | "x") (["0"-"9", "a"-"f", "A"-"F"])+ >
 }
 
 SKIP : /* comment */
@@ -248,5 +253,6 @@ ArcObject atom():             { Token s; ArcObject o; } {
   | o=string()                { return o;                                               }
   | s=<IDENTIFIER>            { return Symbol.make(s.toString());                       }
   | s=<CHARACTER>             { return ArcCharacter.make(s.toString());                 }
+  | s=<HEX_INTEGER>           { return Rational.parseHex(s.toString());                 }
   )
 }

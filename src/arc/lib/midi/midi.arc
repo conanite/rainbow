@@ -107,7 +107,7 @@
   `(fpush (list ,tick 'note-on ,channel ,note ,vol) ,seq))
 
 (mac add-note-off (seq tick channel note)
-  `(fpush (list ,tick 'note-off ,channel ,note) ,seq))
+  `(fpush (list ,tick 'note-off ,channel ,note 0) ,seq))
 
 (def create-sequence (ch events)
   (with (seq nil tick 0 process-note nil octavise nil
@@ -160,7 +160,6 @@
                         (add-note-on  seq tick ch note vol)
                         (add-note-off seq (+ tick duration) ch note)))))
     (each event events
-      (prn "event: " event)
       (if (is car.event 'instrument)
           (push (list tick 'instrument ch event.1 event.2) seq)
           (is car.event 'speed)
@@ -275,33 +274,13 @@
     `(defs ,@(mappend f (tuples args 3)))))
 
 (four-note-sequence
-  -3 -7 -5
-  -3 -7 -3
-  -3 -0 -3
-  -2 -4 -5
-  -2 -3 -5
-  -2 -3 -2
-  -1 -3 -5
-  -1 -3 -1
-  -1  0 -3
-  -1  0 -1
-  -1  0  2
-   1  0 -2
-   1  3  0
-   2  0 -1
-   2  3  0
-   2  3  5
-   2  4 -3
-   2  4  0
-   2  4  5
-   3  2  0
-   3 -3  0
-   3 -4  0
-   5  0 -3
-   5  2 -2
-   7  4  7
-   9  6  9
-  12  4 12)
+  -3 -7 -5    -3 -7 -3    -3 -0 -3    -2 -4 -5
+  -2 -3 -5    -2 -3 -2    -1 -3 -5    -1 -3 -1
+  -1 -2 -1    -1  0 -3    -1  0 -1    -1  0  2
+   1  0 -2     1  3  0     2  0 -1     2  3  0
+   2  3  5     2  4 -3     2  4  0     2  4  5
+   3  2  0     3 -3  0     3 -4  0     5  0 -3
+   5  2 -2     7  4  7     9  6  9    12  4 12)
 
 (def major-scale (base v1 v2 dur)
   (+ (s2/4/5 base v1 v2 dur)
@@ -309,3 +288,4 @@
 
 (mac defseq (name . seqs) `(= ,name (makeseq ,@seqs)))
 (mac makeseq seqs `(+ ,@seqs))
+

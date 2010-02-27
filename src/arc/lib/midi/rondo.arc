@@ -170,7 +170,7 @@
     (mono (c5 100 2 'staccato) '(pause 2))
     (s-2/-3/-2 d5 80)
     (mono (e5 100 2 'staccato) '(pause 2))
-    (s-2/-3/-2 f5 80)
+    (s-1/-2/-1 f5 80)
     ((if cresc (crescendo 20 8) idfn) (repeat-list 2 (s-2/-3/-2 b5 80)))
     (mono (c6 (if cresc 120 100) 4))))
 
@@ -342,4 +342,4 @@
 
 (= rondo-music
    (make-music 0 rondo-right-hand
-               0 rondo-left-hand))
+               0 ((amp -5) rondo-left-hand)))

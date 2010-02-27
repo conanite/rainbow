@@ -31,6 +31,11 @@ public class Rational extends ArcNumber {
     return make(Long.parseLong(parts[0]), Long.parseLong(parts[1]));
   }
 
+  public static Rational parseHex(String rep) {
+    rep = rep.substring(2);
+    return new Rational(Long.parseLong(rep, 16));
+  }
+
   public static Rational make(long result) {
     return new Rational(result);
   }
