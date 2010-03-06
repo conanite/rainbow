@@ -228,10 +228,12 @@
           (load it))
       (err:string "Didn't find " arc-lib))))
 
-(mac requires (func lib)
-  `(def ,func args
-    (require-lib ',lib)
-    (apply ,func args)))
+(mac requires (funcs lib)
+  (if (acons funcs)
+      `(do ,@(map [list 'requires _ lib] funcs))
+      `(def ,funcs args
+         (require-lib ',lib)
+         (apply ,funcs args))))
 
 (mac require-by-name (path . funcs)
   `(do

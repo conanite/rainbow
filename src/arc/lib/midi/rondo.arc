@@ -1,4 +1,4 @@
-; W.A.Mozart, KV331 (Rondo a la turca)
+; W.A.Mozart KV331 "Rondo a la turca"
 
 (require-lib 'lib/midi/midi)
 

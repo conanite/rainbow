@@ -39,9 +39,9 @@
     (acc (if (> event.4 127) 127 event.4))
     event.0))
 
-(let track-footer (list 0 255 47 0)
+(let track-footer (list 130 0 255 47 0)
   (def write-midi-track (str byte-list)
-    (writebs (to-4-byte-word (+ 4 (len byte-list))) str)
+    (writebs (to-4-byte-word (+ 5 (len byte-list))) str)
     (writebs byte-list str)
     (writebs track-footer str)))
 
@@ -54,12 +54,11 @@
            77 84 114 107) ; "MTrk"
   (def write-midi-file (music str)
     (each b midi-type-0-header (writeb b str))
-    (let events (only-notes music)
+    (with (events (only-notes music) tick 0)
       (write-midi-track str
         (accum bytes
-          (let tick 0
-            (each event events
-              (= tick (accum-midi-event event tick bytes)))))))))
+          (each event events
+            (= tick (accum-midi-event event tick bytes))))))))
 
 (def write-midi-to (name music)
   (w/outfile f name

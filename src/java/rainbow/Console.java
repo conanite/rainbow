@@ -62,16 +62,16 @@ public class Console {
 
   private static void showHelp() {
     System.out.print("" +
-            "Launch the Rainbow Arc Interpreter                             " +
-            "\n                                                             " +
-            "\n rainbow [options]                                           " +
-            "\n                                                             " +
-            "\n where options include                                       " +
-            "\n   --help       show this help                               " +
-            "\n   -f file ...  load and interpret file                      " +
-            "\n   -e expr ...  evaluate expr                                " +
-            "\n   -q           quit after -e or -f, don't enter the REPL    " +
-            "\n   --no-libs    don't load any arc libraries                 " +
+            "Launch the Rainbow Arc Interpreter                                  " +
+            "\n                                                                  " +
+            "\n rainbow [options]                                                " +
+            "\n                                                                  " +
+            "\n where options include                                            " +
+            "\n   --help       show this help                                    " +
+            "\n   -f file ...  load and interpret file                           " +
+            "\n   -e expr ...  evaluate expr                                     " +
+            "\n   -q           don't enter the REPL (quit if no threads started) " +
+            "\n   --no-libs    don't load any arc libraries                      " +
             "\n   -args xyz    (if specified must be last) set symbol *argv* to xyz" +
             "\n");
   }
