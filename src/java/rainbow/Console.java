@@ -163,10 +163,10 @@ public class Console {
       f = find(arcPath, path);
     }
 
-    load(vm, path, new FileInputStream(f));
+    load(vm, new FileInputStream(f));
   }
 
-  private static void load(VM vm, String name, InputStream stream) throws ParseException {
+  public static void load(VM vm, InputStream stream) throws ParseException {
     ArcParser parser = new ArcParser(stream);
     ArcObject expression = parser.parseOneLine();
     while (expression != null) {
