@@ -1,13 +1,14 @@
 package rainbow.functions.eval;
 
+import rainbow.ArcError;
+import rainbow.Nil;
 import rainbow.functions.Builtin;
 import rainbow.functions.Evaluation;
+import rainbow.parser.ArcParser;
+import rainbow.parser.ParseException;
 import rainbow.types.ArcObject;
 import rainbow.types.Pair;
 import rainbow.types.Symbol;
-import rainbow.ArcError;
-import rainbow.parser.ArcParser;
-import rainbow.parser.ParseException;
 
 import java.util.*;
 
@@ -63,7 +64,7 @@ public class SSExpand extends Builtin {
   }
 
   private static ArcObject expandToks(Iterator list) {
-    ArcObject s = readValue((Symbol) list.next());
+    ArcObject s = readValue((ArcObject)list.next());
     Symbol sep = null;
     if (list.hasNext()) {
       sep = (Symbol) list.next();
@@ -87,8 +88,11 @@ public class SSExpand extends Builtin {
     }
   }
 
-  private static ArcObject readValue(Symbol symbol) {
-    return readValue(symbol.name());
+  private static ArcObject readValue(ArcObject symbol) {
+    if (symbol instanceof Nil) {
+      return symbol;
+    }
+    return readValue(((Symbol)symbol).name());
   }
 
   private static ArcObject expandExpression(String symbol) {

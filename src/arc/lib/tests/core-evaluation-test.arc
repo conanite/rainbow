@@ -136,6 +136,10 @@
 ))
 
 (register-test '(suite "using special syntax"
+  ("ssyntax copes with embedded nil"
+    list.nil
+    (nil))
+
   ("ssyntax expands numbers too"
     ((fn (s) s.1) "foo")
     #\o)
