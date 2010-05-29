@@ -54,6 +54,8 @@ public class JavaProxy implements InvocationHandler {
       }
       if (method.getName().equals("toString")) {
         return "Arc implementation of " + interfaces + " : " + functions.toString();
+      } else if (method.getName().equals("hashCode")) {
+        return this.hashCode();
       } else {
         if (strict) {
           throw new ArcError("No implementation provided for " + method + "; implementations include " + functions);

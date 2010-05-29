@@ -721,7 +721,16 @@
 
 (assign open-welders (table))
 
+(java-imports javax.swing UIManager)
+(java-imports java.lang System)
+
+(def welder-first-time ()
+  (UIManager 'setLookAndFeel UIManager.getSystemLookAndFeelClassName)
+  (System 'setProperty "apple.laf.useScreenMenuBar" "true")
+  (assign welder-first-time nilfn))
+
 (def welder ((o file) (o txt))
+  (welder-first-time)
   (let wname (if file canonical-path.file
                  txt  "*scratch(#((len open-welders)))*"
                       "*scratch*")

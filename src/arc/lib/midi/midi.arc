@@ -263,6 +263,18 @@
              (cons (+ semitones car.n) cdr.n))
     (fn (note) (note-apply f note))))
 
+(mac three-note-sequence args
+  (let f (fn (seq2)
+             (list (mksym 's seq2.0 '/ seq2.1)
+                   '(note v1 (o v2 mf) (o length 1))
+                   `(mono (note v1 length) 
+                          ((note 'transpose ,seq2.0) v2 length)
+                          ((note 'transpose ,seq2.1) v2 length))))
+    `(defs ,@(mappend f (tuples args 2)))))
+
+(three-note-sequence
+  -5 -8  -4 -2   2  4   3  1    4  2    5  2)
+
 (mac four-note-sequence args
   (let f (fn (seq3)
              (list (mksym 's seq3.0 '/ seq3.1 '/ seq3.2)
