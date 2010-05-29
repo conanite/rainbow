@@ -205,6 +205,13 @@
         ))
         obar)
 
+      ("special case: 2nd arg is optional and refers to outer lexical scope"
+        ((fn (x)
+          ( (fn (a (o b x)) nil b) "ignored")
+        ) "expected")
+        "expected"
+      )
+
       ("destructuring-bind params"
         ((fn (a b (c d e (f g)) h) `(,a ,b ,c ,d ,e ,f ,g ,h)) 1 2 '(3 4 5 (6 7)) 8)
          (1 2 3 4 5 6 7 8))
