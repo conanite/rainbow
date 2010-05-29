@@ -32,10 +32,10 @@ public class Typing {
     STRING.addCoercion(CONS, new Coercion("cons-string") {
       public ArcObject coerce(ArcObject arg) {
         StringBuilder result = new StringBuilder();
-        Pair chars = (Pair) arg;
-        while (!(chars instanceof Nil)) {
-          result.append(((ArcCharacter) chars.car()).value());
-          chars = (Pair) chars.cdr();
+        Pair items = (Pair) arg;
+        while (!(items instanceof Nil)) {
+          result.append(items.car().disp());
+          items = (Pair) items.cdr();
         }
         return ArcString.make(result.toString());
       }

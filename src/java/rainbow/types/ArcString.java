@@ -64,7 +64,7 @@ public class ArcString extends LiteralObject {
 
   public ArcObject scar(ArcObject character) {
     ArcCharacter newCar = ArcCharacter.cast(character, this);
-    StringBuilder sb = new StringBuilder(newCar.stringValue());
+    StringBuilder sb = new StringBuilder(newCar.disp());
     sb.append(value().substring(1));
     setValue(sb.toString());
     return character;

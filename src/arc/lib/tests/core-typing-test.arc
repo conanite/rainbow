@@ -238,6 +238,10 @@
         (coerce '(#\a #\b #\c #\@ #\e #\x #\a #\m #\p #\l #\e #\. #\c #\o #\m) 'string)
         "abc@example.com" )
 
+      ("list to string including non-char items"
+        (coerce '(12 #\x 34 #\y 56/17 #\z 3.1415) 'string)
+        "12x34y56/17z3.1415")
+
       (suite "characters"
         ("char to int"
           (coerce #\A 'int)

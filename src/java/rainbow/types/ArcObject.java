@@ -207,4 +207,8 @@ public abstract class ArcObject {
   public boolean assigns(int nesting) {
     return false;
   }
+
+  public String disp() {
+    return toString();
+  }
 }

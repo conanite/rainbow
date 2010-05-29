@@ -103,7 +103,7 @@ public class ArcCharacter extends LiteralObject {
     return value;
   }
 
-  public String stringValue() {
+  public String disp() {
     return String.valueOf(value);
   }
 
