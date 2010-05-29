@@ -242,6 +242,10 @@
       ("rainbow optimises inline idfn"
         ( (fn (x) (if x x nil)) "en vacances au sud de france")
         "en vacances au sud de france")
+
+      ("allow nil as param name"
+        ( (fn (nil) nil) 3)
+        nil)
     )
 
     (suite "assign"

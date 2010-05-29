@@ -17,6 +17,7 @@ import java.util.Map;
 
 public class FunctionParameterListBuilder {
   public static final Symbol O = Symbol.mkSym("o");
+  public static final Symbol NIL_ARG = Symbol.mkSym("#NIL#");
 
   public static ArcObject build(VM vm, ArcObject parameters, Map[] lexicalBindings) {
     index(parameters, lexicalBindings[0], new int[]{0}, false);
@@ -29,14 +30,18 @@ public class FunctionParameterListBuilder {
       if (!(first instanceof Pair)) {
         result.add(first);
       } else {
-        complexParams = ArcObject.T;
-        Pair maybeOptional = (Pair) first;
-        if (ComplexArgs.optional(maybeOptional)) {
-          ArcObject optionalParamName = maybeOptional.cdr().car();
-          ArcObject compiledOptionalExpression = Compiler.compile(vm, maybeOptional.cdr().cdr().car(), lexicalBindings);
-          result.add(Pair.buildFrom(O, optionalParamName, compiledOptionalExpression));
+        if (first instanceof Nil) {
+          result.add(NIL_ARG);
         } else {
-          result.add(first);
+          complexParams = ArcObject.T;
+          Pair maybeOptional = (Pair) first;
+          if (ComplexArgs.optional(maybeOptional)) {
+            ArcObject optionalParamName = maybeOptional.cdr().car();
+            ArcObject compiledOptionalExpression = Compiler.compile(vm, maybeOptional.cdr().cdr().car(), lexicalBindings);
+            result.add(Pair.buildFrom(O, optionalParamName, compiledOptionalExpression));
+          } else {
+            result.add(first);
+          }
         }
       }
     }
@@ -71,7 +76,13 @@ public class FunctionParameterListBuilder {
       if (optionable && ComplexArgs.optional(parameterList)) {
         index(parameterList.cdr().car(), map, i, true);
       } else {
-        index(parameterList.car(), map, i, true);
+        ArcObject first = parameterList.car();
+        if (first instanceof Nil) {
+          map.put(NIL_ARG, i[0]);
+          i[0]++;
+        } else {
+          index(first, map, i, true);
+        }
         index(parameterList.cdr(), map, i, false);
       }
     } else {
