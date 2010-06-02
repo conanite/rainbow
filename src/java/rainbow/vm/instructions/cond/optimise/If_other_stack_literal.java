@@ -27,7 +27,7 @@ public class If_other_stack_literal extends Instruction {
   }
 
   public String toString() {
-    return "(if[osl] [other] " + thenExpr + " " + elseExpr + ")";
+    return "(if ? " + thenExpr + " " + elseExpr + ")";
   }
 
   public static void addInstructions(List i, ArcObject ifExpr, ArcObject thenExpr, ArcObject elseExpr) {

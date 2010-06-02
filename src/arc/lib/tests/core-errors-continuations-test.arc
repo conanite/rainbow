@@ -38,14 +38,14 @@
         ((fn (hefty-info)
           (assign hefty-stuff (fn (other-stuff)
             (assign rec-hefty (fn (n)
-              (assign hefty-info (cons "hefty" (cons n hefty-info)))
+              (assign hefty-info (cons "A" (cons n hefty-info)))
               (assign other-stuff (ccc other-stuff))
               (if (> n 0) (rec-hefty (- n 1)))))
             (rec-hefty 5)))
 
           (assign light-stuff (fn (other-stuff)
             (assign rec-light (fn (x)
-              (assign hefty-info (cons "light" hefty-info))
+              (assign hefty-info (cons "B" hefty-info))
               (assign other-stuff (ccc other-stuff))
               (rec-light 0)))))
 
@@ -53,14 +53,79 @@
 
           hefty-info
         ) nil)
-        ("light" "hefty" 0 "light" "hefty" 1 "light" "hefty" 2 "light" "hefty" 3 "light" "hefty" 4 "light" "hefty" 4 "hefty" 5))
+        ("B" "A" 0 "B" "A" 1 "B" "A" 2 "B" "A" 3 "B" "A" 4 "B" "A" 4 "A" 5))
     )
 
-    ("protect"
-      ((fn (x)
-        (protect (fn () (/ 1 2)) (fn () (assign x "protected-foo")))
-        x) nil)
-      "protected-foo")
+    (suite "Protect"
+      ("simple protect"
+        ((fn (x)
+          (protect (fn () (/ 1 2)) (fn () (assign x "protected-foo")))
+          x) nil)
+        "protected-foo")
+
+      ("protect through continuation"
+        (tostring (catch (after (throw pr!problem) pr!-free)))
+        "problem-free")
+
+      ("protect all over the place inside a co-routine pair"
+        (let started nil
+          (accum trace 
+            (assign proc-A (fn (my-b)
+              (= started t)
+              (trace 'proc-A-start)
+              (assign inner-A (fn (n)
+                (trace (sym:string 'inner-A-start- n))
+                (after (assign my-b (do (trace 'pre-ccc-my-b) (ccc my-b))) (trace (sym:string 'after-ccc-my-b- n)))
+                (trace 'end-inner-A)
+                (if (> n 0) (after (inner-A (- n 1)) (trace (sym:string 'after-inner-A-tail-call- n))))))
+              (after (inner-A 5) (trace 'after-initial-inner-A-call))))
+
+            (assign proc-B (fn (my-a)
+              (trace 'proc-B-start)
+              (assign inner-B (fn (x)
+                (trace 'inner-B-start)
+                (after (assign my-a (do (trace 'pre-ccc-my-a) (ccc my-a))) (trace 'after-ccc-my-a))
+                (trace 'end-inner-B)
+                (after (inner-B 0) (trace 'after-inner-B-tail-call))))))
+
+            (after (if (no started) (proc-A proc-B)) (trace 'final-after))
+          ))
+
+        (proc-A-start inner-A-start-5 pre-ccc-my-b proc-B-start after-ccc-my-b-5
+         end-inner-A inner-A-start-4 pre-ccc-my-b inner-B-start pre-ccc-my-a
+         after-ccc-my-a after-ccc-my-b-4 after-inner-A-tail-call-5
+         after-ccc-my-b-5 end-inner-A inner-A-start-4 pre-ccc-my-b
+         after-ccc-my-b-4 after-inner-A-tail-call-5 after-ccc-my-a end-inner-B
+         inner-B-start pre-ccc-my-a after-ccc-my-a after-inner-B-tail-call
+         after-ccc-my-b-4 after-inner-A-tail-call-5 after-ccc-my-b-4 end-inner-A
+         inner-A-start-3 pre-ccc-my-b after-ccc-my-b-3 after-inner-A-tail-call-4
+         after-inner-A-tail-call-5 after-ccc-my-a end-inner-B inner-B-start
+         pre-ccc-my-a after-ccc-my-a after-inner-B-tail-call
+         after-inner-B-tail-call after-ccc-my-b-4 after-inner-A-tail-call-5
+         after-ccc-my-b-3 end-inner-A inner-A-start-2 pre-ccc-my-b
+         after-ccc-my-b-2 after-inner-A-tail-call-3 after-inner-A-tail-call-4
+         after-inner-A-tail-call-5 after-ccc-my-a end-inner-B inner-B-start
+         pre-ccc-my-a after-ccc-my-a after-inner-B-tail-call
+         after-inner-B-tail-call after-inner-B-tail-call after-ccc-my-b-4
+         after-inner-A-tail-call-5 after-ccc-my-b-2 end-inner-A inner-A-start-1
+         pre-ccc-my-b after-ccc-my-b-1 after-inner-A-tail-call-2
+         after-inner-A-tail-call-3 after-inner-A-tail-call-4
+         after-inner-A-tail-call-5 after-ccc-my-a end-inner-B inner-B-start
+         pre-ccc-my-a after-ccc-my-a after-inner-B-tail-call
+         after-inner-B-tail-call after-inner-B-tail-call after-inner-B-tail-call
+         after-ccc-my-b-4 after-inner-A-tail-call-5 after-ccc-my-b-1 end-inner-A
+         inner-A-start-0 pre-ccc-my-b after-ccc-my-b-0 after-inner-A-tail-call-1
+         after-inner-A-tail-call-2 after-inner-A-tail-call-3
+         after-inner-A-tail-call-4 after-inner-A-tail-call-5 after-ccc-my-a
+         end-inner-B inner-B-start pre-ccc-my-a after-ccc-my-a
+         after-inner-B-tail-call after-inner-B-tail-call after-inner-B-tail-call
+         after-inner-B-tail-call after-inner-B-tail-call after-ccc-my-b-4
+         after-inner-A-tail-call-5 after-ccc-my-b-0 end-inner-A
+         after-inner-A-tail-call-1 after-inner-A-tail-call-2
+         after-inner-A-tail-call-3 after-inner-A-tail-call-4
+         after-inner-A-tail-call-5 after-initial-inner-A-call final-after)
+      )
+    )
 
     (suite "Error handling"
       ("no error"

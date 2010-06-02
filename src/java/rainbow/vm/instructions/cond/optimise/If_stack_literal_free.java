@@ -30,7 +30,7 @@ public class If_stack_literal_free extends Instruction {
   }
 
   public String toString() {
-    return "(if[slf] " + ifExpr + " " + thenExpr + " " + elseExpr + ")";
+    return "(if " + ifExpr + " " + thenExpr + " " + elseExpr + ")";
   }
 
   public static void addInstructions(List i, ArcObject ifExpr, ArcObject thenExpr, ArcObject elseExpr) {

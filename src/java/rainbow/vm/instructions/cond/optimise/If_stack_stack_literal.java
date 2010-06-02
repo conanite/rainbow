@@ -29,7 +29,7 @@ public class If_stack_stack_literal extends Instruction {
   }
 
   public String toString() {
-    return "(if[ssl] " + ifExpr + " " + thenExpr + " " + elseExpr + ")";
+    return "(if " + ifExpr + " " + thenExpr + " " + elseExpr + ")";
   }
 
   public static void addInstructions(List i, ArcObject ifExpr, ArcObject thenExpr, ArcObject elseExpr) {

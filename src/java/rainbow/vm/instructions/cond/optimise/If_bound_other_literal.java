@@ -34,7 +34,7 @@ public class If_bound_other_literal extends Instruction {
   }
 
   public String toString() {
-    return "(if[bol] " + ifExpr + " " + thenExpr + " " + elseExpr + ")";
+    return "(if " + ifExpr + " " + thenExpr + " " + elseExpr + ")";
   }
 
   public void visit(Visitor v) {

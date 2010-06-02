@@ -44,7 +44,7 @@ public class If_bound_bound_literal extends Instruction {
   }
 
   public String toString() {
-    return "(if[bbl] " + ifExpr + " " + thenExpr + " " + elseExpr + ")";
+    return "(if " + ifExpr + " " + thenExpr + " " + elseExpr + ")";
   }
 
   public static class Or extends Instruction {

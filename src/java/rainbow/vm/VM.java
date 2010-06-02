@@ -19,7 +19,7 @@ public class VM extends ArcObject {
   public static final Symbol TYPE = Symbol.mkSym("thread");
   private static long threadCount = 0;
 
-  private final long threadId;
+  public final long threadId;
 
   {
     synchronized(VM.class) {
@@ -106,6 +106,31 @@ public class VM extends ArcObject {
     return ip >= ipThreshold;
   }
 
+  public int lastCommonAncestor(VM other) {
+    for (int i = 0; i < ip; i++) {
+      if (ins[i] != other.ins[i]) {
+        return i - 1;
+      }
+    }
+    return ip;
+  }
+
+  public List[] gatherFinallies(int oldIP) {
+    List instructions = new ArrayList();
+    List lexClosures = new ArrayList();
+
+    while (ip > oldIP) {
+      ArcObject nextInstruction = peekI().car();
+      if (nextInstruction instanceof Finally) {
+        instructions.add(peekI());
+        lexClosures.add(peekL());
+      }
+      popFrame();
+    }
+
+    return new List[] { instructions, lexClosures };
+  }
+
   private void handleError(Throwable e) {
     List stackTrace = new ArrayList(ip - ipThreshold);
     List instructions = new ArrayList();
@@ -160,7 +185,11 @@ public class VM extends ArcObject {
     System.out.println("" + (ap + 1) + " args");
     showArgs();
     System.out.println();
-    System.out.println("" + (ip + 1) + " instruction frames");
+    int fc = ip + 1;
+    if (ins[ip] instanceof Nil) {
+      fc = ip;
+    }
+    System.out.println("" + fc + " instruction frames");
     showInstructions();
   }
 
@@ -303,23 +332,30 @@ public class VM extends ArcObject {
   }
 
   private void showInstructions() {
-    int end = (ip > 4) ? (ip - 4) : 0;
+    int end = (ip > 20) ? (ip - 20) : 0;
     for (int i = ip; i >= end; i--) {
-      showFrame(i);
+      if (!(ins[i] instanceof Nil)) {
+        showFrame(i);
+      }
     }
   }
 
   private void showFrame(int frame) {
     Pair instructions = ins[frame];
     LexicalClosure lc = lcs[frame];
+    ArcObject[] stk = params[frame];
     System.out.print("\nInstruction Frame " + frame + ":");
     while (!(instructions instanceof Nil)) {
       Instruction i = (Instruction) instructions.car();
       instructions = (Pair) instructions.cdr();
-//      System.out.print(i.toString());
       System.out.print(i.toString(lc));
       System.out.print(" ");
     }
+    System.out.print("[");
+    for (ArcObject o : stk) {
+      System.out.print(o + " ");
+    }
+    System.out.print("]");
     System.out.println();
   }
 

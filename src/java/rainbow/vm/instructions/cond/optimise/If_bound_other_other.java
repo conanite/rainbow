@@ -35,7 +35,7 @@ public class If_bound_other_other extends Instruction {
   }
 
   public String toString() {
-    return "(if[boo] " + ifExpr + " " + thenExpr + " " + elseExpr + ")";
+    return "(if " + ifExpr + " " + thenExpr + " " + elseExpr + ")";
   }
 
   public void visit(Visitor v) {

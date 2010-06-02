@@ -31,7 +31,7 @@ public class If_other_other_literal extends Instruction {
   }
 
   public String toString() {
-    return "(if[ool] [other] " + thenExpr + " " + elseExpr + ")";
+    return "(if ? " + thenExpr + " " + elseExpr + ")";
   }
 
   public void visit(Visitor v) {

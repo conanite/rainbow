@@ -31,7 +31,7 @@ public class If_other_stack_other extends Instruction {
   }
 
   public String toString() {
-    return "(if[oso] [other] " + thenExpr + " " + elseExpr + ")";
+    return "(if ? " + thenExpr + " " + elseExpr + ")";
   }
 
   public void visit(Visitor v) {
