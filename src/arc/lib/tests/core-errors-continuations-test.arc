@@ -68,28 +68,25 @@
         "problem-free")
 
       ("protect all over the place inside a co-routine pair"
-        (let started nil
-          (accum trace 
-            (assign proc-A (fn (my-b)
-              (= started t)
-              (trace 'proc-A-start)
-              (assign inner-A (fn (n)
-                (trace (sym:string 'inner-A-start- n))
-                (after (assign my-b (do (trace 'pre-ccc-my-b) (ccc my-b))) (trace (sym:string 'after-ccc-my-b- n)))
-                (trace 'end-inner-A)
-                (if (> n 0) (after (inner-A (- n 1)) (trace (sym:string 'after-inner-A-tail-call- n))))))
-              (after (inner-A 5) (trace 'after-initial-inner-A-call))))
+        (accum trace
+          (assign proc-A (fn (my-b)
+            (trace 'proc-A-start)
+            (assign inner-A (fn (n)
+              (trace (sym:string 'inner-A-start- n))
+              (after (assign my-b (do (trace 'pre-ccc-my-b) (ccc my-b))) (trace (sym:string 'after-ccc-my-b- n)))
+              (trace 'end-inner-A)
+              (if (> n 0) (after (inner-A (- n 1)) (trace (sym:string 'after-inner-A-tail-call- n))))))
+            (after (inner-A 5) (trace 'after-initial-inner-A-call))))
 
-            (assign proc-B (fn (my-a)
-              (trace 'proc-B-start)
-              (assign inner-B (fn (x)
-                (trace 'inner-B-start)
-                (after (assign my-a (do (trace 'pre-ccc-my-a) (ccc my-a))) (trace 'after-ccc-my-a))
-                (trace 'end-inner-B)
-                (after (inner-B 0) (trace 'after-inner-B-tail-call))))))
+          (assign proc-B (fn (my-a)
+            (trace 'proc-B-start)
+            (assign inner-B (fn (x)
+              (trace 'inner-B-start)
+              (after (assign my-a (do (trace 'pre-ccc-my-a) (ccc my-a))) (trace 'after-ccc-my-a))
+              (trace 'end-inner-B)
+              (after (inner-B 0) (trace 'after-inner-B-tail-call))))))
 
-            (after (if (no started) (proc-A proc-B)) (trace 'final-after))
-          ))
+          (after (proc-A proc-B) (trace 'final-after)))
 
         (proc-A-start inner-A-start-5 pre-ccc-my-b proc-B-start after-ccc-my-b-5
          end-inner-A inner-A-start-4 pre-ccc-my-b inner-B-start pre-ccc-my-a
