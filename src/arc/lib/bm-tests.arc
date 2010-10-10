@@ -47,9 +47,10 @@
   ()
   (nbody 600))
 
-(defbm using-ccc
-  ()
-  (bm-cps-pyth))
+; impossibly slow with unoptimised ccc
+;(defbm using-ccc
+;  ()
+;  (bm-cps-pyth))
 
 (defbm sqrt
   ()
