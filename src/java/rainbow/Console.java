@@ -13,12 +13,12 @@ import java.io.*;
 import java.util.*;
 
 public class Console {
+  public static Object o = ArcObject.NIL;
   public static boolean debugJava = false;
   public static boolean stackfunctions = true;
 
   public static void main(String args[]) throws ParseException, IOException {
     long started = System.currentTimeMillis();
-    Object o = ArcObject.NIL;
     String[] path = getArcPath();
     Argv argv = new Argv(args);
     List programArgs = parseAll(argv.terminal("-args"));

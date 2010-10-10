@@ -33,6 +33,10 @@ public class ArcString extends LiteralObject {
     return value;
   }
 
+  public String disp() {
+    return value;
+  }
+
   public String toString() {
     return escape(value);
   }

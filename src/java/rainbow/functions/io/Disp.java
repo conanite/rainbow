@@ -21,12 +21,6 @@ public class Disp extends Builtin {
   }
 
   private void disp(Output out, ArcObject o) {
-    if (o instanceof ArcString) {
-      out.write(((ArcString) o).value());
-    } else if (o instanceof ArcCharacter) {
-      out.writeChar((ArcCharacter) o);
-    } else {
-      out.write(o);
-    }
+    out.write(o.disp());
   }
 }

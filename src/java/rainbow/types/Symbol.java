@@ -1,25 +1,31 @@
 package rainbow.types;
 
 import rainbow.ArcError;
+import rainbow.parser.ArcParser;
 import rainbow.vm.instructions.FreeSym;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class Symbol extends ArcObject {
   private static final Map<String, Symbol> map = new HashMap();
+  private static Pattern requiresPiping = Pattern.compile(".*([\"'; \\t\\n\\)\\(]|([^\\\\]|^)\\|).*");
+  private static Pattern hasEscapedPiping = Pattern.compile(".*\\\\\\|");
+
   public static final Symbol TYPE = Symbol.mkSym("sym");
-  public static final Symbol EMPTY_STRING = Symbol.mkSym("||");
   public static final Symbol DOT = Symbol.mkSym(".");
   public static final Symbol BANG = Symbol.mkSym("!");
   private String name;
+  private String parseableName;
   private int hash;
   private ArcObject value;
   private Map coerceFrom;
 
-  protected Symbol(String name) {
+  protected Symbol(String name, String parseableName) {
     this.name = name;
+    this.parseableName = parseableName;
     this.hash = name.hashCode();
   }
 
@@ -28,12 +34,12 @@ public class Symbol extends ArcObject {
   }
 
   public static Symbol mkSym(String name) {
-    if ("t".equals(name)) {
-      return T;
-    } else if ("nil".equals(name)) {
-      throw new ArcError("can't make symbol 'nil");
+    ArcObject result = make(name);
+    if (!(result instanceof Symbol)) {
+      throw new ArcError("can't make symbol from \"" + name + "\"");
+    } else {
+      return (Symbol) result;
     }
-    return nu(name);
   }
 
   public static ArcObject make(String name) {
@@ -41,23 +47,36 @@ public class Symbol extends ArcObject {
       return T;
     } else if ("nil".equals(name)) {
       return NIL;
+    } else if (requiresPiping.matcher(name).matches() || ArcParser.isNonSymAtom(name) || ".".equals(name)) {
+      return nu(name, "|" + name + "|");
+    } else if (hasEscapedPiping.matcher(name).matches()) {
+      return nu(name.replaceAll("\\\\\\|", "|"), name);
+    } else {
+      return nu(name, name);
     }
-    return nu(name);
+  }
+
+  public String disp() {
+    return name;
   }
 
   public String toString() {
-    return (this == EMPTY_STRING) ? "" : name;
+    return parseableName;
   }
 
-  public static Symbol nu(String s) {
+  public static Symbol nu(String s, String parseableName) {
     s = s.intern();
     if (map.containsKey(s)) {
       return map.get(s);
     }
 
-    Symbol result = new Symbol(s);
+    Symbol result = new Symbol(s, parseableName);
     map.put(s, result);
     return result;
+  }
+
+  public static ArcObject parse(String s) {
+    return make(s.substring(1, s.length() - 1));
   }
 
   public String name() {

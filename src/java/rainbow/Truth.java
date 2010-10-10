@@ -10,7 +10,7 @@ public class Truth extends Symbol {
   public static final Truth T = new Truth();
 
   private Truth() {
-    super("t");
+    super("t", "t");
   }
 
   public boolean literal() {

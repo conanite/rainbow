@@ -83,11 +83,7 @@ public class Typing {
 
     SYM.addCoercion(STRING, new Coercion("string-sym") {
       public ArcObject coerce(ArcObject original) {
-        String source = ((ArcString) original).value();
-        if ("".equals(source)) {
-          return Symbol.EMPTY_STRING;
-        }
-        return Symbol.make(source);
+        return Symbol.make(((ArcString) original).value());
       }
     });
 
@@ -96,7 +92,7 @@ public class Typing {
         if (original instanceof Nil) {
           return ArcString.make("");
         }
-        String source = original.toString();
+        String source = original.disp();
         return ArcString.make(source);
       }
     });

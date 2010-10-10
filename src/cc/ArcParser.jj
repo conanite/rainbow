@@ -24,6 +24,18 @@ public class ArcParser {
     this(new ByteArrayInputStream(expression.getBytes()));
   }
 
+  private static final ArcObject testToken = ArcString.make("___return_this_if_you_are_a_symbol_to_distinguish_from_other_kinds_of_tokens___");
+
+  public static boolean isNonSymAtom(String s) {
+    try {
+      return new ArcParser(s).nonSym(testToken) != testToken;
+    } catch (ParseException pe) {
+      return true;
+    } catch (TokenMgrError pe) {
+      return true;
+    }
+  }
+
   private static String cleanString(String s) {
     StringBuffer sb = new StringBuffer();
     boolean escaping = false;
@@ -86,9 +98,14 @@ TOKEN : /* identifier */
 | < #INITIAL : <LETTER> | <GREEK> | <SPECIAL_INITIAL> >
 | < #LETTER : ["a"-"z","A"-"Z"] >
 | < #GREEK : ["\u0391"-"\u03A9","\u03B1"-"\u03C9"] >
-| < #SPECIAL_INITIAL : ["+","-","$","%","&","*","/","<","=",">","?","^","_","~", "|"] >
+| < #SPECIAL_INITIAL : ["+","-","$","%","&","*","/","<","=",">","?","^","_","~"] >
 | < #SPECIAL_SUBSEQUENT : [".","!",":"] >
-| < #SUBSEQUENT : <INITIAL> | <DIGIT> | <SPECIAL_SUBSEQUENT> >
+| < #SUBSEQUENT : <INITIAL> | <DIGIT> | <SPECIAL_SUBSEQUENT> | "\\|" >
+}
+
+TOKEN : /* symbol enclosed in pipes |sym| */
+{
+  <PIPE_IDENTIFIER   : "|" (~["|"])* "|" >
 }
 
 TOKEN :
@@ -251,8 +268,25 @@ ArcObject atom():             { Token s; ArcObject o; } {
   | s=<NAN>                   { return Real.nan();                                      }
   | s=<FRACTION>              { return Rational.parse(s.toString());                    }
   | o=string()                { return o;                                               }
-  | s=<IDENTIFIER>            { return Symbol.make(s.toString());                       }
   | s=<CHARACTER>             { return ArcCharacter.make(s.toString());                 }
   | s=<HEX_INTEGER>           { return Rational.parseHex(s.toString());                 }
+  | s=<PIPE_IDENTIFIER>       { return Symbol.parse(s.toString());                      }
+  | s=<IDENTIFIER>            { return Symbol.make(s.toString());                       }
+  )
+}
+
+ArcObject nonSym(ArcObject not): { Token s; ArcObject o; } {
+  ( s=<COMPLEX>               { return Complex.parse(s.toString());                     }
+  | s=<INTEGER>               { return Rational.make(Long.parseLong(s.toString()), 1);  }
+  | s=<DOUBLE>                { return Real.parse(s.toString());                        }
+  | s=<POS_INF>               { return Real.positiveInfinity();                         }
+  | s=<NEG_INF>               { return Real.negativeInfinity();                         }
+  | s=<NAN>                   { return Real.nan();                                      }
+  | s=<FRACTION>              { return Rational.parse(s.toString());                    }
+  | o=string()                { return o;                                               }
+  | s=<CHARACTER>             { return ArcCharacter.make(s.toString());                 }
+  | s=<HEX_INTEGER>           { return Rational.parseHex(s.toString());                 }
+  | s=<PIPE_IDENTIFIER>       { return not;                                             }
+  | s=<IDENTIFIER>            { return not;                                             }
   )
 }
