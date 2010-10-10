@@ -13,6 +13,6 @@ public class WriteC extends Builtin {
 
   public ArcObject invoke(Pair args) {
     chooseOutputPort(args.cdr().car(), this).writeChar(ArcCharacter.cast(args.car(), this));
-    return NIL;
+    return args.car();
   }
 }

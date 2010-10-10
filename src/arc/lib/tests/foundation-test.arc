@@ -124,6 +124,10 @@
             (inside out)
           ))
           "F")
+
+        ("writec returns its argument" ; thanks rocketnia, http://arclanguage.org/item?id=12269
+          (writec #\C (outstring))
+          #\C)
       )
 
       (suite "reading"
