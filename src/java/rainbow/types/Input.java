@@ -35,7 +35,7 @@ public class Input extends LiteralObject {
       if (reader != null) {
         parser = new ArcParser(reader);
       } else {
-        parser = new ArcParser(getInputStream());
+        parser = new ArcParser(getInputStream(), "utf8");
       }
     }
     return parser;
@@ -82,9 +82,17 @@ public class Input extends LiteralObject {
       throw new ArcError("This Input is already used as a byte stream");
     }
     if (reader == null) {
-      reader = new PushbackReader(new InputStreamReader(original));
+      makeReader();
     }
     return reader;
+  }
+
+  private void makeReader() {
+    try {
+      reader = new PushbackReader(new InputStreamReader(original, "utf8"));
+    } catch (UnsupportedEncodingException e) {
+      reader = new PushbackReader(new InputStreamReader(original));
+    }
   }
 
   private void notClosed() {

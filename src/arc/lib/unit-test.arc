@@ -87,5 +87,7 @@
                       rainbow/tests/extra-math-test
                       rainbow/tests/chained-ssexpand-test
                       rainbow/tests/string-interpolation-test
-                      rainbow/tests/java-interface-test))))
+                      rainbow/tests/java-interface-test
+                      rainbow/tests/misc-extra-test
+                      ))))
   (run-all-tests))

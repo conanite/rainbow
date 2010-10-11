@@ -21,7 +21,7 @@ import rainbow.types.*;
 
 public class ArcParser {
   public ArcParser(String expression) {
-    this(new ByteArrayInputStream(expression.getBytes()));
+    this(new ByteArrayInputStream(expression.getBytes()), "utf8");
   }
 
   private static final ArcObject testToken = ArcString.make("___return_this_if_you_are_a_symbol_to_distinguish_from_other_kinds_of_tokens___");
@@ -95,9 +95,9 @@ TOKEN: /* infinities and NaN */
 TOKEN : /* identifier */
 {
   < IDENTIFIER : ( <SUBSEQUENT> )+ >
-| < #INITIAL : <LETTER> | <GREEK> | <SPECIAL_INITIAL> >
+| < #INITIAL : <LETTER> | <OTHER> | <SPECIAL_INITIAL> >
 | < #LETTER : ["a"-"z","A"-"Z"] >
-| < #GREEK : ["\u0391"-"\u03A9","\u03B1"-"\u03C9"] >
+| < OTHER : ["\u0080"-"\uFFFF"] >
 | < #SPECIAL_INITIAL : ["+","-","$","%","&","*","/","<","=",">","?","^","_","~"] >
 | < #SPECIAL_SUBSEQUENT : [".","!",":"] >
 | < #SUBSEQUENT : <INITIAL> | <DIGIT> | <SPECIAL_SUBSEQUENT> | "\\|" >
@@ -127,7 +127,7 @@ TOKEN :
 TOKEN : /* characters */
 {
   < CHARACTER            : <SINGLE_CHARACTER> | <TAB_CHARACTER> | <RETURN_CHARACTER> | <SPACE_CHARACTER> | <NEWLINE_CHARACTER> | <NULL_CHARACTER> | <ASCII_CHARACTER> | <UNICODE_CHARACTER> >
-| < #SINGLE_CHARACTER    : "#\\" (<SUBSEQUENT> | ["A"-"Z"] | [",","?","'","\"","\\","`",";","#","(",")","[","]","{","}"," ","@"])  >
+| < #SINGLE_CHARACTER    : "#\\" (~[])  >
 | < #NEWLINE_CHARACTER   : "#\\newline"                                                       >
 | < #TAB_CHARACTER       : "#\\tab"                                                           >
 | < #SPACE_CHARACTER     : "#\\space"                                                         >

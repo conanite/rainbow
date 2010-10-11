@@ -106,7 +106,7 @@ public class Console {
   }
 
   private static void repl(VM vm) throws ParseException {
-    ArcParser parser = new ArcParser(System.in);
+    ArcParser parser = new ArcParser(System.in, "utf8");
     while (true) {
       System.out.print("arc> ");
       try {
@@ -167,7 +167,7 @@ public class Console {
   }
 
   public static void load(VM vm, InputStream stream) throws ParseException {
-    ArcParser parser = new ArcParser(stream);
+    ArcParser parser = new ArcParser(stream, "utf8");
     ArcObject expression = parser.parseOneLine();
     while (expression != null) {
       compileAndEval(vm, expression);
