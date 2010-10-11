@@ -37,7 +37,6 @@ public class BoundSymbol extends ArcObject {
       n--;
     }
     return lc.at(index);
-//    return lc.nth(nesting).at(index);
   }
 
   public void addInstructions(List i) {
@@ -49,7 +48,6 @@ public class BoundSymbol extends ArcObject {
   }
 
   public String toString() {
-//    return name + "[" + nesting + ":" + index + "]";
     return name.toString();
   }
 

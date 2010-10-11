@@ -279,7 +279,6 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
 
   public void addInstructions(List i) {
     if (requiresClosure()) {
-//      System.out.println("requires closure : " + this);
       i.add(new Close(this));
     } else {
       i.add(new Literal(this));
