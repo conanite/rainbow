@@ -104,3 +104,14 @@
         (no:cdr toks)
         car.toks
         `(string ,@toks))))
+
+; don't need to implement this in java
+(def macex1 (expr)
+  (let macro car.expr
+    (if (and (isa macro 'sym)
+             (bound macro)
+             (isa (eval macro) 'mac))
+      (let mac-impl (rep:eval macro)
+        (apply mac-impl cdr.expr))
+      expr)))
+

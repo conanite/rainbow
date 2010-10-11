@@ -27,6 +27,10 @@
     (map no '(a nil 4 nil (x y z) nil (obj x 1 y 2) nil))
     (nil t nil t nil t nil t))
 
+  ("macex1 is implemented"
+    (macex1 '(let a 10 (pr a)))
+    (with (a 10) (pr a)))
+
   (suite "optional args nested inside destructuring args"
     ; with thanks to rocketnia http://www.arclanguage.org/item?id=12528
     ("simple case: no destructuring"
