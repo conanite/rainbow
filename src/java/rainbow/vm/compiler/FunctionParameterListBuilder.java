@@ -21,6 +21,10 @@ public class FunctionParameterListBuilder {
 
   public static ArcObject build(VM vm, ArcObject parameters, Map[] lexicalBindings) {
     index(parameters, lexicalBindings[0], new int[]{0}, false);
+    return buildParams(vm, parameters, lexicalBindings);
+  }
+
+  private static ArcObject buildParams(VM vm, ArcObject parameters, Map[] lexicalBindings) {
     ArcObject complexParams = ArcObject.NIL;
     List result = new LinkedList();
 
@@ -40,7 +44,7 @@ public class FunctionParameterListBuilder {
             ArcObject compiledOptionalExpression = Compiler.compile(vm, maybeOptional.cdr().cdr().car(), lexicalBindings);
             result.add(Pair.buildFrom(O, optionalParamName, compiledOptionalExpression));
           } else {
-            result.add(first);
+            result.add(buildParams(vm, first, lexicalBindings).cdr());
           }
         }
       }
