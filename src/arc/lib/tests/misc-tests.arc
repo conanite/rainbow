@@ -27,6 +27,20 @@
     (map no '(a nil 4 nil (x y z) nil (obj x 1 y 2) nil))
     (nil t nil t nil t nil t))
 
+  (suite "optional args nested inside destructuring args"
+    ; with thanks to rocketnia http://www.arclanguage.org/item?id=12528
+    ("simple case: no destructuring"
+      (let default 2 ((fn ((o x default)) x)))
+      2)
+
+    ("destructuring with solo optional arg"
+      (let default 2 (let ((o x default)) nil x))
+      2)
+
+    ("destructuring alongside another arg"
+      (let default 2 (let (a (o b default)) '(1) b))
+      2))
+
   (suite "dfn: a superior def"
     ("use to stringify"
       (tostring:dfn-test 'hello)
