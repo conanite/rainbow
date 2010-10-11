@@ -38,6 +38,15 @@
         start
         (+ start len.token)))
 
+(def read-symbol (txt index)
+  (let a (coerce txt 'cons)
+    (if (is car.a #\|)
+        (let b (rev:cdr a)
+          (if (is car.b #\|)
+              (sym (coerce (rev:cdr b) 'string))
+              (err (string "unrecognised token: " txt " at " index))))
+        (sym txt))))
+
 (def tokenise-other (token start kind)
   (let tokend (+ start len.token)
     (if kind
@@ -49,7 +58,7 @@
               (any? c0 #\. #\+ #\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
               (on-err (fn (ex) (list 'sym (sym token) start tokend))
                       (fn () (list 'int (coerce token 'num) start tokend)))
-              (list 'sym (if (is token "||") '|| (sym token)) start tokend))))))
+              (list 'sym (read-symbol token start) start tokend))))))
 
 (def char-terminator (ch)
   (or syntax-chars.ch whitespace?.ch (any? ch #\" #\, #\#)))
@@ -311,7 +320,9 @@
     (list (rev result) (linecount))))
 
 (def si-repl ()
-  (prn "enjoy interpolating. type x! to return to the usual repl")
+  (prn "Type x! to return to the usual repl.
+Interpolations look like this: \"string content \#( interpolated-value ), and also \#( (interpolated function call) ).
+Enjoy interpolating.")
   ((afn ()
         (pr "arc$ ")
         (on-err (fn (ex)
