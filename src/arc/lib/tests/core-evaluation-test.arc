@@ -5,14 +5,15 @@
     (suite "[ _ ] shortcut"
       ("call directly"
         ([* _ _] 15)
-        225
-      )
+        225)
 
       ("useful in apply"
         (apply [* _ _] '(16))
-        256
-      )
-    )
+        256)
+
+      ("handles empty bracket-fn"
+        ([] 21)
+        nil))
 
     (suite "apply"
       ("a simple sum function"

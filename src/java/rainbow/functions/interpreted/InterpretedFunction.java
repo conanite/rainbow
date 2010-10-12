@@ -5,10 +5,7 @@ import rainbow.Console;
 import rainbow.LexicalClosure;
 import rainbow.Nil;
 import rainbow.functions.Builtin;
-import rainbow.types.ArcObject;
-import rainbow.types.ArcString;
-import rainbow.types.Pair;
-import rainbow.types.Symbol;
+import rainbow.types.*;
 import rainbow.vm.Instruction;
 import rainbow.vm.VM;
 import rainbow.vm.compiler.FunctionBodyBuilder;
@@ -16,10 +13,7 @@ import rainbow.vm.compiler.FunctionParameterListBuilder;
 import rainbow.vm.instructions.Close;
 import rainbow.vm.instructions.Literal;
 import rainbow.vm.instructions.PopArg;
-import rainbow.vm.interpreter.BoundSymbol;
-import rainbow.vm.interpreter.IfClause;
-import rainbow.vm.interpreter.Quotation;
-import rainbow.vm.interpreter.StackSymbol;
+import rainbow.vm.interpreter.*;
 import rainbow.vm.interpreter.visitor.FunctionOwnershipVisitor;
 import rainbow.vm.interpreter.visitor.MeasureLexicalReach;
 import rainbow.vm.interpreter.visitor.ReferenceCounter;
@@ -332,8 +326,12 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
 
   public String toString() {
     if (isBracketFn()) {
-      String s = body[0].toString();
-      return "[" + s.substring(1, s.length() - 1) + "]";
+      if (body[0] instanceof Nil) {
+        return "[]";
+      } else {
+        String s = body[0].toString();
+        return "[" + s.substring(1, s.length() - 1) + "]";
+      }
     }
     List<ArcObject> fn = new LinkedList<ArcObject>();
     fn.add(Symbol.mkSym("fn"));
@@ -343,7 +341,7 @@ public abstract class InterpretedFunction extends ArcObject implements Cloneable
   }
 
   private boolean isBracketFn() {
-    return parameterList instanceof Pair && parameterList.car() == Symbol.mkSym("_") && parameterList.cdr() instanceof Nil && body.length == 1;
+    return parameterList instanceof Pair && parameterList.car() == Symbol.mkSym("_") && parameterList.cdr() instanceof Nil && body.length == 1 && !(body[0] instanceof LiteralObject);
   }
 
   public ArcObject parameterList() {

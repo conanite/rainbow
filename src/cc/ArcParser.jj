@@ -194,7 +194,7 @@ ArcObject functionShortcut(): {
                               } {
   tok = "[" (
   o = expression()            { list.add(o); }
-  )+ "]"                      {
+  )* "]"                      {
                                 fn.add(Pair.buildFrom(list));
                                 return Pair.buildFrom(fn);
                               }
