@@ -13,6 +13,10 @@ public class Annotate extends Builtin {
   public ArcObject invoke(Pair args) {
     ArcObject type = args.car();
     ArcObject rep = args.cdr().car();
-    return new Tagged(type, rep);
+    if (type == rep.type()) {
+      return rep;
+    } else {
+      return new Tagged(type, rep);
+    }
   }
 }

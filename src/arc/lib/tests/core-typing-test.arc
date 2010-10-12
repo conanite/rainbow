@@ -323,6 +323,14 @@
           3 )))
 
     (suite "Annotation"
+      ("(rep x) == x for builtin types"
+        (rep 'foo)
+        foo)
+
+      ("don't wrap objects already of the given type"
+        (rep (annotate 'a (annotate 'a 'foo)))
+        foo)
+
       ("get the type of an annotation"
         (type (annotate 'foo 'bar))
         foo )

@@ -11,6 +11,11 @@ public class Rep extends Builtin {
   }
 
   public ArcObject invoke(Pair args) {
-    return Tagged.cast(args.car(), this).getRep();
+    ArcObject arg = args.car();
+    if (arg instanceof Tagged) {
+      return Tagged.cast(args.car(), this).getRep();
+    } else {
+      return arg;
+    }
   }
 }
