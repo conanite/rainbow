@@ -321,7 +321,7 @@
 
 (def si-repl ()
   (prn "Type x! to return to the usual repl.
-Interpolations look like this: \"string content \#( interpolated-value ), and also \#( (interpolated function call) ).
+Interpolations look like this: \"string content " #\# "( interpolated-value ), and also " #\# "( (interpolated function call) ).
 Enjoy interpolating.")
   ((afn ()
         (pr "arc$ ")
